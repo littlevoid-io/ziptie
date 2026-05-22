@@ -1,3 +1,9 @@
+# Set UTF-8 encoding
+$OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::InputEncoding = [System.Text.Encoding]::UTF8
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+chcp 65001 | Out-Null
+
 # Set console colors
 $Host.UI.RawUI.BackgroundColor = "Black"; $Host.UI.RawUI.ForegroundColor = "White"; Clear-Host
 Write-Host "==========================================================" -ForegroundColor Green
@@ -71,6 +77,10 @@ if ($null -ne $bg -and $bg -ne $false) {
     }
     Assert-Registry -Path "HKCU:\Control Panel\Colors" -Name "Background" -ExpectedValue $rgb
     Assert-Registry -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers" -Name "BackgroundType" -ExpectedValue 1
+}
+if ($config.lockdown.enableDarkMode) {
+    Assert-Registry -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name "AppsUseLightTheme" -ExpectedValue 0
+    Assert-Registry -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name "SystemUsesLightTheme" -ExpectedValue 0
 }
 if ($config.lockdown.setPowerSettings) {
     Write-Host "Asserting active power scheme..." -NoNewline
