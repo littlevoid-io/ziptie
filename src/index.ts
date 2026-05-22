@@ -62,11 +62,6 @@ const runPowerShellScript = (
     child.stderr.on('data', (data) => { stderr += data.toString(); });
 
     child.on('close', (code) => {
-      if (process.platform === 'win32') {
-        try {
-          execSync('chcp 65001', { stdio: 'ignore' });
-        } catch {}
-      }
       if (code === 0) {
         resolve();
       } else {
@@ -98,9 +93,6 @@ async function main() {
     process.exit(1);
   }
 
-  try {
-    execSync('chcp 65001', { stdio: 'ignore' });
-  } catch {}
 
   // 1. Elevate process if not Administrator
   if (!isAdmin() && !dryRun) {
