@@ -84,8 +84,8 @@
       "properties": {
         "provider": {
           "type": "string",
-          "enum": ["winget", "none"],
-          "description": "The system package manager. 'winget' uses the built-in Windows 11 package manager. 'none' disables online package manager downloads."
+          "enum": ["winget", "choco", "none"],
+          "description": "The system package manager. 'winget' uses the built-in Windows 11 package manager. 'choco' uses Chocolatey. 'none' disables online package manager downloads."
         },
         "allowOfflineFallback": {
           "type": "boolean",

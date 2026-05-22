@@ -44,7 +44,7 @@ const defaultConfig = {
     provider: "winget",
     allowOfflineFallback: true,
     localInstallersPath: ".\\installers",
-    apps: ["Node.js", "Git.Git"]
+    apps: ["CoreyButler.NVMforWindows", "Microsoft.VisualStudioCode", "Git.Git"]
   },
   lockdown: {
     disableScreensaver: true,

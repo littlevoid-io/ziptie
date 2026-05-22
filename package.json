@@ -24,7 +24,7 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
-    "sandbox": "node scripts/launch-sandbox.js"
+    "sandbox": "npm run build && node scripts/launch-sandbox.js"
   },
   "dependencies": {
     "sudo-prompt": "^9.2.1"
