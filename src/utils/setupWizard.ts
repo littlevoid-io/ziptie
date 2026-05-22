@@ -1,6 +1,6 @@
 import * as fs from 'node:fs';
 import { execSync } from 'node:child_process';
-import { select, text, outro, note } from '@clack/prompts';
+import { select, text, outro, note, isCancel } from '@clack/prompts';
 import chalk from 'chalk';
 import deepmerge from 'deepmerge';
 
@@ -34,7 +34,7 @@ export async function runSetupWizard(defaultConfigPath: string, userConfigPath: 
     ]
   });
 
-  if (typeof action === 'symbol') {
+  if (isCancel(action)) {
     outro(chalk.yellow('Setup wizard cancelled.'));
     process.exit(0);
   }
@@ -71,14 +71,14 @@ export async function runSetupWizard(defaultConfigPath: string, userConfigPath: 
     const computerName = await text({
       message: 'Enter computer name:',
       placeholder: defaultConfig.system.computerName,
-      defaultValue: defaultConfig.system.computerName,
+      initialValue: defaultConfig.system.computerName,
       validate(value) {
         if (value.trim().length === 0) return 'Computer name cannot be empty.';
         if (/[^a-zA-Z0-9-]/.test(value)) return 'Computer name can only contain alphanumeric characters and hyphens.';
       }
     });
 
-    if (typeof computerName === 'symbol') {
+    if (isCancel(computerName)) {
       outro(chalk.yellow('Setup wizard cancelled.'));
       process.exit(0);
     }
@@ -86,13 +86,13 @@ export async function runSetupWizard(defaultConfigPath: string, userConfigPath: 
     const timezone = await text({
       message: 'Enter system timezone (or "auto" to automatically detect):',
       placeholder: defaultConfig.system.timezone,
-      defaultValue: defaultConfig.system.timezone,
+      initialValue: defaultConfig.system.timezone,
       validate(value) {
         if (value.trim().length === 0) return 'Timezone cannot be empty.';
       }
     });
 
-    if (typeof timezone === 'symbol') {
+    if (isCancel(timezone)) {
       outro(chalk.yellow('Setup wizard cancelled.'));
       process.exit(0);
     }
@@ -100,13 +100,13 @@ export async function runSetupWizard(defaultConfigPath: string, userConfigPath: 
     const username = await text({
       message: 'Enter autologon low-privilege username:',
       placeholder: defaultConfig.autologon.username,
-      defaultValue: defaultConfig.autologon.username,
+      initialValue: defaultConfig.autologon.username,
       validate(value) {
         if (value.trim().length === 0) return 'Username cannot be empty.';
       }
     });
 
-    if (typeof username === 'symbol') {
+    if (isCancel(username)) {
       outro(chalk.yellow('Setup wizard cancelled.'));
       process.exit(0);
     }
@@ -114,13 +114,13 @@ export async function runSetupWizard(defaultConfigPath: string, userConfigPath: 
     const executable = await text({
       message: 'Enter exhibit startup executable/batch file name (relative to C:\\Exhibit):',
       placeholder: defaultConfig.startupTask.executable,
-      defaultValue: defaultConfig.startupTask.executable,
+      initialValue: defaultConfig.startupTask.executable,
       validate(value) {
         if (value.trim().length === 0) return 'Executable name cannot be empty.';
       }
     });
 
-    if (typeof executable === 'symbol') {
+    if (isCancel(executable)) {
       outro(chalk.yellow('Setup wizard cancelled.'));
       process.exit(0);
     }
@@ -128,13 +128,13 @@ export async function runSetupWizard(defaultConfigPath: string, userConfigPath: 
     const workingDir = await text({
       message: 'Enter exhibit startup working directory:',
       placeholder: defaultConfig.startupTask.workingDir,
-      defaultValue: defaultConfig.startupTask.workingDir,
+      initialValue: defaultConfig.startupTask.workingDir,
       validate(value) {
         if (value.trim().length === 0) return 'Working directory cannot be empty.';
       }
     });
 
-    if (typeof workingDir === 'symbol') {
+    if (isCancel(workingDir)) {
       outro(chalk.yellow('Setup wizard cancelled.'));
       process.exit(0);
     }
