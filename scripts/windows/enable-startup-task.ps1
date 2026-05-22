@@ -9,7 +9,7 @@ Param(
 $tweakEnabled = $Config.startupTask.enabled
 $shouldUndo = $Undo -or !$tweakEnabled
 
-$taskName = "SlabExhibitLaunch"
+$taskName = "Launch Exhibit"
 $taskPath = "\Slab\"
 
 if ($shouldUndo) {

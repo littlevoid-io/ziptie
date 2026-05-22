@@ -4,7 +4,7 @@ Write-Host "==========================================================" -Foregro
 Write-Host "         SLAB AUTOMATED SANDBOX INTEGRATION TESTS          " -ForegroundColor Green
 Write-Host "==========================================================" -ForegroundColor Green
 Write-Host "`nExecuting Slab in active modification mode..." -ForegroundColor Cyan
-& "C:\slab\slab.ps1" -ConfigPath "C:\slab\slab.default.config.json"
+& "C:\slab\dist\slab.exe" -c "C:\slab\slab.default.config.json" -y
 Write-Host "Slab execution finished. Verifying system state..." -ForegroundColor Cyan
 
 $success = $true
@@ -56,7 +56,7 @@ if ($config.lockdown.configureExplorer) {
 if ($config.lockdown.clearDesktopIcons) {
     Assert-Registry -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideIcons" -ExpectedValue 1
 }
-if ($config.startupTask.enabled) { Assert-ScheduledTask -TaskName "SlabExhibitLaunch" -TaskPath "\Slab\" }
+if ($config.startupTask.enabled) { Assert-ScheduledTask -TaskName "Launch Exhibit" -TaskPath "\Slab\" }
 if ($config.system.timezone -eq "auto") {
     Assert-Registry -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location" -Name "Value" -ExpectedValue "Allow"
 }
