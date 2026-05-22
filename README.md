@@ -61,6 +61,13 @@ npm run sandbox
 ```
 This command compiles the CLI, dynamically generates a .wsb mapping configuration at `.tmp/slab-sandbox.wsb` (gitignored), mounts the repository to `C:\slab` inside the guest environment, and runs `test/run-sandbox-tests.ps1` to validate the active configuration state.
 
+### 8. Test the One-Line Bootstrap Installer in a Clean Sandbox
+To verify the one-line bootstrap installer completely from scratch inside an isolated, clean Windows Sandbox with **no local folders mounted** (simulating a pure client machine with internet access):
+```bash
+npm run sandbox:installer
+```
+This command dynamically generates a `.wsb` configuration at `.tmp/slab-sandbox-installer.wsb` (gitignored) and launches Windows Sandbox to execute the GitHub one-line command (`irm | iex`) in an elevated guest PowerShell window automatically at logon.
+
 
 ---
 

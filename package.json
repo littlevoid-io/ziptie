@@ -26,6 +26,7 @@
     "build": "bun build ./src/index.ts --target=node --outfile=dist/index.js",
     "package": "bun build --compile --target=node ./src/index.ts --outfile=dist/slab.exe",
     "sandbox": "npm run package && node test/launch-sandbox.js",
+    "sandbox:installer": "node test/launch-sandbox-installer.js",
     "release": "node scripts/release.js"
   },
   "dependencies": {
