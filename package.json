@@ -2,6 +2,7 @@
   "name": "@littlevoid/slab",
   "version": "2.0.0",
   "description": "A modern, quirky, zero-dependency, and air-gap friendly Windows 11 kiosk and exhibit bootstrapping utility.",
+  "type": "module",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -34,7 +35,6 @@
   "devDependencies": {
     "@types/node": "^20.0.0",
     "esbuild": "^0.28.0",
-    "pkg": "^5.8.1",
     "typescript": "^5.0.0"
   }
 }

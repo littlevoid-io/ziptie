@@ -9,10 +9,7 @@ Param(
 $tweakEnabled = $Config.lockdown.unpinStartMenuApps
 $shouldUndo = $Undo -or !$tweakEnabled
 
-$registryTweak = {
-    Param([String]$Path, [String]$Name, [Object]$Value, [String]$Type, [Switch]$Remove, [Switch]$DryRun)
-    & "$PSScriptRoot/../../src/powershell/utils/slab-set-registry.ps1" -Path $Path -Name $Name -Value $Value -PropertyType $Type -Remove:$Remove -DryRun:$DryRun
-}
+. "$PSScriptRoot/../../src/powershell/utils/slab-init.ps1"
 
 $osName = (Get-ComputerInfo | Select-Object -ExpandProperty OsName)
 $isWin11 = $osName -match "Windows 11"
@@ -22,11 +19,11 @@ $explorerPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer"
 if ($isWin11) {
     if ($shouldUndo) {
         Write-Host "Restoring default Windows 11 Start Menu layout pins..." -ForegroundColor Cyan
-        &$registryTweak -Path $explorerPath -Name "ConfigureStartPins" -Remove -DryRun:$DryRun
+        &$registryTweak -Path $explorerPath -Name "ConfigureStartPins" -Remove
     } else {
         Write-Host "Configuring clean empty Start Menu layout pins on Windows 11..." -ForegroundColor Cyan
         $layoutJson = '{"pinnedList":[]}'
-        &$registryTweak -Path $explorerPath -Name "ConfigureStartPins" -Value $layoutJson -Type "String" -DryRun:$DryRun
+        &$registryTweak -Path $explorerPath -Name "ConfigureStartPins" -Value $layoutJson -Type "String"
     }
 } else {
     # Windows 10 legacy handling

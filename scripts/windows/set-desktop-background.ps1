@@ -20,10 +20,7 @@ if ($bgConfig -eq $true) {
     $rgbColor = "$r $g $b"
 }
 
-$registryTweak = {
-    Param([String]$Path, [String]$Name, [Object]$Value, [String]$Type, [Switch]$Remove, [Switch]$DryRun)
-    & "$PSScriptRoot/../../src/powershell/utils/slab-set-registry.ps1" -Path $Path -Name $Name -Value $Value -PropertyType $Type -Remove:$Remove -DryRun:$DryRun
-}
+. "$PSScriptRoot/../../src/powershell/utils/slab-init.ps1"
 
 $userWallpapersPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers"
 $userColorsPath = "HKCU:\Control Panel\Colors"
@@ -32,27 +29,15 @@ $userDesktopPath = "HKCU:\Control Panel\Desktop"
 if ($shouldUndo) {
     Write-Host "Restoring default desktop background settings..." -ForegroundColor Cyan
     
-    &$registryTweak -Path $userColorsPath -Name "Background" -Value "0 120 215" -Type "String" -DryRun:$DryRun
-    &$registryTweak -Path $userDesktopPath -Name "Wallpaper" -Remove -DryRun:$DryRun
-    &$registryTweak -Path $userWallpapersPath -Name "BackgroundType" -Value 0 -Type "DWord" -DryRun:$DryRun
-
-    if (Test-Path "HKU:\DefaultUser") {
-        &$registryTweak -Path "HKU:\DefaultUser\Control Panel\Colors" -Name "Background" -Value "0 120 215" -Type "String" -DryRun:$DryRun
-        &$registryTweak -Path "HKU:\DefaultUser\Control Panel\Desktop" -Name "Wallpaper" -Remove -DryRun:$DryRun
-        &$registryTweak -Path "HKU:\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers" -Name "BackgroundType" -Value 0 -Type "DWord" -DryRun:$DryRun
-    }
+    &$registryTweak -Path $userColorsPath -Name "Background" -Value "0 120 215" -Type "String"
+    &$registryTweak -Path $userDesktopPath -Name "Wallpaper" -Remove
+    &$registryTweak -Path $userWallpapersPath -Name "BackgroundType" -Value 0 -Type "DWord"
 } else {
     Write-Host "Setting desktop background to solid color ($rgbColor)..." -ForegroundColor Cyan
     
-    &$registryTweak -Path $userColorsPath -Name "Background" -Value $rgbColor -Type "String" -DryRun:$DryRun
-    &$registryTweak -Path $userDesktopPath -Name "Wallpaper" -Value "" -Type "String" -DryRun:$DryRun
-    &$registryTweak -Path $userWallpapersPath -Name "BackgroundType" -Value 1 -Type "DWord" -DryRun:$DryRun
-
-    if (Test-Path "HKU:\DefaultUser") {
-        &$registryTweak -Path "HKU:\DefaultUser\Control Panel\Colors" -Name "Background" -Value $rgbColor -Type "String" -DryRun:$DryRun
-        &$registryTweak -Path "HKU:\DefaultUser\Control Panel\Desktop" -Name "Wallpaper" -Value "" -Type "String" -DryRun:$DryRun
-        &$registryTweak -Path "HKU:\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers" -Name "BackgroundType" -Value 1 -Type "DWord" -DryRun:$DryRun
-    }
+    &$registryTweak -Path $userColorsPath -Name "Background" -Value $rgbColor -Type "String"
+    &$registryTweak -Path $userDesktopPath -Name "Wallpaper" -Value "" -Type "String"
+    &$registryTweak -Path $userWallpapersPath -Name "BackgroundType" -Value 1 -Type "DWord"
 }
 
 if (!$DryRun) {
