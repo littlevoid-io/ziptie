@@ -7,18 +7,32 @@ Param(
 )
 
 $tweakEnabled = $Config.lockdown.unpinStartMenuApps
+$shouldUndo = $Undo -or !$tweakEnabled
 
-if ($Undo -or !$tweakEnabled) {
-    return
-}
+. "$PSScriptRoot/../../src/powershell/utils/slab-init.ps1"
 
-# Slab targets modern Windows 11
 $osName = (Get-ComputerInfo | Select-Object -ExpandProperty OsName)
-if ($osName -match "Windows 11") {
-    Write-Host "Unpinning legacy Start Menu apps is a Windows 10 specific operation. Modern Windows 11 pins are managed via JSON layouts or GPOs. Skipping." -ForegroundColor Gray
+$isWin11 = $osName -match "Windows 11"
+
+$explorerPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer"
+
+if ($isWin11) {
+    if ($shouldUndo) {
+        Write-Host "Restoring default Windows 11 Start Menu layout pins..." -ForegroundColor Cyan
+        &$registryTweak -Path $explorerPath -Name "ConfigureStartPins" -Remove
+    } else {
+        Write-Host "Configuring clean empty Start Menu layout pins on Windows 11..." -ForegroundColor Cyan
+        $layoutJson = '{"pinnedList":[]}'
+        &$registryTweak -Path $explorerPath -Name "ConfigureStartPins" -Value $layoutJson -Type "String"
+    }
 } else {
-    Write-Host "Windows 10 detected. Running unpin script..." -ForegroundColor Cyan
-    # Legacy unpin shell COM verbs implementation for Windows 10
+    # Windows 10 legacy handling
+    if ($shouldUndo) {
+        Write-Host "Undo is not supported for legacy Windows 10 Start Menu unpinning. Skipping." -ForegroundColor Gray
+        return
+    }
+    
+    Write-Host "Windows 10 detected. Running legacy unpin script..." -ForegroundColor Cyan
     if ($DryRun) {
         Write-Host "[DRY-RUN] Unpin default apps from Windows 10 Start Menu" -ForegroundColor Yellow
     } else {

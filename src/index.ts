@@ -1,163 +1,197 @@
-import * as fs from "node:fs";
-import * as path from "node:path";
-import { spawn } from "node:child_process";
-import { fileURLToPath } from "node:url";
-import sudo from "sudo-prompt";
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { execSync } from 'node:child_process';
+import { intro, outro, confirm } from '@clack/prompts';
+import { Listr } from 'listr2';
+import chalk from 'chalk';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { ensureElevated } from './utils/elevation.js';
+import { runPowerShellScript } from './utils/powershell.js';
+import { loadAndMergeConfig, resolveProjectRoot } from './utils/config.js';
+import { runSetupWizard } from './utils/setupWizard.js';
+import { OS_LOCKDOWN_TASKS } from './tasks.js';
 
+// Parse command line arguments
 const args = process.argv.slice(2);
 const hasFlag = (flag: string, short: string) => args.includes(flag) || args.includes(short);
 const getArgValue = (flag: string, short: string): string | null => {
-    const idx = args.findIndex(a => a === flag || a === short);
-    if (idx !== -1 && idx + 1 < args.length) {
-        return args[idx + 1];
-    }
-    return null;
-};
-
-const dryRun = hasFlag("--dry-run", "-d");
-const undo = hasFlag("--undo", "-u");
-const customConfigPath = getArgValue("--config", "-c");
-
-const defaultConfig = {
-  system: {
-    computerName: "EXHIBIT-PC-01",
-    timezone: "Eastern Standard Time",
-    enableDailyReboot: false,
-    rebootTime: "03:00"
-  },
-  autologon: {
-    enabled: false,
-    username: "exhibit",
-    disablePasswordlessHello: true
-  },
-  startupTask: {
-    enabled: true,
-    workingDir: "C:\\Exhibit",
-    executable: "launch.bat",
-    trigger: "AtLogon",
-    delay: "PT1M"
-  },
-  packageManager: {
-    provider: "winget",
-    allowOfflineFallback: true,
-    localInstallersPath: ".\\installers",
-    apps: ["Node.js", "Git.Git"]
-  },
-  lockdown: {
-    disableScreensaver: true,
-    disableAccessibilityShortcuts: true,
-    disableEdgeSwipes: true,
-    disableTouchFeedback: true,
-    disableWindowsUpdate: true,
-    disableWindowsWidgets: true,
-    disableOOBEPrompts: true,
-    clearDesktopIcons: true,
-    blackDesktopBackground: true,
-    configureExplorer: true,
-    disableAppInstalls: true,
-    disableAppRestore: true,
-    disableErrorReporting: true,
-    disableFirewall: false,
-    disableMaxPathLength: true,
-    disableNewNetworkWindow: true,
-    disableNotifications: true,
-    disableTouchGestures: true,
-    enableScriptExecution: true,
-    resetTextScale: true,
-    uninstallBloatware: true,
-    uninstallOneDrive: true,
-    unpinStartMenuApps: true,
-    setPowerSettings: true
+  const idx = args.findIndex(a => a === flag || a === short);
+  if (idx !== -1 && idx + 1 < args.length) {
+    return args[idx + 1];
   }
+  return null;
 };
+
+const dryRun = hasFlag('--dry-run', '-d');
+const undo = hasFlag('--undo', '-u');
+const customConfigPath = getArgValue('--config', '-c');
+const autoConfirm = hasFlag('--yes', '-y');
 
 async function main() {
-  if (process.platform !== "win32") {
-    console.error("Error: Slab currently only supports Windows 11 / Windows 10.");
+  if (process.platform !== 'win32') {
+    console.error(chalk.red('Error: Slab currently only supports Windows.'));
     process.exit(1);
   }
 
-  const configFilePath = customConfigPath 
-    ? path.resolve(customConfigPath) 
-    : path.resolve(process.cwd(), "slab-config.json");
+  // 1. Elevate process if not Administrator and not a DryRun
+  ensureElevated(dryRun);
 
-  console.log(`Searching for slab configuration at: ${configFilePath}`);
-  
-  let userConfig: any = {};
-  if (fs.existsSync(configFilePath)) {
-    try {
-      const content = fs.readFileSync(configFilePath, "utf8");
-      userConfig = JSON.parse(content);
-      console.log("Successfully loaded user configuration.");
-    } catch (e: any) {
-      console.error(`Error parsing config file: ${e.message}`);
-      process.exit(1);
-    }
-  } else {
-    console.log("No config file found. Using default configurations.");
+  intro(chalk.bold.cyan(' 🚀 SLAB SYSTEM LOCKDOWN ENGINE '));
+
+  // Check if no user config exists and we are run interactively
+  const expectedConfigPath = customConfigPath
+    ? path.resolve(customConfigPath)
+    : path.resolve(process.cwd(), 'slab.config.json');
+
+  if (!fs.existsSync(expectedConfigPath) && !customConfigPath && !autoConfirm) {
+    const rootDir = resolveProjectRoot();
+    const defaultConfigPath = path.join(rootDir, 'slab.default.config.json');
+    await runSetupWizard(defaultConfigPath, expectedConfigPath);
   }
 
-  const mergedConfig = {
-    ...defaultConfig,
-    ...userConfig,
-    system: { ...defaultConfig.system, ...userConfig.system },
-    autologon: { ...defaultConfig.autologon, ...userConfig.autologon },
-    startupTask: { ...defaultConfig.startupTask, ...userConfig.startupTask },
-    packageManager: { ...defaultConfig.packageManager, ...userConfig.packageManager },
-    lockdown: { ...defaultConfig.lockdown, ...userConfig.lockdown }
-  };
+  // 2. Load and deep-merge default/user configurations
+  const { projectRoot, resolvedConfigPath, config } = loadAndMergeConfig(customConfigPath);
 
-  const tmpDir = path.resolve(process.cwd(), ".tmp");
-  if (!fs.existsSync(tmpDir)) {
-    fs.mkdirSync(tmpDir, { recursive: true });
-  }
-
-  const resolvedConfigPath = path.join(tmpDir, "slab-temp-config.json");
-  fs.writeFileSync(resolvedConfigPath, JSON.stringify(mergedConfig, null, 2), "utf8");
-  console.log(`Resolved configuration written to: ${resolvedConfigPath}`);
-
-  let projectRoot = path.resolve(__dirname, "..");
-  if (!fs.existsSync(path.join(projectRoot, "slab.ps1"))) {
-    projectRoot = process.cwd();
-  }
-  const slabPs1Path = path.join(projectRoot, "slab.ps1");
-
-  if (!fs.existsSync(slabPs1Path)) {
-    console.error(`Error: Could not locate slab.ps1 at ${slabPs1Path}`);
-    process.exit(1);
-  }
-
-  if (dryRun) {
-    console.log("Running in Dry-Run mode. Spawning PowerShell directly...");
-    const child = spawn("PowerShell.exe", ["-ExecutionPolicy", "Bypass", "-File", `"${slabPs1Path}"`, "-ConfigPath", `"${resolvedConfigPath}"`, "-DryRun"], {
-      stdio: "inherit",
-      shell: true
+  // Verify and confirm
+  const actionName = undo ? 'Undo Kiosk Lockdown' : 'Pour Concrete Slab & Lock Down PC';
+  let proceed: boolean | symbol = true;
+  if (!autoConfirm) {
+    proceed = await confirm({
+      message: `Ready to execute: ${chalk.bold.yellow(actionName)}?`,
+      initialValue: true,
     });
-    child.on("exit", (code) => {
-      process.exit(code ?? 0);
-    });
-  } else {
-    console.log("Elevation required. Triggering UAC elevation for Slab...");
-    const runCmd = `cmd.exe /c start /wait powershell.exe -ExecutionPolicy Bypass -NoExit -File "${slabPs1Path}" -ConfigPath "${resolvedConfigPath}"${undo ? " -Undo" : ""}`;
-    
-    sudo.exec(
-      runCmd,
-      {
-        name: "Slab Kiosk Lockdown Engine"
-      },
-      (error, stdout, stderr) => {
-        if (error) {
-          console.error(`Elevation failed: ${error.message}`);
-          process.exit(1);
+  }
+
+  if (typeof proceed === 'symbol' || !proceed) {
+    outro(chalk.yellow('Operation cancelled by the user. No changes were made.'));
+    process.exit(0);
+  }
+
+  let hiveMounted = false;
+  const scriptsDir = path.join(projectRoot, 'scripts', 'windows');
+  const utilsDir = path.join(projectRoot, 'src', 'powershell', 'utils');
+
+  // Define tasks
+  const tasks = new Listr([
+    {
+      title: 'Environment Verification',
+      task: () => {
+        if (process.platform !== 'win32') {
+          throw new Error('Slab only supports Windows.');
         }
-        if (stdout) console.log(stdout);
-        if (stderr) console.error(stderr);
-        console.log("Slab execution complete.");
       }
-    );
+    },
+    {
+      title: 'Core System Configuration',
+      task: (ctx, task) => task.newListr([
+        {
+          title: 'Configuring System Timezone',
+          task: () => runPowerShellScript(path.join(scriptsDir, 'set-timezone.ps1'), resolvedConfigPath, undo, dryRun)
+        },
+        {
+          title: 'Setting Computer Hostname',
+          task: () => runPowerShellScript(path.join(scriptsDir, 'set-computer-name.ps1'), resolvedConfigPath, undo, dryRun)
+        },
+        {
+          title: 'Configuring Scheduled Daily Reboot',
+          task: () => runPowerShellScript(path.join(scriptsDir, 'enable-daily-reboot.ps1'), resolvedConfigPath, undo, dryRun)
+        },
+        {
+          title: 'Configuring Passwordless Autologon',
+          task: () => runPowerShellScript(path.join(scriptsDir, 'enable-auto-login.ps1'), resolvedConfigPath, undo, dryRun)
+        },
+        {
+          title: 'Configuring Exhibit Startup Task',
+          task: () => runPowerShellScript(path.join(scriptsDir, 'enable-startup-task.ps1'), resolvedConfigPath, undo, dryRun)
+        },
+        {
+          title: 'Provisioning Offline/Local Apps',
+          task: () => runPowerShellScript(path.join(scriptsDir, 'install-local-apps.ps1'), resolvedConfigPath, undo, dryRun)
+        }
+      ], { concurrent: false })
+    },
+    {
+      title: 'Mounting Default User Registry Hive',
+      skip: () => dryRun,
+      task: async () => {
+        await runPowerShellScript(
+          path.join(utilsDir, 'slab-mount-hive.ps1'),
+          resolvedConfigPath,
+          undo,
+          dryRun,
+          ['-MountName', 'HKU\\DefaultUser', '-HivePath', 'C:\\Users\\Default\\NTUSER.DAT']
+        );
+        hiveMounted = true;
+      }
+    },
+    {
+      title: 'OS Lockdowns & Shell Policies',
+      task: (ctx, task) => task.newListr(
+        OS_LOCKDOWN_TASKS.map(spec => ({
+          title: undo
+            ? `${spec.undoAction || 'Restoring'} ${spec.title}`
+            : `${spec.action || 'Disabling'} ${spec.title}`,
+          task: () => runPowerShellScript(path.join(scriptsDir, spec.file), resolvedConfigPath, undo, dryRun)
+        })),
+        { concurrent: false }
+      )
+    },
+    {
+      title: 'Unmounting Default User Registry Hive',
+      skip: () => dryRun || !hiveMounted,
+      task: async () => {
+        await runPowerShellScript(
+          path.join(utilsDir, 'slab-unmount-hive.ps1'),
+          resolvedConfigPath,
+          undo,
+          dryRun,
+          ['-MountName', 'HKU\\DefaultUser']
+        );
+        hiveMounted = false;
+      }
+    },
+    {
+      title: 'Applying Shell Modifications',
+      skip: () => dryRun,
+      task: () => {
+        try {
+          execSync('powershell -Command "Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue"', { stdio: 'ignore', windowsHide: true });
+        } catch {
+          // Explorer restart fails occasionally if already stopped; ignore failure
+        }
+      }
+    }
+  ]);
+
+  try {
+    await tasks.run();
+    outro(chalk.bold.green(' ✔ Slab kiosk lockdown pipeline completed successfully! '));
+
+    if (!dryRun && !autoConfirm) {
+      console.log('');
+      const result = await confirm({
+        message: 'Would you like to restart the computer now to finalize all changes?',
+        initialValue: false
+      });
+
+      if (typeof result === 'boolean' && result) {
+        outro(chalk.bold.green(' 🔄 Restarting computer now... '));
+        execSync('shutdown /r /t 0 /f', { stdio: 'ignore', windowsHide: true });
+      } else {
+        outro(chalk.yellow('Restart skipped. Please restart manually for all changes to apply.'));
+      }
+    }
+  } catch (err: any) {
+    // Attempt rescue unmounting in case of failure
+    if (hiveMounted && !dryRun) {
+      try {
+        execSync(`powershell -Command "& '${path.join(utilsDir, 'slab-unmount-hive.ps1')}' -MountName 'HKU\\DefaultUser'"`, { stdio: 'ignore', windowsHide: true });
+      } catch {
+        // Suppress secondary failures
+      }
+    }
+    outro(chalk.bold.red(` ✘ Slab execution encountered errors: ${err.message}`));
+    process.exit(1);
   }
 }
 
