@@ -9,7 +9,7 @@ Param(
 $tweakEnabled = $Config.lockdown.disableWindowsWidgets
 $shouldUndo = $Undo -or !$tweakEnabled
 
-. "$PSScriptRoot/../../src/powershell/utils/slab-init.ps1"
+. "$PSScriptRoot/../utils/slab-init.ps1"
 
 $policyDsh = "HKLM:\SOFTWARE\Policies\Microsoft\Dsh"
 $policyFeeds = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds"

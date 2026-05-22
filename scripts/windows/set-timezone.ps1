@@ -23,17 +23,17 @@ if ($timezone -eq "auto") {
     Write-Host "Auto timezone detection enabled. Setting up Windows Geolocation Services..." -ForegroundColor Cyan
 
     # 1. Enable location service globally and user-level in registry
-    & "$PSScriptRoot/../../src/powershell/utils/slab-set-registry.ps1" -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location" -Name "Value" -Value "Allow" -PropertyType "String"
-    & "$PSScriptRoot/../../src/powershell/utils/slab-set-registry.ps1" -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location" -Name "Value" -Value "Allow" -PropertyType "String"
+    & "$PSScriptRoot/../utils/slab-set-registry.ps1" -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location" -Name "Value" -Value "Allow" -PropertyType "String"
+    & "$PSScriptRoot/../utils/slab-set-registry.ps1" -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location" -Name "Value" -Value "Allow" -PropertyType "String"
 
     # 2. Configure and start Geolocation service (lfsvc)
-    & "$PSScriptRoot/../../src/powershell/utils/slab-set-service.ps1" -ServiceName "lfsvc" -StartupType "Manual" -State "Running"
+    & "$PSScriptRoot/../utils/slab-set-service.ps1" -ServiceName "lfsvc" -StartupType "Manual" -State "Running"
 
     # 3. Configure and start Auto Time Zone Updater service (tzautoupdate)
-    & "$PSScriptRoot/../../src/powershell/utils/slab-set-service.ps1" -ServiceName "tzautoupdate" -StartupType "Manual" -State "Running"
+    & "$PSScriptRoot/../utils/slab-set-service.ps1" -ServiceName "tzautoupdate" -StartupType "Manual" -State "Running"
 
     # 4. Sync clock with NTP server to trigger update
-    & "$PSScriptRoot/../../src/powershell/utils/slab-set-service.ps1" -ServiceName "w32time" -StartupType "Manual" -State "Running"
+    & "$PSScriptRoot/../utils/slab-set-service.ps1" -ServiceName "w32time" -StartupType "Manual" -State "Running"
 
     Write-Host "Forcing NTP time synchronization..." -ForegroundColor Cyan
     & w32tm /resync

@@ -9,7 +9,7 @@ Param(
 $tweakEnabled = $Config.lockdown.enableScriptExecution
 $shouldUndo = $Undo -or !$tweakEnabled
 
-. "$PSScriptRoot/../../src/powershell/utils/slab-init.ps1"
+. "$PSScriptRoot/../utils/slab-init.ps1"
 
 if ($shouldUndo) {
     Write-Host "Restoring default script execution policy..." -ForegroundColor Cyan
