@@ -5,6 +5,12 @@ $ErrorActionPreference = "Stop"
 $targetPath = if ($InstallDir) { $InstallDir } else { $PWD.Path }
 $targetPath = [System.IO.Path]::GetFullPath($targetPath)
 
+# Avoid downloading into protected system/Windows directories or system drive root
+$systemRoot = [Environment]::GetFolderPath([Environment+SpecialFolder]::Windows)
+if ($targetPath -like "$systemRoot*" -or $targetPath -eq "C:\") {
+    $targetPath = Join-Path $HOME "Downloads\slab"
+}
+
 # 2. Elevate if not admin
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
