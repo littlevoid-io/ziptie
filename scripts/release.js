@@ -124,7 +124,7 @@ async function main() {
     // 7. Merge into main
     s.message('Merging release branch into main...');
     runCmd('git checkout main');
-    runCmd(`git merge ${branchName} --no-edit`);
+    runCmd(`git merge ${branchName} --no-edit --allow-unrelated-histories -X theirs`);
 
     // 8. Push both branches and tags to GitHub
     s.message('Pushing main, develop, and tags to GitHub...');
