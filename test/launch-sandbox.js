@@ -26,7 +26,7 @@ const wsbContent = `<Configuration>
     </MappedFolder>
   </MappedFolders>
   <LogonCommand>
-    <Command>powershell.exe -ExecutionPolicy Bypass -NoExit -Command "Start-Process powershell.exe -ArgumentList '-ExecutionPolicy Bypass -NoExit -File C:\\slab\\test\\run-sandbox-tests.ps1' -Verb RunAs"</Command>
+    <Command>powershell.exe -ExecutionPolicy Bypass -NoExit -Command "Start-Process powershell.exe -ArgumentList '-ExecutionPolicy Bypass -NoExit -File C:\\slab\\test\\run-sandbox-tests.ps1' -WorkingDirectory C:\\slab -Verb RunAs"</Command>
   </LogonCommand>
 </Configuration>
 `;
