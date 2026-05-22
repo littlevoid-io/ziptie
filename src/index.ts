@@ -7,7 +7,8 @@ import chalk from 'chalk';
 
 import { ensureElevated } from './utils/elevation.js';
 import { runPowerShellScript } from './utils/powershell.js';
-import { loadAndMergeConfig } from './utils/config.js';
+import { loadAndMergeConfig, resolveProjectRoot } from './utils/config.js';
+import { runSetupWizard } from './utils/setupWizard.js';
 import { OS_LOCKDOWN_TASKS } from './tasks.js';
 
 // Parse command line arguments
@@ -36,6 +37,17 @@ async function main() {
   ensureElevated(dryRun);
 
   intro(chalk.bold.cyan(' 🚀 SLAB SYSTEM LOCKDOWN ENGINE '));
+
+  // Check if no user config exists and we are run interactively
+  const expectedConfigPath = customConfigPath
+    ? path.resolve(customConfigPath)
+    : path.resolve(process.cwd(), 'slab.config.json');
+
+  if (!fs.existsSync(expectedConfigPath) && !customConfigPath && !autoConfirm) {
+    const rootDir = resolveProjectRoot();
+    const defaultConfigPath = path.join(rootDir, 'slab.default.config.json');
+    await runSetupWizard(defaultConfigPath, expectedConfigPath);
+  }
 
   // 2. Load and deep-merge default/user configurations
   const { projectRoot, resolvedConfigPath, config } = loadAndMergeConfig(customConfigPath);

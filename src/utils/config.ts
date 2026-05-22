@@ -11,13 +11,9 @@ export interface ConfigContext {
 }
 
 /**
- * Loads the default configuration, deep-merges it with user overrides
- * using the robust deepmerge library, and writes a temporary merged JSON payload.
- *
- * @param customConfigPath Optional path to a user-provided configuration file.
+ * Resolves the absolute project root directory by scanning standard locations.
  */
-export function loadAndMergeConfig(customConfigPath: string | null): ConfigContext {
-  // Determine project root directory with fallbacks
+export function resolveProjectRoot(): string {
   let currentFileDir = '';
   try {
     // Standard ESM resolution
@@ -43,6 +39,18 @@ export function loadAndMergeConfig(customConfigPath: string | null): ConfigConte
   if (!fs.existsSync(path.join(projectRoot, 'slab.default.config.json'))) {
     projectRoot = process.cwd();
   }
+
+  return projectRoot;
+}
+
+/**
+ * Loads the default configuration, deep-merges it with user overrides
+ * using the robust deepmerge library, and writes a temporary merged JSON payload.
+ *
+ * @param customConfigPath Optional path to a user-provided configuration file.
+ */
+export function loadAndMergeConfig(customConfigPath: string | null): ConfigContext {
+  const projectRoot = resolveProjectRoot();
 
   const defaultConfigPath = path.join(projectRoot, 'slab.default.config.json');
   if (!fs.existsSync(defaultConfigPath)) {

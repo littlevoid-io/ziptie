@@ -4,6 +4,22 @@ A modern, zero-dependency, and offline-first Windows 11 system bootstrapping and
 
 ---
 
+## ⚡ One-Line Install & Setup (Recommended)
+
+To bootstrap a new Windows 11 system completely from scratch with **zero dependencies pre-installed** (no Git or Node.js required), open **PowerShell as Administrator** and run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/littlevoid-io/slab/main/scripts/bootstrap.ps1 | iex"
+```
+
+This script will automatically:
+1. Check for and request administrative elevation.
+2. Download and provision the latest precompiled Slab release directly to your local working directory.
+3. Extract the release and execute the standalone `dist\slab.exe` binary.
+4. Launch the interactive Slab setup assistant to configure your PC.
+
+---
+
 ## 🚀 How to Use (Quick Start)
 
 ### 1. Prerequisites
