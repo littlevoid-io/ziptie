@@ -23,7 +23,8 @@
     "allowOfflineFallback": true,
     "localInstallersPath": ".\\installers",
     "apps": [
-      "Node.js",
+      "CoreyButler.NVMforWindows",
+      "Microsoft.VisualStudioCode",
       "Git.Git"
     ]
   },
