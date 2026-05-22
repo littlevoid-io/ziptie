@@ -203,9 +203,8 @@ async function main() {
     {
       title: 'Environment Verification',
       task: () => {
-        if (!dryRun) {
-          // Initialize HKU drive provider scoping helper
-          execSync('powershell -Command "New-PSDrive -Name HKU -PSProvider Registry -Root HKEY_USERS -ErrorAction SilentlyContinue | Out-Null"', { stdio: 'ignore' });
+        if (process.platform !== 'win32') {
+          throw new Error('Slab only supports Windows.');
         }
       }
     },
