@@ -57,9 +57,10 @@ Slab automates the installation, configuration, and lockdown adjustments needed 
 ---
 
 ## ⚙️ How It Works
-1. **Config Engine**: The TypeScript CLI loads and validates `slab.config.json`, merges it with fallback defaults, and writes a temporary JSON configuration.
-2. **Hive Mount Orchestration**: The main orchestrator (`slab.ps1`) mounts the Windows Default User Registry Hive (`C:\Users\Default\NTUSER.DAT`) to `HKU:\DefaultUser` inside a `try/finally` block. This ensures that any standard or guest accounts created on the machine in the future automatically inherit the lockdown settings out of the box.
+1. **Config Engine**: The TypeScript CLI loads and validates `slab.config.json` against the schema. It recursively deep-merges user overrides with fallback defaults using the npm `deepmerge` library, writing a temporary JSON configuration block.
+2. **Hive Mount Orchestration**: The main orchestrator mounts the Windows Default User Registry Hive (`C:\Users\Default\NTUSER.DAT`) to `HKU:\DefaultUser` inside a robust `try/finally` block. This ensures that any standard or guest accounts created on the machine in the future automatically inherit the lockdown settings out of the box.
 3. **Granular Execution**: Executes standalone, convergent configuration scripts from `scripts/windows/`.
 4. **Architectural Guidelines**:
+   * **Modular TypeScript CLI**: Decoupled into specialized modules (`elevation.ts` for UAC checks, `powershell.ts` for script execution, and `config.ts` for file parsing/merging) and a task registry (`tasks.ts`), keeping the orchestrator clean and easily extensible.
    * **100-Line Code Cap**: Every PowerShell helper under `src/powershell/utils/` and tweak script under `scripts/windows/` is strictly capped at under 100 lines of code to maintain simplicity and a single responsibility.
    * **Convergent States**: Every script supports bidirectional execution using `-DryRun` and `-Undo` flags to ensure changes can be previewed or fully reverted on subsequent runs.

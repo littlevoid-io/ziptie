@@ -114,10 +114,12 @@ Below is the conceptual blueprint for the `slab` configuration and execution mod
 
 Following strict architectural oversight, the framework has been successfully refactored and finalized under the following parameters:
 
-### 🧩 Structural Mods & Modular PowerShell Units
+### 🧩 Structural Mods & Modular Pipeline Units
+- **Modular TypeScript CLI Architecture**: Decoupled `src/index.ts` into a clean orchestrator alongside highly cohesive sub-modules under `src/utils/` (`config.ts`, `elevation.ts`, `powershell.ts`) and a separate task registry `src/tasks.ts`, ensuring the CLI is fully scalable and easy to maintain.
+- **Robust Schema Blending via `deepmerge`**: Standardized recursive configuration loading and deep merging using the popular npm `deepmerge` library, completely replacing custom spread operators and ensuring automated future schema scalability.
 - **100-Line Absolute Code Cap**: To prevent monolithic sprawl and ensure maintainability, every single PowerShell file (including utilities and individual lockdown scripts) is strictly capped at under **100 lines of code**.
 - **Shared Utilities Integration**: Core OS routines (hive loading, hive unloading, registry writes, service status, AppX uninstalls) are cleanly decoupled into standalone helper scripts within `src/powershell/utils/`.
-- **Convergent Pipeline Execution**: `slab.ps1` runs all lockdown scripts unconditionally. Tweak scripts read configuration parameters and execute native DryRun or Undo sequences locally. This guarantees that toggling a configuration setting to `false` and re-running Slab automatically reverts the tweak on the next run, maintaining state synchronization.
+- **Convergent Pipeline Execution**: The orchestrator runs all lockdown scripts unconditionally. Tweak scripts read configuration parameters and execute native DryRun or Undo sequences locally. This guarantees that toggling a configuration setting to `false` and re-running Slab automatically reverts the tweak on the next run, maintaining state synchronization.
 - **Decoupled Data Configurations**: Volatile structures like UWP package lists have been extracted from logic script bodies into declarative assets like `bloatware-list.json`.
 
 ### 🧪 Dynamic Sandbox Test Execution Loop
