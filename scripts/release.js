@@ -112,21 +112,25 @@ async function main() {
     runCmd('git add package.json package-lock.json');
     runCmd(`git commit -m "chore(release): v${nextVersion}"`);
 
-    // 5. Create local git tag on release branch
-    s.message(`Creating git tag v${nextVersion}...`);
-    runCmd(`git tag v${nextVersion}`);
-
-    // 6. Merge into develop
-    s.message('Merging release branch into develop...');
-    runCmd('git checkout develop');
-    runCmd(`git merge ${branchName} --no-edit`);
-
-    // 7. Merge into main
+    // 5. Merge release branch into main
     s.message('Merging release branch into main...');
     runCmd('git checkout main');
     runCmd(`git merge ${branchName} --no-edit --allow-unrelated-histories -X theirs`);
 
-    // 8. Push both branches and tags to GitHub
+    // 6. Create local git tag on main
+    s.message(`Creating git tag v${nextVersion} on main...`);
+    runCmd(`git tag v${nextVersion}`);
+
+    // 7. Merge main back into develop to keep them in sync
+    s.message('Merging main back into develop...');
+    runCmd('git checkout develop');
+    runCmd('git merge main --no-edit');
+
+    // 8. Switch back to main for release-it
+    s.message('Preparing main branch for release upload...');
+    runCmd('git checkout main');
+
+    // 9. Push both branches and tags to GitHub
     s.message('Pushing main, develop, and tags to GitHub...');
     runCmd('git push origin main');
     runCmd('git push origin develop');
@@ -144,7 +148,7 @@ async function main() {
     process.exit(1);
   }
 
-  // 9. Create GitHub Release
+  // 10. Create GitHub Release
   console.log(chalk.cyan('\nStarting GitHub Release upload...'));
   try {
     const releaseItPath = join('node_modules', 'release-it', 'bin', 'release-it.js');
@@ -158,7 +162,7 @@ async function main() {
     console.log(chalk.yellow('Branches and tags were pushed, but GitHub Release creation failed. Please verify your GITHUB_TOKEN.'));
   }
 
-  // 10. Clean up release branch and return to develop
+  // 11. Clean up release branch and return to develop
   const cleanupSpinner = spinner();
   cleanupSpinner.start('Cleaning up and checking out develop...');
   try {
