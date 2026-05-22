@@ -1,0 +1,36 @@
+{
+  "name": "@littlevoid/slab",
+  "version": "2.0.0",
+  "description": "A modern, quirky, zero-dependency, and air-gap friendly Windows 11 kiosk and exhibit bootstrapping utility.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
+    "slab-config.json",
+    "slab-schema.json",
+    "scripts",
+    "src/powershell",
+    "setup.bat",
+    "slab.ps1"
+  ],
+  "author": "littlevoid",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "sandbox": "node scripts/launch-sandbox.js"
+  },
+  "dependencies": {
+    "sudo-prompt": "^9.2.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  }
+}

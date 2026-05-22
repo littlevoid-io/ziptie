@@ -1,0 +1,239 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "slab configuration schema",
+  "description": "Configuration schema for @littlevoid/slab system bootstrapping and kiosk lockdown framework.",
+  "type": "object",
+  "properties": {
+    "system": {
+      "type": "object",
+      "description": "General operating system configurations.",
+      "properties": {
+        "computerName": {
+          "type": "string",
+          "description": "The target name of the computer. Leaving this empty or unchanged will skip renaming.",
+          "minLength": 1
+        },
+        "timezone": {
+          "type": "string",
+          "description": "The standardized Windows Time Zone name (e.g. 'Eastern Standard Time', 'Pacific Standard Time').",
+          "minLength": 1
+        },
+        "enableDailyReboot": {
+          "type": "boolean",
+          "description": "Enables a scheduled task to reboot the computer daily to prevent memory leaks and maintain exhibit performance."
+        },
+        "rebootTime": {
+          "type": "string",
+          "description": "The time of day in HH:MM (24-hour format) when the daily reboot should occur (e.g. '03:00').",
+          "pattern": "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$"
+        }
+      },
+      "required": ["computerName", "timezone", "enableDailyReboot", "rebootTime"]
+    },
+    "autologon": {
+      "type": "object",
+      "description": "Configure automatic user login on Windows boot.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enables automatic login for the specified username."
+        },
+        "username": {
+          "type": "string",
+          "description": "The local Windows account name that should automatically log in on boot (e.g. 'exhibit')."
+        },
+        "disablePasswordlessHello": {
+          "type": "boolean",
+          "description": "Required on Windows 11 to disable Windows Hello passwordless credential requirements so standard Autologon works properly."
+        }
+      },
+      "required": ["enabled", "username", "disablePasswordlessHello"]
+    },
+    "startupTask": {
+      "type": "object",
+      "description": "Creates a scheduled task in the active user graphics session to launch the exhibit application.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enables creating/managing the exhibit startup scheduled task."
+        },
+        "workingDir": {
+          "type": "string",
+          "description": "The working directory from which the executable should be launched."
+        },
+        "executable": {
+          "type": "string",
+          "description": "The command or file path to run (e.g. 'launch.bat', 'node index.js')."
+        },
+        "trigger": {
+          "type": "string",
+          "enum": ["AtLogon", "AtStartup"],
+          "description": "AtLogon (Recommended) runs the app in the active, visible graphical session. AtStartup runs it headlessly in background Session 0 (highly discouraged for UI apps)."
+        },
+        "delay": {
+          "type": "string",
+          "description": "ISO 8601 duration string specifying how long to wait after boot/logon before starting the application (e.g. 'PT1M' for 1 minute, 'PT15S' for 15 seconds).",
+          "pattern": "^PT([0-9]+[HMS])+$"
+        }
+      },
+      "required": ["enabled", "workingDir", "executable", "trigger", "delay"]
+    },
+    "packageManager": {
+      "type": "object",
+      "description": "Manage application installations for the system.",
+      "properties": {
+        "provider": {
+          "type": "string",
+          "enum": ["winget", "none"],
+          "description": "The system package manager. 'winget' uses the built-in Windows 11 package manager. 'none' disables online package manager downloads."
+        },
+        "allowOfflineFallback": {
+          "type": "boolean",
+          "description": "If true, scans the local installers path for .msi/.exe installers and runs them silently, bypassing online downloads entirely if internet is unavailable."
+        },
+        "localInstallersPath": {
+          "type": "string",
+          "description": "The path to the folder containing offline silent installers, relative to the run root (e.g. '.\\installers')."
+        },
+        "apps": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of official Winget package IDs to install when online (e.g. ['Git.Git', 'Node.js'])."
+        }
+      },
+      "required": ["provider", "allowOfflineFallback", "localInstallersPath", "apps"]
+    },
+    "lockdown": {
+      "type": "object",
+      "description": "Deep OS lockdown options for kiosk/exhibit deployment.",
+      "properties": {
+        "disableScreensaver": {
+          "type": "boolean",
+          "description": "Disables screensavers globally for all users."
+        },
+        "disableAccessibilityShortcuts": {
+          "type": "boolean",
+          "description": "Disables accessibility keyboard shortcuts (e.g. Sticky Keys, Filter Keys) to prevent visitors from bypassing the kiosk."
+        },
+        "disableEdgeSwipes": {
+          "type": "boolean",
+          "description": "Disables Edge Swipes (swiping from edge of touch screen to open notification/widget panel)."
+        },
+        "disableTouchFeedback": {
+          "type": "boolean",
+          "description": "Disables visual touch circle feedback on modern Windows touchscreen devices."
+        },
+        "disableWindowsUpdate": {
+          "type": "boolean",
+          "description": "Writes Local Group Policy registry overrides to pause/stop automatic Windows Updates, preserving stable hardware and software states."
+        },
+        "disableWindowsWidgets": {
+          "type": "boolean",
+          "description": "Removes/disables modern Windows 11 widgets panel and taskbar widget icons to prevent visitor interaction."
+        },
+        "disableOOBEPrompts": {
+          "type": "boolean",
+          "description": "Disables post-update and secondary Windows Out-Of-Box Experience prompts (personalized ads, MS Account reminders)."
+        },
+        "clearDesktopIcons": {
+          "type": "boolean",
+          "description": "Hides all icons on the desktop for a clean, premium visual aesthetic."
+        },
+        "blackDesktopBackground": {
+          "type": "boolean",
+          "description": "Sets the desktop background color to solid black to prevent background flashes during exhibit boot/relaunch."
+        },
+        "configureExplorer": {
+          "type": "boolean",
+          "description": "Configures Windows Explorer defaults (show file extensions, show hidden files, configure taskbar, hide 3D Objects/Music/Videos folders, etc.) for exhibits."
+        },
+        "disableAppInstalls": {
+          "type": "boolean",
+          "description": "Prevents Windows from auto-installing suggested and promotional consumer applications (bloatware)."
+        },
+        "disableAppRestore": {
+          "type": "boolean",
+          "description": "Disables automatic restart/restoration of applications on startup after a system reboot."
+        },
+        "disableErrorReporting": {
+          "type": "boolean",
+          "description": "Disables Windows Error Reporting prompts and logs to prevent interactive dialog boxes on error."
+        },
+        "disableFirewall": {
+          "type": "boolean",
+          "description": "Disables the Windows Defender Firewall. Useful for strictly private air-gapped networks, but use with caution."
+        },
+        "disableMaxPathLength": {
+          "type": "boolean",
+          "description": "Disables the legacy 260-character path length limit (enables LongPathsEnabled)."
+        },
+        "disableNewNetworkWindow": {
+          "type": "boolean",
+          "description": "Disables the 'Do you want your PC to be discoverable' network prompt when connecting to new networks."
+        },
+        "disableNotifications": {
+          "type": "boolean",
+          "description": "Disables Windows Toast Notifications and Notification Center."
+        },
+        "disableTouchGestures": {
+          "type": "boolean",
+          "description": "Disables advanced multi-finger touch gestures to prevent users from exiting the kiosk app."
+        },
+        "enableScriptExecution": {
+          "type": "boolean",
+          "description": "Enables PowerShell script execution policy to RemoteSigned."
+        },
+        "resetTextScale": {
+          "type": "boolean",
+          "description": "Resets the Windows display DPI text scaling factor to 100% to ensure correct graphical layouts."
+        },
+        "uninstallBloatware": {
+          "type": "boolean",
+          "description": "Uninstalls default Windows consumer UWP packages and provisioned bloatware."
+        },
+        "uninstallOneDrive": {
+          "type": "boolean",
+          "description": "Completely uninstalls Microsoft OneDrive client."
+        },
+        "unpinStartMenuApps": {
+          "type": "boolean",
+          "description": "Unpins default pinned items from the Start Menu (supported on Windows 10 only; skipped on Windows 11)."
+        },
+        "setPowerSettings": {
+          "type": "boolean",
+          "description": "Enables optimized exhibit power settings (never sleep, never turn off screen, disable hibernating)."
+        }
+      },
+      "required": [
+        "disableScreensaver",
+        "disableAccessibilityShortcuts",
+        "disableEdgeSwipes",
+        "disableTouchFeedback",
+        "disableWindowsUpdate",
+        "disableWindowsWidgets",
+        "disableOOBEPrompts",
+        "clearDesktopIcons",
+        "blackDesktopBackground",
+        "configureExplorer",
+        "disableAppInstalls",
+        "disableAppRestore",
+        "disableErrorReporting",
+        "disableFirewall",
+        "disableMaxPathLength",
+        "disableNewNetworkWindow",
+        "disableNotifications",
+        "disableTouchGestures",
+        "enableScriptExecution",
+        "resetTextScale",
+        "uninstallBloatware",
+        "uninstallOneDrive",
+        "unpinStartMenuApps",
+        "setPowerSettings"
+      ]
+    }
+  },
+  "required": ["system", "autologon", "startupTask", "packageManager", "lockdown"]
+}
+
