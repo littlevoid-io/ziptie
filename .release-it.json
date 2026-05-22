@@ -13,7 +13,8 @@
     "release": true,
     "releaseName": "Slab Release v${version}",
     "draft": false,
-    "assets": ["dist/slab.zip"]
+    "assets": ["dist/slab.zip"],
+    "changelog": "git log --pretty=format:\"* %s (%h)\" \"${from}...${to}\""
   },
   "npm": {
     "publish": false
