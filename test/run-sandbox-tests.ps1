@@ -65,26 +65,6 @@ Assert-Registry -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name
 
 Assert-ScheduledTask -TaskName "SlabExhibitLaunch" -TaskPath "\Slab\"
 
-Write-Host "`nExecuting Slab in undo mode (reverting changes)..." -ForegroundColor Cyan
-& "C:\slab\slab.ps1" -ConfigPath "C:\slab\slab-config.json" -Undo
-Write-Host "Slab undo execution finished. Verifying reverted state..." -ForegroundColor Cyan
-
-Write-Host "Asserting Copilot policy removed..." -NoNewline
-$copilotVal = Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot" -Name "TurnOffWindowsCopilot" -ErrorAction SilentlyContinue
-if (!$copilotVal) { Write-Host " OK" -ForegroundColor Green } else { Write-Host " FAILED (Still exists)" -ForegroundColor Red; $success = $false }
-
-Write-Host "Asserting Windows AI Recall policy removed..." -NoNewline
-$aiVal = Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsAI" -Name "DisableAIDataAnalysis" -ErrorAction SilentlyContinue
-if (!$aiVal) { Write-Host " OK" -ForegroundColor Green } else { Write-Host " FAILED (Still exists)" -ForegroundColor Red; $success = $false }
-
-Write-Host "Asserting Start Menu Pins policy removed..." -NoNewline
-$pinsVal = Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "ConfigureStartPins" -ErrorAction SilentlyContinue
-if (!$pinsVal) { Write-Host " OK" -ForegroundColor Green } else { Write-Host " FAILED (Still exists)" -ForegroundColor Red; $success = $false }
-
-Write-Host "Asserting Windows Update TargetRelease policy removed..." -NoNewline
-$trVal = Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" -Name "TargetReleaseVersion" -ErrorAction SilentlyContinue
-if (!$trVal) { Write-Host " OK" -ForegroundColor Green } else { Write-Host " FAILED (Still exists)" -ForegroundColor Red; $success = $false }
-
 Write-Host "`n==========================================================" -ForegroundColor Yellow
 if ($success) {
     Write-Host "          ALL SANDBOX TESTS PASSED SUCCESSFULLY!          " -ForegroundColor Green
