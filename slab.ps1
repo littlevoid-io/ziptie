@@ -50,6 +50,7 @@ try {
     # OS Lockdowns & Customizations
     $wins = "scripts/windows"
     & "$PSScriptRoot/$wins/disable-windows-widgets.ps1" -Config $config -DryRun:$DryRun -Undo:$Undo
+    & "$PSScriptRoot/$wins/disable-copilot-recall.ps1" -Config $config -DryRun:$DryRun -Undo:$Undo
     & "$PSScriptRoot/$wins/disable-update-service.ps1" -Config $config -DryRun:$DryRun -Undo:$Undo
     & "$PSScriptRoot/$wins/disable-screensaver.ps1" -Config $config -DryRun:$DryRun -Undo:$Undo
     & "$PSScriptRoot/$wins/disable-accessibility.ps1" -Config $config -DryRun:$DryRun -Undo:$Undo
