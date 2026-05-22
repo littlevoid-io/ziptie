@@ -1,6 +1,6 @@
 {
   "name": "@littlevoid/slab",
-  "version": "2.0.0",
+  "version": "1.0.0",
   "description": "A modern, quirky, zero-dependency, and air-gap friendly Windows 11 kiosk and exhibit bootstrapping utility.",
   "type": "module",
   "exports": {
@@ -25,7 +25,7 @@
   "scripts": {
     "build": "bun build ./src/index.ts --target=node --outfile=dist/index.js",
     "package": "bun build --compile --target=node ./src/index.ts --outfile=dist/slab.exe",
-    "sandbox": "npm run package && npm run package && node test/launch-sandbox.js",
+    "sandbox": "npm run package && node test/launch-sandbox.js",
     "release": "release-it"
   },
   "dependencies": {
