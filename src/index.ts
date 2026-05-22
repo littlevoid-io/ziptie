@@ -62,6 +62,11 @@ const runPowerShellScript = (
     child.stderr.on('data', (data) => { stderr += data.toString(); });
 
     child.on('close', (code) => {
+      if (process.platform === 'win32') {
+        try {
+          execSync('chcp 65001', { stdio: 'ignore' });
+        } catch {}
+      }
       if (code === 0) {
         resolve();
       } else {
@@ -92,6 +97,10 @@ async function main() {
     console.error(chalk.red('Error: Slab currently only supports Windows.'));
     process.exit(1);
   }
+
+  try {
+    execSync('chcp 65001', { stdio: 'ignore' });
+  } catch {}
 
   // 1. Elevate process if not Administrator
   if (!isAdmin() && !dryRun) {
@@ -293,6 +302,10 @@ async function main() {
         {
           title: 'Applying Solid Color Background',
           task: () => runPowerShellScript(path.join(scriptsDir, 'set-desktop-background.ps1'), resolvedConfigPath, undo, dryRun)
+        },
+        {
+          title: 'Configuring Windows Dark Mode',
+          task: () => runPowerShellScript(path.join(scriptsDir, 'enable-dark-mode.ps1'), resolvedConfigPath, undo, dryRun)
         },
         {
           title: 'Configuring File Explorer Defaults',

@@ -162,6 +162,10 @@
           ],
           "description": "Configures a solid color desktop background (e.g., '#000000' or true) to prevent background flashes during exhibit boot/relaunch."
         },
+        "enableDarkMode": {
+          "type": "boolean",
+          "description": "Enables Windows 11 system-wide Dark Mode by default for a clean, premium visual aesthetic."
+        },
         "configureExplorer": {
           "type": "boolean",
           "description": "Configures Windows Explorer defaults (show file extensions, show hidden files, configure taskbar, hide 3D Objects/Music/Videos folders, etc.) for exhibits."
@@ -234,6 +238,7 @@
         "disableOOBEPrompts",
         "clearDesktopIcons",
         "solidColorBackground",
+        "enableDarkMode",
         "configureExplorer",
         "disableAppInstalls",
         "disableAppRestore",

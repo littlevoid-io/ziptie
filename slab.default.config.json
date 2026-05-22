@@ -39,6 +39,7 @@
     "disableOOBEPrompts": true,
     "clearDesktopIcons": true,
     "solidColorBackground": "#000000",
+    "enableDarkMode": true,
     "configureExplorer": true,
     "disableAppInstalls": true,
     "disableAppRestore": true,
