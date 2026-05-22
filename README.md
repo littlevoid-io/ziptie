@@ -43,7 +43,7 @@ To safely verify configurations without altering your host machine, launch an is
 ```bash
 npm run sandbox
 ```
-This command compiles the CLI, dynamically generates a `.wsb` mapping configuration at `.tmp/slab-sandbox.wsb` (gitignored), mounts the repository to `C:\slab` inside the guest environment, and runs `test/run-sandbox-tests.ps1` to validate the **Dry-Run**, **Active**, and **Undo** states.
+This command compiles the CLI, dynamically generates a .wsb mapping configuration at `.tmp/slab-sandbox.wsb` (gitignored), mounts the repository to `C:\slab` inside the guest environment, and runs `test/run-sandbox-tests.ps1` to validate the active configuration state.
 
 ---
 
