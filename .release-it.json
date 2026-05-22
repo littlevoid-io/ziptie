@@ -6,7 +6,8 @@
     "requireBranch": "main",
     "commitMessage": "chore(release): v${version}",
     "tagName": "v${version}",
-    "push": true
+    "push": true,
+    "changelog": "git log --pretty=format:\"* %s (%h)\" \"${from}...${to}\""
   },
   "github": {
     "release": true,
