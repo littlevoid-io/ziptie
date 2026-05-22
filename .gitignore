@@ -4,3 +4,4 @@ dist/
 .tmp/
 *.wsb
 slab.config.json
+*.zip
