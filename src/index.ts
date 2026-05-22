@@ -53,6 +53,7 @@ const defaultConfig = {
     disableTouchFeedback: true,
     disableWindowsUpdate: true,
     disableWindowsWidgets: true,
+    disableCopilotRecall: true,
     disableOOBEPrompts: true,
     clearDesktopIcons: true,
     blackDesktopBackground: true,
