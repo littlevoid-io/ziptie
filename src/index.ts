@@ -213,7 +213,7 @@ async function main() {
       task: () => {
         if (!dryRun) {
           // Initialize HKU drive provider scoping helper
-          execSync('powershell -Command "New-PSDrive -Name HKU -PSProvider Registry -Root HKEY_USERS -ErrorAction SilentlyContinue | Out-Null"');
+          execSync('powershell -Command "New-PSDrive -Name HKU -PSProvider Registry -Root HKEY_USERS -ErrorAction SilentlyContinue | Out-Null"', { stdio: 'ignore' });
         }
       }
     },
@@ -409,7 +409,7 @@ async function main() {
 
       if (typeof result === 'boolean' && result) {
         outro(chalk.bold.green(' 🔄 Restarting computer now... '));
-        execSync('shutdown /r /t 0 /f');
+        execSync('shutdown /r /t 0 /f', { stdio: 'ignore' });
       } else {
         outro(chalk.yellow('Restart skipped. Please restart manually for all changes to apply.'));
       }
