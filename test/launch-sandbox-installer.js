@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { exec } from "node:child_process";
+import { exec, execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -16,11 +16,21 @@ if (!fs.existsSync(tmpDir)) {
   fs.mkdirSync(tmpDir, { recursive: true });
 }
 
+// Dynamically resolve the current active Git branch (defaults to main if not in git)
+let branchName = "main";
+try {
+  branchName = execSync("git rev-parse --abbrev-ref HEAD", { cwd: projectRoot, encoding: "utf8" }).trim();
+} catch (err) {
+  console.warn("Could not dynamically resolve active Git branch, defaulting to 'main'.");
+}
+
+console.log(`\x1b[36m[Sandbox Config]\x1b[0m Targeting remote GitHub branch: \x1b[32m${branchName}\x1b[0m`);
+
 // Generate the Windows Sandbox XML content dynamically without mapped folders
 const wsbContent = `<Configuration>
   <Networking>Default</Networking>
   <LogonCommand>
-    <Command>powershell.exe -ExecutionPolicy Bypass -NoExit -Command "Start-Process powershell.exe -ArgumentList '-ExecutionPolicy Bypass -NoExit -Command \\\"irm https://raw.githubusercontent.com/littlevoid-io/slab/main/scripts/bootstrap.ps1 | iex\\\"' -Verb RunAs"</Command>
+    <Command>powershell.exe -ExecutionPolicy Bypass -NoExit -Command "Start-Process powershell.exe -ArgumentList '-ExecutionPolicy Bypass -NoExit -Command \\\"irm https://raw.githubusercontent.com/littlevoid-io/slab/${branchName}/scripts/bootstrap.ps1 | iex\\\"' -Verb RunAs"</Command>
   </LogonCommand>
 </Configuration>
 `;
@@ -36,7 +46,7 @@ try {
       console.error(`\x1b[31mFailed to launch Windows Sandbox:\x1b[0m ${error.message}`);
       process.exit(1);
     }
-    console.log("\x1b[32mClean Windows Sandbox spawned successfully! The one-line installer will execute inside the guest context directly fetching from GitHub.\x1b[0m");
+    console.log(`\x1b[32mClean Windows Sandbox spawned successfully! The one-line installer will execute inside the guest context directly fetching from the remote '${branchName}' branch.\x1b[0m`);
   });
 } catch (err) {
   console.error(`\x1b[31mError generating Sandbox file:\x1b[0m ${err.message}`);
