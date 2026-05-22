@@ -1,6 +1,6 @@
 {
   "hooks": {
-    "after:bump": "npm run package && powershell -Command \"Compress-Archive -Path dist/slab.exe, scripts, src/powershell, slab.default.config.json, slab-schema.json, setup.bat -DestinationPath dist/slab.zip -Force\""
+    "after:bump": "npm run package && powershell -Command \"Compress-Archive -Path dist/slab.exe, scripts, slab.default.config.json, slab-schema.json, setup.bat -DestinationPath dist/slab.zip -Force\""
   },
   "git": {
     "requireBranch": "main",

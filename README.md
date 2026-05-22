@@ -95,7 +95,7 @@ This command automatically:
 3. Updates `package.json` and `package-lock.json` and creates a local Git commit and tag.
 4. Triggers the packaging hook:
    - Compiles the standalone `dist/slab.exe` binary.
-   - Compresses all necessary dependencies (`dist/slab.exe`, `scripts/`, `src/powershell/`, `slab.default.config.json`, `slab-schema.json`, and `setup.bat`) into a single `slab.zip` archive.
+   - Compresses all necessary dependencies (`dist/slab.exe`, `scripts/`, `slab.default.config.json`, `slab-schema.json`, and `setup.bat`) into a single `slab.zip` archive.
 5. Deploys the release to GitHub via the REST API and **attaches `slab.zip` as a release asset** automatically.
 
 ---
@@ -116,5 +116,5 @@ Slab automates the installation, configuration, and lockdown adjustments needed 
 3. **Granular Execution**: Executes standalone, convergent configuration scripts from `scripts/windows/`.
 4. **Architectural Guidelines**:
    * **Modular TypeScript CLI**: Decoupled into specialized modules (`elevation.ts` for UAC checks, `powershell.ts` for script execution, and `config.ts` for file parsing/merging) and a task registry (`tasks.ts`), keeping the orchestrator clean and easily extensible.
-   * **100-Line Code Cap**: Every PowerShell helper under `src/powershell/utils/` and tweak script under `scripts/windows/` is strictly capped at under 100 lines of code to maintain simplicity and a single responsibility.
+   * **100-Line Code Cap**: Every PowerShell helper under `scripts/utils/` and tweak script under `scripts/windows/` is strictly capped at under 100 lines of code to maintain simplicity and a single responsibility.
    * **Convergent States**: Every script supports bidirectional execution using `-DryRun` and `-Undo` flags to ensure changes can be previewed or fully reverted on subsequent runs.

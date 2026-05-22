@@ -69,7 +69,7 @@ async function main() {
 
   let hiveMounted = false;
   const scriptsDir = path.join(projectRoot, 'scripts', 'windows');
-  const utilsDir = path.join(projectRoot, 'src', 'powershell', 'utils');
+  const utilsDir = path.join(projectRoot, 'scripts', 'utils');
 
   // Define tasks
   const tasks = new Listr([

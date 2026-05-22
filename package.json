@@ -1,6 +1,6 @@
 {
   "name": "@littlevoid/slab",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "A modern, quirky, zero-dependency, and air-gap friendly Windows 11 kiosk and exhibit bootstrapping utility.",
   "type": "module",
   "exports": {
@@ -17,7 +17,6 @@
     "slab.default.config.json",
     "slab-schema.json",
     "scripts",
-    "src/powershell",
     "setup.bat"
   ],
   "author": "littlevoid",

@@ -31,7 +31,7 @@ jobs:
       - name: Package Release ZIP Archive
         shell: pwsh
         run: |
-          Compress-Archive -Path dist/slab.exe, scripts, src/powershell, slab.default.config.json, slab-schema.json, setup.bat -DestinationPath slab.zip -Force
+          Compress-Archive -Path dist/slab.exe, scripts, slab.default.config.json, slab-schema.json, setup.bat -DestinationPath slab.zip -Force
 
       - name: Publish Release via GitHub CLI
         env:

@@ -20,7 +20,7 @@ if ($bgConfig -eq $true) {
     $rgbColor = "$r $g $b"
 }
 
-. "$PSScriptRoot/../../src/powershell/utils/slab-init.ps1"
+. "$PSScriptRoot/../utils/slab-init.ps1"
 
 $userWallpapersPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers"
 $userColorsPath = "HKCU:\Control Panel\Colors"

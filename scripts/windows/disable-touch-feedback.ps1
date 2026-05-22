@@ -4,7 +4,7 @@ Param(
     [Switch]$DryRun, [Switch]$Undo
 )
 
-. "$PSScriptRoot/../../src/powershell/utils/slab-init.ps1"
+. "$PSScriptRoot/../utils/slab-init.ps1"
 
 $tweakEnabled = $Config.lockdown.disableTouchFeedback
 $shouldUndo = $Undo -or !$tweakEnabled

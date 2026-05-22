@@ -9,7 +9,7 @@ Param(
 $tweakEnabled = $Config.lockdown.unpinStartMenuApps
 $shouldUndo = $Undo -or !$tweakEnabled
 
-. "$PSScriptRoot/../../src/powershell/utils/slab-init.ps1"
+. "$PSScriptRoot/../utils/slab-init.ps1"
 
 $osName = (Get-ComputerInfo | Select-Object -ExpandProperty OsName)
 $isWin11 = $osName -match "Windows 11"

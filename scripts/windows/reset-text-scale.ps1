@@ -9,7 +9,7 @@ Param(
 $tweakEnabled = $Config.lockdown.resetTextScale
 $shouldUndo = $Undo -or !$tweakEnabled
 
-. "$PSScriptRoot/../../src/powershell/utils/slab-init.ps1"
+. "$PSScriptRoot/../utils/slab-init.ps1"
 
 $desktopPath = "HKCU:\Control Panel\Desktop"
 

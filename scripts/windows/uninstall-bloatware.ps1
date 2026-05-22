@@ -27,5 +27,5 @@ if (!(Test-Path $jsonPath)) {
 $apps = Get-Content -Raw -Path $jsonPath | ConvertFrom-Json
 
 foreach ($app in $apps) {
-    & "$PSScriptRoot/../../src/powershell/utils/slab-remove-appx.ps1" -PackageName $app -DryRun:$DryRun
+    & "$PSScriptRoot/../utils/slab-remove-appx.ps1" -PackageName $app -DryRun:$DryRun
 }

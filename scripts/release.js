@@ -105,7 +105,7 @@ async function main() {
     // 3. Compile standalone slab.exe and package slab.zip
     s.message('Compiling and packaging Slab release assets...');
     runCmd('npm run package');
-    runCmd(`powershell -Command "Compress-Archive -Path dist/slab.exe, scripts, src/powershell, slab.default.config.json, slab-schema.json, setup.bat -DestinationPath dist/slab.zip -Force"`);
+    runCmd(`powershell -Command "Compress-Archive -Path dist/slab.exe, scripts, slab.default.config.json, slab-schema.json, setup.bat -DestinationPath dist/slab.zip -Force"`);
 
     // 4. Commit version bumps
     s.message('Committing version bump...');
