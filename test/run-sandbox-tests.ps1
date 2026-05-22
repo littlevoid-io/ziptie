@@ -65,7 +65,9 @@ Assert-Registry -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name
 
 Assert-ScheduledTask -TaskName "SlabExhibitLaunch" -TaskPath "\Slab\"
 
-
+Write-Host "`nExecuting Slab in undo mode (reverting changes)..." -ForegroundColor Cyan
+& "C:\slab\slab.ps1" -ConfigPath "C:\slab\slab-config.json" -Undo
+Write-Host "Slab undo execution finished. Verifying reverted state..." -ForegroundColor Cyan
 
 Write-Host "Asserting Copilot policy removed..." -NoNewline
 $copilotVal = Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot" -Name "TurnOffWindowsCopilot" -ErrorAction SilentlyContinue
