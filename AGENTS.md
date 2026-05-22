@@ -138,6 +138,11 @@ Following strict architectural oversight, the framework has been successfully re
 - **NVM Environment Variable & PATH Refresh Decoupling**: Encapsulated post-installation `nvm-windows` configuration into a dedicated modular helper `slab-configure-nvm.ps1` under the 100-line cap. The script bypasses parent-session PATH propagation lag by dynamically loading User/Machine environment registry values and injecting `NVM_HOME` and `NVM_SYMLINK` directly into the current PowerShell process context, successfully installing and activating the Node.js LTS version automatically.
 - **VS Code & NVM Provisioning**: Integrated Visual Studio Code (`Microsoft.VisualStudioCode`) and NVM for Windows (`CoreyButler.NVMforWindows`) into the declarative package manager pipeline, ensuring seamless provisioning under Windows Sandbox and clean target machines.
 
+---
 
+## 5. Agent Execution Mandates
 
+To align with Slab's design as an air-gapped, secure, and locally controlled framework, all AI coding agents operating on this codebase must strictly observe the following execution guidelines:
 
+- **Strict Local Execution (Never Push)**: Coding agents must **NEVER** push local Git commits or branches to remote upstream repositories (e.g., executing `git push` is strictly forbidden). Upstream pushing remains exclusively a human developer operation.
+- **No Direct-to-Host Configuration**: Lockdown configuration runs, registry overrides, and active OS modifications must **NEVER** be executed directly on the host development machine. All runtime tests, dry-runs, and active configurations must be run inside the isolated Windows Sandbox environment via the guest test suite (`npm run sandbox`).
