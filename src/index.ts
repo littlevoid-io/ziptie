@@ -8,7 +8,7 @@ import chalk from 'chalk';
 // Helper to determine if current session runs elevated (Admin)
 function isAdmin(): boolean {
   try {
-    execSync('net session', { stdio: 'ignore' });
+    execSync('net session', { stdio: 'ignore', windowsHide: true });
     return true;
   } catch {
     return false;
@@ -47,11 +47,12 @@ const runPowerShellScript = (
     const args = [
       '-ExecutionPolicy', 'Bypass',
       '-NoProfile',
-      '-Command', `"${scriptCmd}"`
+      '-Command', scriptCmd
     ];
 
     const child = spawn('powershell.exe', args, {
-      shell: true,
+      shell: false,
+      windowsHide: true,
       stdio: 'pipe'
     });
 
@@ -379,7 +380,7 @@ async function main() {
       skip: () => dryRun,
       task: () => {
         try {
-          execSync('powershell -Command "Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue"', { stdio: 'ignore' });
+          execSync('powershell -Command "Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue"', { stdio: 'ignore', windowsHide: true });
         } catch {
           // Explorer restart fails occasionally if already stopped; ignore failure
         }
@@ -400,7 +401,7 @@ async function main() {
 
       if (typeof result === 'boolean' && result) {
         outro(chalk.bold.green(' 🔄 Restarting computer now... '));
-        execSync('shutdown /r /t 0 /f', { stdio: 'ignore' });
+        execSync('shutdown /r /t 0 /f', { stdio: 'ignore', windowsHide: true });
       } else {
         outro(chalk.yellow('Restart skipped. Please restart manually for all changes to apply.'));
       }
@@ -409,7 +410,7 @@ async function main() {
     // Attempt rescue unmounting in case of failure
     if (hiveMounted && !dryRun) {
       try {
-        execSync(`powershell -Command "& '${path.join(utilsDir, 'slab-unmount-hive.ps1')}' -MountName 'HKU\\DefaultUser'"`, { stdio: 'ignore' });
+        execSync(`powershell -Command "& '${path.join(utilsDir, 'slab-unmount-hive.ps1')}' -MountName 'HKU\\DefaultUser'"`, { stdio: 'ignore', windowsHide: true });
       } catch {
         // Suppress secondary failures
       }
