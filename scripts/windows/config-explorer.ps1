@@ -4,20 +4,13 @@ Param(
     [Switch]$DryRun, [Switch]$Undo
 )
 
+. "$PSScriptRoot/../../src/powershell/utils/slab-init.ps1"
+
 $tweakEnabled = $Config.lockdown.configureExplorer
 $shouldUndo = $Undo -or !$tweakEnabled
 
-$registryTweak = {
-    Param([String]$Path, [String]$Name, [Object]$Value, [String]$Type, [Switch]$Remove)
-    & "$PSScriptRoot/../../src/powershell/utils/slab-set-registry.ps1" -Path $Path -Name $Name -Value $Value -PropertyType $Type -Remove:$Remove -DryRun:$DryRun
-}
-
 $userPaths = @("HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer")
 $searchPaths = @("HKCU:\Software\Microsoft\Windows\CurrentVersion\Search")
-if (Test-Path "HKU:\DefaultUser") {
-    $userPaths += @("HKU:\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "HKU:\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Explorer")
-    $searchPaths += "HKU:\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Search"
-}
 
 if ($shouldUndo) {
     Write-Host "Restoring default Windows Explorer & Taskbar settings..." -ForegroundColor Cyan
@@ -35,9 +28,7 @@ if ($shouldUndo) {
         &$registryTweak -Path $p -Name "SearchboxTaskbarModeCache" -Remove
     }
     # Thumbs.db
-    $thumbPaths = @("HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer")
-    if (Test-Path "HKU:\DefaultUser") { $thumbPaths += "HKU:\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" }
-    foreach ($p in $thumbPaths) { &$registryTweak -Path $p -Name "DisableThumbnailsOnNetworkFolders" -Remove }
+    &$registryTweak -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "DisableThumbnailsOnNetworkFolders" -Remove
 } else {
     Write-Host "Configuring Windows Explorer & Taskbar defaults for exhibit..." -ForegroundColor Cyan
     foreach ($base in $userPaths) {
@@ -62,13 +53,13 @@ if ($shouldUndo) {
         &$registryTweak -Path $p -Name "SearchboxTaskbarModeCache" -Value 0 -Type "DWord"
     }
     # Thumbs.db
-    $thumbPaths = @("HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer")
-    if (Test-Path "HKU:\DefaultUser") { $thumbPaths += "HKU:\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" }
-    foreach ($p in $thumbPaths) { &$registryTweak -Path $p -Name "DisableThumbnailsOnNetworkFolders" -Value 1 -Type "DWord" }
+    &$registryTweak -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "DisableThumbnailsOnNetworkFolders" -Value 1 -Type "DWord"
 
     # Hide taskbar StuckRects3 Settings
-    $stuckPaths = @("HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StuckRects3")
-    if (Test-Path "HKU:\DefaultUser") { $stuckPaths += "HKU:\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Explorer\StuckRects3" }
+    $stuckPaths = @("Registry::HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\StuckRects3")
+    if (Test-Path "Registry::HKEY_USERS\DefaultUser") {
+        $stuckPaths += "Registry::HKEY_USERS\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Explorer\StuckRects3"
+    }
     foreach ($p in $stuckPaths) {
         if ($DryRun) {
             Write-Host "[DRY-RUN] Auto-hide taskbar via StuckRects3 Settings" -ForegroundColor Yellow

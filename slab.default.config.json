@@ -2,12 +2,12 @@
   "$schema": "./slab-schema.json",
   "system": {
     "computerName": "EXHIBIT-PC-01",
-    "timezone": "Eastern Standard Time",
+    "timezone": "auto",
     "enableDailyReboot": false,
     "rebootTime": "03:00"
   },
   "autologon": {
-    "enabled": false,
+    "enabled": true,
     "username": "exhibit",
     "disablePasswordlessHello": true
   },
@@ -38,7 +38,7 @@
     "disableCopilotRecall": true,
     "disableOOBEPrompts": true,
     "clearDesktopIcons": true,
-    "solidColorBackground": "#000000",
+    "solidColorBackground": "#333333",
     "enableDarkMode": true,
     "configureExplorer": true,
     "disableAppInstalls": true,

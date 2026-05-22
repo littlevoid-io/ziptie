@@ -9,22 +9,19 @@ Param(
 $tweakEnabled = $Config.autologon.enabled
 $shouldUndo = $Undo -or !$tweakEnabled
 
-$registryTweak = {
-    Param([String]$Path, [String]$Name, [Object]$Value, [String]$Type, [Switch]$Remove, [Switch]$DryRun)
-    & "$PSScriptRoot/../../src/powershell/utils/slab-set-registry.ps1" -Path $Path -Name $Name -Value $Value -PropertyType $Type -Remove:$Remove -DryRun:$DryRun
-}
+. "$PSScriptRoot/../../src/powershell/utils/slab-init.ps1"
 
 $winlogonPath = "HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Winlogon"
 $passwordlessPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\PasswordLess\Device"
 
 if ($shouldUndo) {
     Write-Host "Restoring default logon behavior (disabling autologon)..." -ForegroundColor Cyan
-    &$registryTweak -Path $winlogonPath -Name "AutoAdminLogon" -Value "0" -Type "String" -DryRun:$DryRun
-    &$registryTweak -Path $winlogonPath -Name "DefaultUserName" -Remove -DryRun:$DryRun
-    &$registryTweak -Path $winlogonPath -Name "DefaultPassword" -Remove -DryRun:$DryRun
+    &$registryTweak -Path $winlogonPath -Name "AutoAdminLogon" -Value "0" -Type "String"
+    &$registryTweak -Path $winlogonPath -Name "DefaultUserName" -Remove
+    &$registryTweak -Path $winlogonPath -Name "DefaultPassword" -Remove
     
     if ($Config.autologon.disablePasswordlessHello) {
-        &$registryTweak -Path $passwordlessPath -Name "DevicePasswordLessBuildVersion" -Remove -DryRun:$DryRun
+        &$registryTweak -Path $passwordlessPath -Name "DevicePasswordLessBuildVersion" -Remove
     }
 } else {
     $username = $Config.autologon.username
@@ -36,11 +33,11 @@ if ($shouldUndo) {
     
     if ($Config.autologon.disablePasswordlessHello) {
         Write-Host "Disabling Windows Hello passwordless constraints globally..." -ForegroundColor Cyan
-        &$registryTweak -Path $passwordlessPath -Name "DevicePasswordLessBuildVersion" -Value 0 -Type "DWord" -DryRun:$DryRun
+        &$registryTweak -Path $passwordlessPath -Name "DevicePasswordLessBuildVersion" -Value 0 -Type "DWord"
     }
     
-    &$registryTweak -Path $winlogonPath -Name "AutoAdminLogon" -Value "1" -Type "String" -DryRun:$DryRun
-    &$registryTweak -Path $winlogonPath -Name "DefaultDomainName" -Value $env:COMPUTERNAME -Type "String" -DryRun:$DryRun
-    &$registryTweak -Path $winlogonPath -Name "DefaultUserName" -Value $username -Type "String" -DryRun:$DryRun
-    &$registryTweak -Path $winlogonPath -Name "DefaultPassword" -Value $password -Type "String" -DryRun:$DryRun
+    &$registryTweak -Path $winlogonPath -Name "AutoAdminLogon" -Value "1" -Type "String"
+    &$registryTweak -Path $winlogonPath -Name "DefaultDomainName" -Value $env:COMPUTERNAME -Type "String"
+    &$registryTweak -Path $winlogonPath -Name "DefaultUserName" -Value $username -Type "String"
+    &$registryTweak -Path $winlogonPath -Name "DefaultPassword" -Value $password -Type "String"
 }
