@@ -61,7 +61,38 @@ npm run sandbox
 ```
 This command compiles the CLI, dynamically generates a .wsb mapping configuration at `.tmp/slab-sandbox.wsb` (gitignored), mounts the repository to `C:\slab` inside the guest environment, and runs `test/run-sandbox-tests.ps1` to validate the active configuration state.
 
+
 ---
+
+## 📦 Creating a Release
+
+To package a new release and publish it directly to GitHub:
+
+### 1. Configure the GitHub Token
+Create a `.env` file in the root of your repository and add your GitHub Personal Access Token (PAT):
+```env
+GITHUB_TOKEN=your_personal_access_token_here
+```
+> [!NOTE]
+> Ensure the `.env` file is never committed. It is already added to `.gitignore` to keep your credentials safe.
+
+### 2. Run the Release Script
+Execute the following command in your terminal:
+```bash
+npm run release
+```
+
+This command automatically:
+1. Loads the `GITHUB_TOKEN` environment variable from your `.env` file.
+2. Prompts you to select the next version increment (e.g., `patch`, `minor`, `major`).
+3. Updates `package.json` and `package-lock.json` and creates a local Git commit and tag.
+4. Triggers the packaging hook:
+   - Compiles the standalone `dist/slab.exe` binary.
+   - Compresses all necessary dependencies (`dist/slab.exe`, `scripts/`, `src/powershell/`, `slab.default.config.json`, `slab-schema.json`, and `setup.bat`) into a single `slab.zip` archive.
+5. Deploys the release to GitHub via the REST API and **attaches `slab.zip` as a release asset** automatically.
+
+---
+
 
 ## 🎯 What It Is For & What It Does
 Slab automates the installation, configuration, and lockdown adjustments needed for public, unattended interactives:

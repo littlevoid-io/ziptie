@@ -26,7 +26,7 @@
     "build": "bun build ./src/index.ts --target=node --outfile=dist/index.js",
     "package": "bun build --compile --target=node ./src/index.ts --outfile=dist/slab.exe",
     "sandbox": "npm run package && node test/launch-sandbox.js",
-    "release": "release-it"
+    "release": "node scripts/release.js"
   },
   "dependencies": {
     "@clack/prompts": "^1.4.0",
