@@ -2,10 +2,8 @@
 $OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::InputEncoding = [System.Text.Encoding]::UTF8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-chcp 65001 | Out-Null
 
-# Set console colors
-$Host.UI.RawUI.BackgroundColor = "Black"; $Host.UI.RawUI.ForegroundColor = "White"; Clear-Host
+Clear-Host
 Write-Host "==========================================================" -ForegroundColor Green
 Write-Host "         SLAB AUTOMATED SANDBOX INTEGRATION TESTS          " -ForegroundColor Green
 Write-Host "==========================================================" -ForegroundColor Green
