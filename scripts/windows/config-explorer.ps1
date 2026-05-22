@@ -1,72 +1,71 @@
 [CmdletBinding()]
 Param(
-    [Parameter(Mandatory=$true)]
-    [Object]$Config,
-    [Switch]$DryRun,
-    [Switch]$Undo
+    [Parameter(Mandatory=$true)] [Object]$Config,
+    [Switch]$DryRun, [Switch]$Undo
 )
 
 $tweakEnabled = $Config.lockdown.configureExplorer
 $shouldUndo = $Undo -or !$tweakEnabled
 
 $registryTweak = {
-    Param([String]$Path, [String]$Name, [Object]$Value, [String]$Type, [Switch]$Remove, [Switch]$DryRun)
+    Param([String]$Path, [String]$Name, [Object]$Value, [String]$Type, [Switch]$Remove)
     & "$PSScriptRoot/../../src/powershell/utils/slab-set-registry.ps1" -Path $Path -Name $Name -Value $Value -PropertyType $Type -Remove:$Remove -DryRun:$DryRun
 }
 
 $userPaths = @("HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer")
+$searchPaths = @("HKCU:\Software\Microsoft\Windows\CurrentVersion\Search")
 if (Test-Path "HKU:\DefaultUser") {
     $userPaths += @("HKU:\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "HKU:\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Explorer")
+    $searchPaths += "HKU:\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Search"
 }
 
 if ($shouldUndo) {
-    Write-Host "Restoring default Windows Explorer configurations..." -ForegroundColor Cyan
+    Write-Host "Restoring default Windows Explorer & Taskbar settings..." -ForegroundColor Cyan
     foreach ($base in $userPaths) {
         if ($base -like "*Advanced") {
-            &$registryTweak -Path $base -Name "Hidden" -Remove -DryRun:$DryRun
-            &$registryTweak -Path $base -Name "HideFileExt" -Remove -DryRun:$DryRun
-            &$registryTweak -Path $base -Name "HideDrivesWithNoMedia" -Remove -DryRun:$DryRun
-            &$registryTweak -Path $base -Name "ShowSyncProviderNotifications" -Remove -DryRun:$DryRun
-            &$registryTweak -Path $base -Name "DisallowShaking" -Remove -DryRun:$DryRun
-            &$registryTweak -Path $base -Name "LaunchTo" -Remove -DryRun:$DryRun
-            &$registryTweak -Path $base -Name "AutoCheckSelect" -Remove -DryRun:$DryRun
-            &$registryTweak -Path $base -Name "TaskbarSizeMove" -Remove -DryRun:$DryRun
-            &$registryTweak -Path $base -Name "MMTaskbarEnabled" -Remove -DryRun:$DryRun
-            &$registryTweak -Path $base -Name "StoreAppsOnTaskbar" -Remove -DryRun:$DryRun
+            foreach ($prop in @("Hidden","HideFileExt","HideDrivesWithNoMedia","ShowSyncProviderNotifications","DisallowShaking","LaunchTo","AutoCheckSelect","TaskbarSizeMove","MMTaskbarEnabled","StoreAppsOnTaskbar")) {
+                &$registryTweak -Path $base -Name $prop -Remove
+            }
         } else {
-            &$registryTweak -Path $base -Name "TaskbarNoMultimon" -Remove -DryRun:$DryRun
+            &$registryTweak -Path $base -Name "TaskbarNoMultimon" -Remove
         }
+    }
+    foreach ($p in $searchPaths) {
+        &$registryTweak -Path $p -Name "SearchboxTaskbarMode" -Remove
+        &$registryTweak -Path $p -Name "SearchboxTaskbarModeCache" -Remove
     }
     # Thumbs.db
     $thumbPaths = @("HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer")
     if (Test-Path "HKU:\DefaultUser") { $thumbPaths += "HKU:\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" }
-    foreach ($p in $thumbPaths) {
-        &$registryTweak -Path $p -Name "DisableThumbnailsOnNetworkFolders" -Remove -DryRun:$DryRun
-    }
+    foreach ($p in $thumbPaths) { &$registryTweak -Path $p -Name "DisableThumbnailsOnNetworkFolders" -Remove }
 } else {
-    Write-Host "Configuring Windows Explorer defaults for exhibit..." -ForegroundColor Cyan
+    Write-Host "Configuring Windows Explorer & Taskbar defaults for exhibit..." -ForegroundColor Cyan
     foreach ($base in $userPaths) {
         if ($base -like "*Advanced") {
-            &$registryTweak -Path $base -Name "Hidden" -Value 1 -Type "DWord" -DryRun:$DryRun
-            &$registryTweak -Path $base -Name "HideFileExt" -Value 0 -Type "DWord" -DryRun:$DryRun
-            &$registryTweak -Path $base -Name "HideDrivesWithNoMedia" -Value 0 -Type "DWord" -DryRun:$DryRun
-            &$registryTweak -Path $base -Name "ShowSyncProviderNotifications" -Value 0 -Type "DWord" -DryRun:$DryRun
-            &$registryTweak -Path $base -Name "DisallowShaking" -Value 1 -Type "DWord" -DryRun:$DryRun
-            &$registryTweak -Path $base -Name "LaunchTo" -Value 1 -Type "DWord" -DryRun:$DryRun
-            &$registryTweak -Path $base -Name "AutoCheckSelect" -Value 0 -Type "DWord" -DryRun:$DryRun
-            &$registryTweak -Path $base -Name "TaskbarSizeMove" -Value 1 -Type "DWord" -DryRun:$DryRun
-            &$registryTweak -Path $base -Name "MMTaskbarEnabled" -Value 0 -Type "DWord" -DryRun:$DryRun
-            &$registryTweak -Path $base -Name "StoreAppsOnTaskbar" -Value 0 -Type "DWord" -DryRun:$DryRun
+            &$registryTweak -Path $base -Name "Hidden" -Value 1 -Type "DWord"
+            &$registryTweak -Path $base -Name "HideFileExt" -Value 0 -Type "DWord"
+            &$registryTweak -Path $base -Name "HideDrivesWithNoMedia" -Value 0 -Type "DWord"
+            &$registryTweak -Path $base -Name "ShowSyncProviderNotifications" -Value 0 -Type "DWord"
+            &$registryTweak -Path $base -Name "DisallowShaking" -Value 1 -Type "DWord"
+            &$registryTweak -Path $base -Name "LaunchTo" -Value 1 -Type "DWord"
+            &$registryTweak -Path $base -Name "AutoCheckSelect" -Value 0 -Type "DWord"
+            &$registryTweak -Path $base -Name "TaskbarSizeMove" -Value 1 -Type "DWord"
+            &$registryTweak -Path $base -Name "MMTaskbarEnabled" -Value 0 -Type "DWord"
+            &$registryTweak -Path $base -Name "StoreAppsOnTaskbar" -Value 0 -Type "DWord"
         } else {
-            &$registryTweak -Path $base -Name "TaskbarNoMultimon" -Value 0 -Type "DWord" -DryRun:$DryRun
+            &$registryTweak -Path $base -Name "TaskbarNoMultimon" -Value 0 -Type "DWord"
         }
+    }
+    # Hide Windows 11 Taskbar Search Box
+    foreach ($p in $searchPaths) {
+        &$registryTweak -Path $p -Name "SearchboxTaskbarMode" -Value 0 -Type "DWord"
+        &$registryTweak -Path $p -Name "SearchboxTaskbarModeCache" -Value 0 -Type "DWord"
     }
     # Thumbs.db
     $thumbPaths = @("HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer")
     if (Test-Path "HKU:\DefaultUser") { $thumbPaths += "HKU:\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" }
-    foreach ($p in $thumbPaths) {
-        &$registryTweak -Path $p -Name "DisableThumbnailsOnNetworkFolders" -Value 1 -Type "DWord" -DryRun:$DryRun
-    }
+    foreach ($p in $thumbPaths) { &$registryTweak -Path $p -Name "DisableThumbnailsOnNetworkFolders" -Value 1 -Type "DWord" }
+
     # Hide taskbar StuckRects3 Settings
     $stuckPaths = @("HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StuckRects3")
     if (Test-Path "HKU:\DefaultUser") { $stuckPaths += "HKU:\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Explorer\StuckRects3" }

@@ -58,7 +58,7 @@ try {
     & "$PSScriptRoot/$wins/disable-touch-feedback.ps1" -Config $config -DryRun:$DryRun -Undo:$Undo
     & "$PSScriptRoot/$wins/disable-win-setup-prompts.ps1" -Config $config -DryRun:$DryRun -Undo:$Undo
     & "$PSScriptRoot/$wins/clear-desktop-shortcuts.ps1" -Config $config -DryRun:$DryRun -Undo:$Undo
-    & "$PSScriptRoot/$wins/clear-desktop-background.ps1" -Config $config -DryRun:$DryRun -Undo:$Undo
+    & "$PSScriptRoot/$wins/set-desktop-background.ps1" -Config $config -DryRun:$DryRun -Undo:$Undo
     & "$PSScriptRoot/$wins/config-explorer.ps1" -Config $config -DryRun:$DryRun -Undo:$Undo
     & "$PSScriptRoot/$wins/disable-app-installs.ps1" -Config $config -DryRun:$DryRun -Undo:$Undo
     & "$PSScriptRoot/$wins/disable-app-restore.ps1" -Config $config -DryRun:$DryRun -Undo:$Undo
@@ -74,6 +74,11 @@ try {
     & "$PSScriptRoot/$wins/uninstall-one-drive.ps1" -Config $config -DryRun:$DryRun -Undo:$Undo
     & "$PSScriptRoot/$wins/unpin-start-menu-apps.ps1" -Config $config -DryRun:$DryRun -Undo:$Undo
     & "$PSScriptRoot/$wins/set-power-settings.ps1" -Config $config -DryRun:$DryRun -Undo:$Undo
+
+    if (!$DryRun) {
+        Write-Host "Restarting explorer.exe to apply UI changes immediately..." -ForegroundColor Cyan
+        Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
+    }
 
 } finally {
     if ($hiveMounted) {

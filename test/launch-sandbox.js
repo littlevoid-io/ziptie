@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Project root is one level up from "scripts"
+// Project root is one level up from "test"
 const projectRoot = path.resolve(__dirname, "..");
 const wsbPath = path.join(projectRoot, ".tmp", "slab-sandbox.wsb");
 
