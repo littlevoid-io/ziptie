@@ -13,7 +13,8 @@
   "files": [
     "dist/**/*.js",
     "dist/**/*.d.ts",
-    "slab-config.json",
+    "slab.config.json",
+    "slab.default.config.json",
     "slab-schema.json",
     "scripts",
     "src/powershell",
@@ -24,7 +25,7 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
-    "sandbox": "npm run build && node scripts/launch-sandbox.js"
+    "sandbox": "npm run build && node test/launch-sandbox.js"
   },
   "dependencies": {
     "sudo-prompt": "^9.2.1"

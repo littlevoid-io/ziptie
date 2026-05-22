@@ -15,7 +15,7 @@
         },
         "timezone": {
           "type": "string",
-          "description": "The standardized Windows Time Zone name (e.g. 'Eastern Standard Time', 'Pacific Standard Time').",
+          "description": "The standardized Windows Time Zone name (e.g. 'Eastern Standard Time', 'Pacific Standard Time') or 'auto' to automatically detect based on location services.",
           "minLength": 1
         },
         "enableDailyReboot": {
@@ -145,9 +145,22 @@
           "type": "boolean",
           "description": "Hides all icons on the desktop for a clean, premium visual aesthetic."
         },
-        "blackDesktopBackground": {
-          "type": "boolean",
-          "description": "Sets the desktop background color to solid black to prevent background flashes during exhibit boot/relaunch."
+        "solidColorBackground": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^#([A-Fa-f0-9]{6})$",
+              "description": "Premium hex-based solid background color (e.g. '#000000')."
+            },
+            {
+              "type": "boolean",
+              "description": "Set to true to default to solid black ('#000000'), or false to skip background customization."
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Configures a solid color desktop background (e.g., '#000000' or true) to prevent background flashes during exhibit boot/relaunch."
         },
         "configureExplorer": {
           "type": "boolean",
@@ -220,7 +233,7 @@
         "disableCopilotRecall",
         "disableOOBEPrompts",
         "clearDesktopIcons",
-        "blackDesktopBackground",
+        "solidColorBackground",
         "configureExplorer",
         "disableAppInstalls",
         "disableAppRestore",

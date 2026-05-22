@@ -21,59 +21,21 @@ const dryRun = hasFlag("--dry-run", "-d");
 const undo = hasFlag("--undo", "-u");
 const customConfigPath = getArgValue("--config", "-c");
 
-const defaultConfig = {
-  system: {
-    computerName: "EXHIBIT-PC-01",
-    timezone: "Eastern Standard Time",
-    enableDailyReboot: false,
-    rebootTime: "03:00"
-  },
-  autologon: {
-    enabled: false,
-    username: "exhibit",
-    disablePasswordlessHello: true
-  },
-  startupTask: {
-    enabled: true,
-    workingDir: "C:\\Exhibit",
-    executable: "launch.bat",
-    trigger: "AtLogon",
-    delay: "PT1M"
-  },
-  packageManager: {
-    provider: "winget",
-    allowOfflineFallback: true,
-    localInstallersPath: ".\\installers",
-    apps: ["CoreyButler.NVMforWindows", "Microsoft.VisualStudioCode", "Git.Git"]
-  },
-  lockdown: {
-    disableScreensaver: true,
-    disableAccessibilityShortcuts: true,
-    disableEdgeSwipes: true,
-    disableTouchFeedback: true,
-    disableWindowsUpdate: true,
-    disableWindowsWidgets: true,
-    disableCopilotRecall: true,
-    disableOOBEPrompts: true,
-    clearDesktopIcons: true,
-    blackDesktopBackground: true,
-    configureExplorer: true,
-    disableAppInstalls: true,
-    disableAppRestore: true,
-    disableErrorReporting: true,
-    disableFirewall: false,
-    disableMaxPathLength: true,
-    disableNewNetworkWindow: true,
-    disableNotifications: true,
-    disableTouchGestures: true,
-    enableScriptExecution: true,
-    resetTextScale: true,
-    uninstallBloatware: true,
-    uninstallOneDrive: true,
-    unpinStartMenuApps: true,
-    setPowerSettings: true
+// Load the default configuration from slab.default.config.json
+let defaultConfig: any = {};
+try {
+  let projectRoot = path.resolve(__dirname, "..");
+  if (!fs.existsSync(path.join(projectRoot, "slab.default.config.json"))) {
+    projectRoot = process.cwd();
   }
-};
+  const defaultConfigPath = path.join(projectRoot, "slab.default.config.json");
+  const defaultContent = fs.readFileSync(defaultConfigPath, "utf8");
+  defaultConfig = JSON.parse(defaultContent);
+} catch (e: any) {
+  console.error(`Error loading default configuration: ${e.message}`);
+  process.exit(1);
+}
+
 
 async function main() {
   if (process.platform !== "win32") {
@@ -83,7 +45,7 @@ async function main() {
 
   const configFilePath = customConfigPath 
     ? path.resolve(customConfigPath) 
-    : path.resolve(process.cwd(), "slab-config.json");
+    : path.resolve(process.cwd(), "slab.config.json");
 
   console.log(`Searching for slab configuration at: ${configFilePath}`);
   

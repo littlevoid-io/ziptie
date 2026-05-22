@@ -4,7 +4,7 @@
     "computerName": "EXHIBIT-PC-01",
     "timezone": "Eastern Standard Time",
     "enableDailyReboot": false,
-    "rebootTime": "06:00"
+    "rebootTime": "03:00"
   },
   "autologon": {
     "enabled": false,
@@ -38,7 +38,7 @@
     "disableCopilotRecall": true,
     "disableOOBEPrompts": true,
     "clearDesktopIcons": true,
-    "blackDesktopBackground": true,
+    "solidColorBackground": "#000000",
     "configureExplorer": true,
     "disableAppInstalls": true,
     "disableAppRestore": true,

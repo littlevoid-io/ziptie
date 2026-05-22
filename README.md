@@ -18,7 +18,7 @@ npm run build
 ```
 
 ### 3. Configuration
-Customize settings in `slab-config.json` at the root of the repository. Open the file in VS Code to get auto-completion, schema validation, and description tooltips defined in `slab-schema.json`.
+Customize settings in `slab.config.json` at the root of the repository. Open the file in VS Code to get auto-completion, schema validation, and description tooltips defined in `slab-schema.json`.
 
 ### 4. Run Dry-Run (Safe Preview)
 To preview configuration changes without modifying the registry or system state:
@@ -57,7 +57,7 @@ Slab automates the installation, configuration, and lockdown adjustments needed 
 ---
 
 ## ⚙️ How It Works
-1. **Config Engine**: The TypeScript CLI loads and validates `slab-config.json`, merges it with fallback defaults, and writes a temporary JSON configuration.
+1. **Config Engine**: The TypeScript CLI loads and validates `slab.config.json`, merges it with fallback defaults, and writes a temporary JSON configuration.
 2. **Hive Mount Orchestration**: The main orchestrator (`slab.ps1`) mounts the Windows Default User Registry Hive (`C:\Users\Default\NTUSER.DAT`) to `HKU:\DefaultUser` inside a `try/finally` block. This ensures that any standard or guest accounts created on the machine in the future automatically inherit the lockdown settings out of the box.
 3. **Granular Execution**: Executes standalone, convergent configuration scripts from `scripts/windows/`.
 4. **Architectural Guidelines**:

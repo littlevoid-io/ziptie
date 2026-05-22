@@ -34,7 +34,7 @@ if ($provider -eq "winget" -and $isOnline -and !$hasWinget) {
 # Attempt Choco bootstrap if designated/fallback but missing
 if (($provider -eq "choco" -or ($provider -eq "winget" -and !$hasWinget)) -and $isOnline -and !$hasChoco) {
     Write-Warning "Chocolatey is not installed. Bootstrapping Chocolatey..."
-    & "$PSScriptRoot/../install-choco.ps1"
+    & "$PSScriptRoot/../../src/powershell/utils/slab-install-choco.ps1"
     $hasChoco = $null -ne (Get-Command "choco" -ErrorAction SilentlyContinue)
 }
 
