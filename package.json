@@ -1,6 +1,6 @@
 {
   "name": "@littlevoid/slab",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "A modern, quirky, zero-dependency, and air-gap friendly Windows 11 kiosk and exhibit bootstrapping utility.",
   "type": "module",
   "exports": {
