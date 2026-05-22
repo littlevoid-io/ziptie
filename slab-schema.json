@@ -15,7 +15,7 @@
         },
         "timezone": {
           "type": "string",
-          "description": "The standardized Windows Time Zone name (e.g. 'Eastern Standard Time', 'Pacific Standard Time').",
+          "description": "The standardized Windows Time Zone name (e.g. 'Eastern Standard Time', 'Pacific Standard Time') or 'auto' to automatically detect based on location services.",
           "minLength": 1
         },
         "enableDailyReboot": {
@@ -84,8 +84,8 @@
       "properties": {
         "provider": {
           "type": "string",
-          "enum": ["winget", "none"],
-          "description": "The system package manager. 'winget' uses the built-in Windows 11 package manager. 'none' disables online package manager downloads."
+          "enum": ["winget", "choco", "none"],
+          "description": "The system package manager. 'winget' uses the built-in Windows 11 package manager. 'choco' uses Chocolatey. 'none' disables online package manager downloads."
         },
         "allowOfflineFallback": {
           "type": "boolean",
@@ -133,6 +133,10 @@
           "type": "boolean",
           "description": "Removes/disables modern Windows 11 widgets panel and taskbar widget icons to prevent visitor interaction."
         },
+        "disableCopilotRecall": {
+          "type": "boolean",
+          "description": "Disables Windows 11 AI features including Windows Copilot and local AI data analysis (Recall) to ensure kiosk privacy."
+        },
         "disableOOBEPrompts": {
           "type": "boolean",
           "description": "Disables post-update and secondary Windows Out-Of-Box Experience prompts (personalized ads, MS Account reminders)."
@@ -141,9 +145,26 @@
           "type": "boolean",
           "description": "Hides all icons on the desktop for a clean, premium visual aesthetic."
         },
-        "blackDesktopBackground": {
+        "solidColorBackground": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^#([A-Fa-f0-9]{6})$",
+              "description": "Premium hex-based solid background color (e.g. '#000000')."
+            },
+            {
+              "type": "boolean",
+              "description": "Set to true to default to solid black ('#000000'), or false to skip background customization."
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Configures a solid color desktop background (e.g., '#000000' or true) to prevent background flashes during exhibit boot/relaunch."
+        },
+        "enableDarkMode": {
           "type": "boolean",
-          "description": "Sets the desktop background color to solid black to prevent background flashes during exhibit boot/relaunch."
+          "description": "Enables Windows 11 system-wide Dark Mode by default for a clean, premium visual aesthetic."
         },
         "configureExplorer": {
           "type": "boolean",
@@ -213,9 +234,11 @@
         "disableTouchFeedback",
         "disableWindowsUpdate",
         "disableWindowsWidgets",
+        "disableCopilotRecall",
         "disableOOBEPrompts",
         "clearDesktopIcons",
-        "blackDesktopBackground",
+        "solidColorBackground",
+        "enableDarkMode",
         "configureExplorer",
         "disableAppInstalls",
         "disableAppRestore",

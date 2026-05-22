@@ -3,3 +3,6 @@ node_modules/
 dist/
 .tmp/
 *.wsb
+slab.config.json
+*.zip
+.env

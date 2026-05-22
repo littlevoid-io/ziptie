@@ -9,7 +9,7 @@ Param(
 $tweakEnabled = $Config.startupTask.enabled
 $shouldUndo = $Undo -or !$tweakEnabled
 
-$taskName = "SlabExhibitLaunch"
+$taskName = "Launch Exhibit"
 $taskPath = "\Slab\"
 
 if ($shouldUndo) {
@@ -52,7 +52,11 @@ if ($shouldUndo) {
         $actionArgs = $Matches[2]
     }
 
-    $action = New-ScheduledTaskAction -Execute $actionExec -Argument $actionArgs -WorkingDirectory $workingDir
+    if ($actionArgs) {
+        $action = New-ScheduledTaskAction -Execute $actionExec -Argument $actionArgs -WorkingDirectory $workingDir
+    } else {
+        $action = New-ScheduledTaskAction -Execute $actionExec -WorkingDirectory $workingDir
+    }
     
     if ($triggerType -eq "AtLogon") {
         $trigger = New-ScheduledTaskTrigger -AtLogon

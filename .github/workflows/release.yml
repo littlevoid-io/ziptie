@@ -1,0 +1,42 @@
+name: Automated Slab Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Compile and Publish Standalone Release
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Bun Environment
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Project Dependencies
+        run: bun install
+
+      - name: Compile Standalone Windows Executable
+        run: bun run package
+
+      - name: Package Release ZIP Archive
+        shell: pwsh
+        run: |
+          Compress-Archive -Path dist/slab.exe, scripts, src/powershell, slab.default.config.json, slab-schema.json, setup.bat -DestinationPath slab.zip -Force
+
+      - name: Publish Release via GitHub CLI
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
+        run: |
+          $version = node -p "require('./package.json').version"
+          gh release create "v$version" slab.zip --title "Slab Release v$version" --notes "Automated precompiled system foundation release." --clobber

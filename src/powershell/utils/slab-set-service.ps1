@@ -18,7 +18,11 @@ if ($StartupType) {
         Write-Host "[DRY-RUN] Set-Service '$ServiceName' -StartupType '$StartupType'" -ForegroundColor Yellow
     } else {
         Write-Host "Configuring service '$ServiceName' startup type to '$StartupType'..." -ForegroundColor Cyan
-        Set-Service -Name $ServiceName -StartupType $StartupType -ErrorAction Stop
+        try {
+            Set-Service -Name $ServiceName -StartupType $StartupType -ErrorAction Stop
+        } catch {
+            Write-Warning "Failed to configure service '$ServiceName' startup type: $_"
+        }
     }
 }
 
@@ -28,7 +32,11 @@ if ($State) {
             Write-Host "[DRY-RUN] Start-Service '$ServiceName'" -ForegroundColor Yellow
         } else {
             Write-Host "Starting service '$ServiceName'..." -ForegroundColor Cyan
-            Start-Service -Name $ServiceName -ErrorAction Stop
+            try {
+                Start-Service -Name $ServiceName -ErrorAction Stop
+            } catch {
+                Write-Warning "Failed to start service '$ServiceName'. It may start on trigger. Error: $_"
+            }
         }
     }
     elseif ($State -eq "Stopped" -and $service.Status -ne "Stopped") {
@@ -36,7 +44,11 @@ if ($State) {
             Write-Host "[DRY-RUN] Stop-Service '$ServiceName'" -ForegroundColor Yellow
         } else {
             Write-Host "Stopping service '$ServiceName'..." -ForegroundColor Cyan
-            Stop-Service -Name $ServiceName -Force -ErrorAction Stop
+            try {
+                Stop-Service -Name $ServiceName -Force -ErrorAction Stop
+            } catch {
+                Write-Warning "Failed to stop service '$ServiceName': $_"
+            }
         }
     }
 }

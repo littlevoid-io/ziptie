@@ -1,0 +1,20 @@
+{
+  "hooks": {
+    "after:bump": "npm run package && powershell -Command \"Compress-Archive -Path dist/slab.exe, scripts, src/powershell, slab.default.config.json, slab-schema.json, setup.bat -DestinationPath dist/slab.zip -Force\""
+  },
+  "git": {
+    "requireBranch": "main",
+    "commitMessage": "chore(release): v${version}",
+    "tagName": "v${version}",
+    "push": true
+  },
+  "github": {
+    "release": true,
+    "releaseName": "Slab Release v${version}",
+    "draft": false,
+    "assets": ["dist/slab.zip"]
+  },
+  "npm": {
+    "publish": false
+  }
+}
