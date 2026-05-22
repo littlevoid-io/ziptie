@@ -3,12 +3,14 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::InputEncoding = [System.Text.Encoding]::UTF8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
+$slabRoot = Resolve-Path "$PSScriptRoot/.."
+
 Clear-Host
 Write-Host "==========================================================" -ForegroundColor Green
 Write-Host "         SLAB AUTOMATED SANDBOX INTEGRATION TESTS          " -ForegroundColor Green
 Write-Host "==========================================================" -ForegroundColor Green
 Write-Host "`nExecuting Slab in active modification mode..." -ForegroundColor Cyan
-& "C:\slab\dist\slab.exe" -c "C:\slab\slab.default.config.json" -y
+& "$slabRoot\dist\slab.exe" -c "$slabRoot\slab.default.config.json" -y
 Write-Host "Slab execution finished. Verifying system state..." -ForegroundColor Cyan
 
 $success = $true
@@ -32,7 +34,7 @@ function Assert-ScheduledTask {
     } else { Write-Host " FAILED (Not Found)" -ForegroundColor Red; $global:success = $false }
 }
 
-$config = Get-Content -Raw -Path "C:\slab\slab.default.config.json" | ConvertFrom-Json
+$config = Get-Content -Raw -Path "$slabRoot\slab.default.config.json" | ConvertFrom-Json
 Write-Host "`n--- SYSTEM STATE VERIFICATIONS ---" -ForegroundColor Yellow
 
 if ($config.lockdown.disableWindowsWidgets) {
