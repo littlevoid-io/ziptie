@@ -133,6 +133,10 @@
           "type": "boolean",
           "description": "Removes/disables modern Windows 11 widgets panel and taskbar widget icons to prevent visitor interaction."
         },
+        "disableCopilotRecall": {
+          "type": "boolean",
+          "description": "Disables Windows 11 AI features including Windows Copilot and local AI data analysis (Recall) to ensure kiosk privacy."
+        },
         "disableOOBEPrompts": {
           "type": "boolean",
           "description": "Disables post-update and secondary Windows Out-Of-Box Experience prompts (personalized ads, MS Account reminders)."
@@ -213,6 +217,7 @@
         "disableTouchFeedback",
         "disableWindowsUpdate",
         "disableWindowsWidgets",
+        "disableCopilotRecall",
         "disableOOBEPrompts",
         "clearDesktopIcons",
         "blackDesktopBackground",

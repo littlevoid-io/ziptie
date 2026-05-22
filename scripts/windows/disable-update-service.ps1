@@ -28,6 +28,8 @@ if ($shouldUndo) {
     &$registryTweak -Path $policyAU -Name "NoAutoUpdate" -Remove -DryRun:$DryRun
     &$registryTweak -Path $policyAU -Name "AUOptions" -Remove -DryRun:$DryRun
     &$registryTweak -Path $policyWU -Name "ExcludeWUDriversInQualityUpdate" -Remove -DryRun:$DryRun
+    &$registryTweak -Path $policyWU -Name "TargetReleaseVersion" -Remove -DryRun:$DryRun
+    &$registryTweak -Path $policyWU -Name "TargetReleaseVersionInfo" -Remove -DryRun:$DryRun
     &$registryTweak -Path $uxSettings -Name "PauseUpdatesExpiryTime" -Remove -DryRun:$DryRun
     &$registryTweak -Path $uxSettings -Name "PauseFeatureUpdatesStartTime" -Remove -DryRun:$DryRun
     &$registryTweak -Path $uxSettings -Name "PauseQualityUpdatesStartTime" -Remove -DryRun:$DryRun
@@ -43,6 +45,11 @@ if ($shouldUndo) {
     &$registryTweak -Path $policyAU -Name "NoAutoUpdate" -Value 1 -Type "DWord" -DryRun:$DryRun
     &$registryTweak -Path $policyAU -Name "AUOptions" -Value 2 -Type "DWord" -DryRun:$DryRun
     &$registryTweak -Path $policyWU -Name "ExcludeWUDriversInQualityUpdate" -Value 1 -Type "DWord" -DryRun:$DryRun
+    
+    $osVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion" -Name DisplayVersion -ErrorAction SilentlyContinue).DisplayVersion
+    if (!$osVersion) { $osVersion = "23H2" }
+    &$registryTweak -Path $policyWU -Name "TargetReleaseVersion" -Value 1 -Type "DWord" -DryRun:$DryRun
+    &$registryTweak -Path $policyWU -Name "TargetReleaseVersionInfo" -Value $osVersion -Type "String" -DryRun:$DryRun
     
     $futureTime = "2099-12-31T23:59:59Z"
     $nowTime = (Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ")
