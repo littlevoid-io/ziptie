@@ -41,7 +41,9 @@ Expand-Archive -Path $zipFile -DestinationPath $targetPath -Force
 Remove-Item $zipFile -Force
 
 Write-Host "Launching Slab..." -ForegroundColor Green
-if (Test-Path "dist\slab.exe") {
+if (Test-Path "slab.exe") {
+    & ".\slab.exe"
+} elseif (Test-Path "dist\slab.exe") {
     & "dist\slab.exe"
 } elseif (Test-Path "setup.bat") {
     & ".\setup.bat"
