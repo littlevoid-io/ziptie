@@ -37,7 +37,6 @@
   "devDependencies": {
     "@types/node": "^20.0.0",
     "esbuild": "^0.28.0",
-    "release-it": "^20.0.1",
     "typescript": "^5.0.0"
   }
 }

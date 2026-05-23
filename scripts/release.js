@@ -2,18 +2,8 @@ import { execSync } from 'child_process';
 import { readFileSync, existsSync } from 'fs';
 import { select, outro, intro, spinner, isCancel } from '@clack/prompts';
 import chalk from 'chalk';
-import { join } from 'path';
 
-// 1. Load .env if it exists to retrieve GITHUB_TOKEN
-if (existsSync('.env')) {
-  try {
-    process.loadEnvFile();
-  } catch (err) {
-    // Ignore load errors
-  }
-}
-
-// 2. Helper to execute git/system commands
+// Helper to execute git/system commands
 function runCmd(cmd) {
   try {
     return execSync(cmd, { encoding: 'utf8', stdio: 'pipe' }).trim();
@@ -23,7 +13,7 @@ function runCmd(cmd) {
   }
 }
 
-// 3. Helper to increment SemVer version
+// Helper to increment SemVer version
 function incrementVersion(version, type) {
   const parts = version.split('.').map(Number);
   if (type === 'patch') {
@@ -63,12 +53,6 @@ async function main() {
     process.exit(1);
   }
 
-  // Pre-flight check C: GITHUB_TOKEN must be configured
-  if (!process.env.GITHUB_TOKEN) {
-    outro(chalk.red('Error: GITHUB_TOKEN environment variable is missing. Please configure it in your .env file.'));
-    process.exit(1);
-  }
-
   // Read current version
   const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
   const currentVersion = pkg.version;
@@ -102,35 +86,26 @@ async function main() {
     s.message('Bumping package versions...');
     runCmd(`npm version ${nextVersion} --no-git-tag-version`);
 
-    // 3. Compile standalone ziptie.exe and package ziptie.zip
-    s.message('Compiling and packaging Ziptie release assets...');
-    runCmd('npm run package');
-    runCmd(`powershell -Command "Compress-Archive -Path dist/ziptie.exe, scripts, ziptie.default.config.json, ziptie-schema.json, setup.bat -DestinationPath dist/ziptie.zip -Force"`);
-
-    // 4. Commit version bumps
+    // 3. Commit version bumps
     s.message('Committing version bump...');
     runCmd('git add package.json package-lock.json');
     runCmd(`git commit -m "chore(release): v${nextVersion}"`);
 
-    // 5. Merge release branch into main
+    // 4. Merge release branch into main
     s.message('Merging release branch into main...');
     runCmd('git checkout main');
     runCmd(`git merge ${branchName} --no-edit --allow-unrelated-histories -X theirs`);
 
-    // 6. Create local git tag on main
+    // 5. Create local git tag on main
     s.message(`Creating git tag v${nextVersion} on main...`);
     runCmd(`git tag v${nextVersion}`);
 
-    // 7. Merge main back into develop to keep them in sync
+    // 6. Merge main back into develop to keep them in sync
     s.message('Merging main back into develop...');
     runCmd('git checkout develop');
     runCmd('git merge main --no-edit');
 
-    // 8. Switch back to main for release-it
-    s.message('Preparing main branch for release upload...');
-    runCmd('git checkout main');
-
-    // 9. Push both branches and tags to GitHub
+    // 7. Push both branches and tags to GitHub
     s.message('Pushing main, develop, and tags to GitHub...');
     runCmd('git push origin main');
     runCmd('git push origin develop');
@@ -148,21 +123,7 @@ async function main() {
     process.exit(1);
   }
 
-  // 10. Create GitHub Release
-  console.log(chalk.cyan('\nStarting GitHub Release upload...'));
-  try {
-    const releaseItPath = join('node_modules', 'release-it', 'bin', 'release-it.js');
-    execSync(`node "${releaseItPath}" --no-increment --no-git --github.release`, {
-      stdio: 'inherit',
-      env: { ...process.env }
-    });
-    console.log(chalk.green('\nGitHub Release successfully created!'));
-  } catch (err) {
-    console.error(chalk.red(`\nFailed to create GitHub Release: ${err.message}`));
-    console.log(chalk.yellow('Branches and tags were pushed, but GitHub Release creation failed. Please verify your GITHUB_TOKEN.'));
-  }
-
-  // 11. Clean up release branch and return to develop
+  // 8. Clean up release branch and return to develop
   const cleanupSpinner = spinner();
   cleanupSpinner.start('Cleaning up and checking out develop...');
   try {
