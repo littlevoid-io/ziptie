@@ -106,13 +106,15 @@ Ziptie includes three distinct isolated Sandbox environment workflows for local 
 
 ### Local Bootstrap Simulation (One-Liner)
 
-To test, debug, or verify the bootstrapping process locally without fetching from GitHub, you can execute the bootstrap script directly from your local repository. The script will automatically detect the local repository and copy its release assets (e.g. `dist/ziptie.exe`, `scripts/`, etc.) to the target installation directory instead of downloading the zip from GitHub:
+To test, debug, or verify the bootstrapping process locally without fetching from GitHub, you can execute the bootstrap script directly from your local repository. The script will automatically detect the local repository and copy its release assets (e.g., `dist/ziptie.exe`, `scripts/`, etc.) to the target installation directory instead of downloading the zip from GitHub:
 
 ```powershell
+# -InstallDir specifies the target destination folder where files are copied.
+# (Defaults to current directory, or safely falls back to C:\Users\<Name>\Downloads\ziptie if run inside the repo)
 powershell -ExecutionPolicy Bypass -File .\scripts\bootstrap.ps1 -InstallDir "C:\ziptie-dev"
 ```
 
-You can also pass custom configuration overrides, silent install confirmations, or dry-run flags directly to the extracted executable via the `-ExtraArgs` parameter:
+You can also pass custom configuration overrides, silent install confirmations, or dry-run flags directly to the copied executable via the `-ExtraArgs` parameter:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\bootstrap.ps1 -InstallDir "C:\ziptie-dev" -ExtraArgs "-d -y --timezone `"Tokyo Standard Time`""
