@@ -22,6 +22,9 @@ function Backup-ZiptieUtilities {
         
         # Replace utility with a benign silent stub, except ziptie-init.ps1
         if ($fileName -ne "ziptie-init.ps1") {
+            if ([System.IO.File]::Exists($file)) {
+                [System.IO.File]::SetAttributes($file, [System.IO.FileAttributes]::Normal)
+            }
             [System.IO.File]::WriteAllText($file, "Param([Switch]`$DryRun)")
         }
     }
@@ -40,6 +43,9 @@ function Restore-ZiptieUtilities {
             [Console]::WriteLine("Restoring backup file: $fileName (Size: $size bytes)")
             
             $destPath = [System.IO.Path]::Combine($utilsDir, $fileName)
+            if ([System.IO.File]::Exists($destPath)) {
+                [System.IO.File]::SetAttributes($destPath, [System.IO.FileAttributes]::Normal)
+            }
             [System.IO.File]::Copy($bf, $destPath, $true)
         }
         

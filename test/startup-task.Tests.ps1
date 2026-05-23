@@ -6,6 +6,14 @@ $configPath = "$PSScriptRoot/../ziptie.default.config.json"
 if (!(Test-Path $configPath)) { $configPath = "./ziptie.default.config.json" }
 $defaultConfigPath = (Resolve-Path $configPath).Path
 
+# Pre-define dummy scheduled task functions to bypass real cmdlets and their strict parameter type constraints
+function Register-ScheduledTask { param($TaskName, $TaskPath, $Action, $Trigger, $Settings, [switch]$Force) }
+function Unregister-ScheduledTask { param($TaskName, $TaskPath, [switch]$Confirm) }
+function Get-ScheduledTask { param($TaskName, $TaskPath) }
+function New-ScheduledTaskAction { param($Execute, $Argument, $WorkingDirectory) }
+function New-ScheduledTaskTrigger { param([switch]$AtLogon, [switch]$AtStartup, [switch]$Daily, $At) }
+function New-ScheduledTaskSettingsSet { param([switch]$AllowStartIfOnBatteries, [switch]$DontStopIfGoingOnBatteries) }
+
 Describe "Ziptie Startup Task Parameter Splitting" {
     BeforeAll {
         Mock Test-Path { return $true }
@@ -14,6 +22,26 @@ Describe "Ziptie Startup Task Parameter Splitting" {
         Mock Write-Warning { }
         Mock Unregister-ScheduledTask { }
         Mock Get-ScheduledTask { return $null }
+        
+        Mock New-ScheduledTaskAction {
+            param($Execute, $Argument, $WorkingDirectory)
+            return [PSCustomObject]@{
+                Execute = $Execute
+                Arguments = $Argument
+                WorkingDirectory = $WorkingDirectory
+            }
+        }
+        Mock New-ScheduledTaskTrigger {
+            param([switch]$AtLogon, [switch]$AtStartup)
+            return [PSCustomObject]@{
+                AtLogon = $AtLogon
+                AtStartup = $AtStartup
+                Delay = $null
+            }
+        }
+        Mock New-ScheduledTaskSettingsSet {
+            return [PSCustomObject]@{ }
+        }
         
         $global:lastExecutedAction = $null
         Mock Register-ScheduledTask {
