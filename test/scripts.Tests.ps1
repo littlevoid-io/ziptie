@@ -318,8 +318,12 @@ Describe "Ziptie Lockdown Script Verification" {
             $global:lastExecutedAction = $null
             & $resolvedPath -Config $mockConfig
 
-            $global:lastExecutedAction.Execute | Should Be "node"
-            $global:lastExecutedAction.Arguments | Should Be "index.js --port 80"
+            if ($global:lastExecutedAction.Execute -ne "node") {
+                throw "Expected Execute to be 'node', but got '$($global:lastExecutedAction.Execute)'"
+            }
+            if ($global:lastExecutedAction.Arguments -ne "index.js --port 80") {
+                throw "Expected Arguments to be 'index.js --port 80', but got '$($global:lastExecutedAction.Arguments)'"
+            }
         }
 
         It "Should use explicit args and treat executable literally if args is provided" {
@@ -335,8 +339,12 @@ Describe "Ziptie Lockdown Script Verification" {
             $global:lastExecutedAction = $null
             & $resolvedPath -Config $mockConfig
 
-            $global:lastExecutedAction.Execute | Should Be "C:\Path With Spaces\node.exe"
-            $global:lastExecutedAction.Arguments | Should Be "index.js --port 80"
+            if ($global:lastExecutedAction.Execute -ne "C:\Path With Spaces\node.exe") {
+                throw "Expected Execute to be 'C:\Path With Spaces\node.exe', but got '$($global:lastExecutedAction.Execute)'"
+            }
+            if ($global:lastExecutedAction.Arguments -ne "index.js --port 80") {
+                throw "Expected Arguments to be 'index.js --port 80', but got '$($global:lastExecutedAction.Arguments)'"
+            }
         }
 
         It "Should handle null args correctly by falling back to regex splitting" {
@@ -354,8 +362,12 @@ Describe "Ziptie Lockdown Script Verification" {
             $global:lastExecutedAction = $null
             & $resolvedPath -Config $mockConfig
 
-            $global:lastExecutedAction.Execute | Should Be "node"
-            $global:lastExecutedAction.Arguments | Should Be "index.js"
+            if ($global:lastExecutedAction.Execute -ne "node") {
+                throw "Expected Execute to be 'node', but got '$($global:lastExecutedAction.Execute)'"
+            }
+            if ($global:lastExecutedAction.Arguments -ne "index.js") {
+                throw "Expected Arguments to be 'index.js', but got '$($global:lastExecutedAction.Arguments)'"
+            }
         }
     }
 }
