@@ -31,11 +31,6 @@ jobs:
       - name: Compile Standalone Windows Executable
         run: bun run package
 
-      - name: Package Release ZIP Archive
-        shell: pwsh
-        run: |
-          Compress-Archive -Path dist/ziptie.exe, scripts, ziptie.default.config.json, ziptie.schema.json, setup.bat -DestinationPath ziptie.zip -Force
-
       - name: Publish Release via GitHub CLI
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -46,4 +41,4 @@ jobs:
           if ($LASTEXITCODE -ne 0) {
             gh release create "v$version" --title "Ziptie Release v$version" --notes "Automated precompiled system foundation release."
           }
-          gh release upload "v$version" ziptie.zip --clobber
+          gh release upload "v$version" dist/ziptie.zip --clobber
