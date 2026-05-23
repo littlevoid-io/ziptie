@@ -17,6 +17,7 @@ $testFiles = @(
 
 if ($pesterVersion -ge 5) {
     # Modern Pester 5 execution (avoiding legacy parameters and scoping issues)
+    Import-Module Pester -ErrorAction Stop
     $config = [PesterConfiguration]::Default
     $config.Run.Path = $testFiles
     $config.Run.Exit = $true
