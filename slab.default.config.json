@@ -3,8 +3,8 @@
   "system": {
     "computerName": "EXHIBIT-PC-01",
     "timezone": "auto",
-    "enableDailyReboot": false,
-    "rebootTime": "03:00"
+    "enableDailyReboot": true,
+    "rebootTime": "06:00"
   },
   "autologon": {
     "enabled": true,
