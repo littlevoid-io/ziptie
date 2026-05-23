@@ -132,10 +132,13 @@ Describe "Ziptie Lockdown Script Verification" {
             
             Mock Get-Item {
                 param($Path)
-                # Return a custom object with a fake GetValue() method to completely isolate registry reading
-                return [PSCustomObject]@{
-                    GetValue = { param($name) return "" }
-                }
+                # Return a custom object with a real ScriptMethod to support native .GetValue() method calls
+                $mockKey = [PSCustomObject]@{ }
+                $mockKey | Add-Member -MemberType ScriptMethod -Name GetValue -Value {
+                    param($name)
+                    return ""
+                } -Force
+                return $mockKey
             }
 
             Mock New-Item { return $null }
@@ -210,12 +213,42 @@ Describe "Ziptie Lockdown Script Verification" {
                     throw "Lockdown script $($TestScript.Name) failed with exception: $_"
                 }
             }
+
+            It "Should run $($TestScript.BaseName) in Undo Mode successfully" {
+                try {
+                    $mockConfig = Get-Content -Raw -Path $configPath | ConvertFrom-Json
+                    . $TestScript.FullName -Config $mockConfig -Undo
+                } catch {
+                    $global:Error.Clear()
+                    throw "Undo script $($TestScript.Name) failed with exception: $_"
+                }
+            }
+
+            It "Should run $($TestScript.BaseName) with tweaks disabled in config successfully" {
+                try {
+                    $mockConfig = Get-Content -Raw -Path $configPath | ConvertFrom-Json
+                    
+                    # Programmatically toggle all boolean config options to false
+                    if ($mockConfig.lockdown) {
+                        foreach ($prop in $mockConfig.lockdown.PSObject.Properties) {
+                            if ($prop.Value -eq $true) { $prop.Value = $false }
+                        }
+                    }
+                    if ($mockConfig.startupTask) { $mockConfig.startupTask.enabled = $false }
+                    if ($mockConfig.system) { $mockConfig.system.enableDailyReboot = $false }
+
+                    . $TestScript.FullName -Config $mockConfig
+                } catch {
+                    $global:Error.Clear()
+                    throw "Disabled config script $($TestScript.Name) failed with exception: $_"
+                }
+            }
         }
 
         $scripts = Get-ChildItem -Path $scriptsDir -Filter "*.ps1"
         foreach ($script in $scripts) {
             # Skip helper/installer/test scripts to test in dedicated blocks
-            if ($script.Name -eq "install-local-apps.ps1" -or $script.Name -eq "set-timezone.ps1" -or $script.Name -eq "test-canary.ps1") {
+            if ($script.Name -eq "install-local-apps.ps1" -or $script.Name -eq "test-canary.ps1") {
                 continue
             }
             New-LockdownTest -TestScript $script
