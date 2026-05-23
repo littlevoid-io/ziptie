@@ -136,10 +136,10 @@ Describe "Ziptie Bootstrap Loader" {
 
             $expectedTempPath = Join-Path $env:TEMP "ziptie"
             Assert-MockCalled New-Item -Times 1 -ParameterFilter {
-                $Path -eq $expectedTempPath
+                [System.IO.Path]::GetFullPath($Path).TrimEnd('\', '/') -eq [System.IO.Path]::GetFullPath($expectedTempPath).TrimEnd('\', '/')
             }
             Assert-MockCalled Set-Location -Times 2 -ParameterFilter {
-                $Path -eq $PWD.Path
+                [System.IO.Path]::GetFullPath($Path).TrimEnd('\', '/') -eq [System.IO.Path]::GetFullPath($PWD.Path).TrimEnd('\', '/')
             }
         }
     }
