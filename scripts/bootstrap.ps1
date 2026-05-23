@@ -69,6 +69,10 @@ if ($Local) {
     Write-Host "[Local Simulation] Copying Ziptie release files from local repo at $repoRoot to $targetPath..." -ForegroundColor Cyan
     $itemsToCopy = @("dist", "scripts", "ziptie.default.config.json", "ziptie.schema.json", "setup.bat")
     foreach ($item in $itemsToCopy) {
+        $destItem = Join-Path $targetPath $item
+        if (Test-Path $destItem) {
+            Remove-Item -Path $destItem -Recurse -Force -ErrorAction SilentlyContinue
+        }
         $srcPath = Join-Path $repoRoot $item
         if (Test-Path $srcPath) {
             Copy-Item -Path $srcPath -Destination $targetPath -Recurse -Force
@@ -88,6 +92,14 @@ if ($Local) {
     }
 
     Write-Host "Extracting release..." -ForegroundColor Cyan
+    # Clean up old local folders explicitly to prevent stale file caching or partial extraction blocks
+    $itemsToClean = @("dist", "scripts", "ziptie.default.config.json", "ziptie.schema.json", "setup.bat")
+    foreach ($item in $itemsToClean) {
+        $destItem = Join-Path $targetPath $item
+        if (Test-Path $destItem) {
+            Remove-Item -Path $destItem -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
     Expand-Archive -Path $zipFile -DestinationPath $targetPath -Force
     Remove-Item $zipFile -Force
 }

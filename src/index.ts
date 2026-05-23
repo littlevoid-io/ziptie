@@ -10,7 +10,7 @@ import { runPowerShellScript } from './utils/powershell.js';
 import { loadAndMergeConfig, resolveProjectRoot } from './utils/config.js';
 import { runSetupWizard } from './utils/setupWizard.js';
 import { OS_LOCKDOWN_TASKS } from './tasks.js';
-import { parseCLI } from './utils/cli.js';
+import { parseCLI, getArgs } from './utils/cli.js';
 
 // Parse command line arguments and overrides using yargs
 const { dryRun, undo, customConfigPath, autoConfirm, overrides } = parseCLI();
@@ -19,6 +19,13 @@ async function main() {
   if (process.platform !== 'win32') {
     console.error(chalk.red('Error: Ziptie currently only supports Windows.'));
     process.exit(1);
+  }
+
+  // Diagnostic debug log for dry-run verification
+  if (process.argv.includes('-d') || process.argv.includes('--dry-run') || process.argv.some(a => a.includes('d'))) {
+    console.log(chalk.yellow(`[DIAGNOSTIC] process.argv: ${JSON.stringify(process.argv)}`));
+    console.log(chalk.yellow(`[DIAGNOSTIC] getArgs(): ${JSON.stringify(getArgs())}`));
+    console.log(chalk.yellow(`[DIAGNOSTIC] dryRun evaluated as: ${dryRun}`));
   }
 
   // 1. Elevate process if not Administrator and not a DryRun
