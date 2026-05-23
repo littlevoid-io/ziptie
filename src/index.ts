@@ -36,9 +36,7 @@ async function main() {
   // 1. Elevate process if not Administrator and not a DryRun
   ensureElevated(dryRun);
 
-  intro(chalk.bold.cyan('----------------------------'));
-  intro(chalk.bold.cyan(' 🧱 ZIPTIE SYSTEM LOCKDOWN 🧱'));
-  intro(chalk.bold.cyan('----------------------------'));
+  intro(chalk.bold.cyan(' 🪢 Ziptie Setup'));
 
   // Check if no user config exists and we are run interactively
   const expectedConfigPath = customConfigPath
@@ -55,17 +53,19 @@ async function main() {
   const { projectRoot, resolvedConfigPath, config } = loadAndMergeConfig(customConfigPath);
 
   // Verify and confirm
-  const actionName = undo ? 'Undo Lockdown ↩️' : 'Start Lockdown 🔒';
+  const actionMessage = undo
+    ? 'Ready to revert all configurations?'
+    : 'Ready to lock down this system?';
   let proceed: boolean | symbol = true;
   if (!autoConfirm) {
     proceed = await confirm({
-      message: `Ready to execute: ${chalk.bold.yellow(actionName)}?`,
+      message: actionMessage,
       initialValue: true,
     });
   }
 
   if (typeof proceed === 'symbol' || !proceed) {
-    outro(chalk.yellow('Operation cancelled by the user. No changes were made.'));
+    outro(chalk.yellow('Operation cancelled. No changes were made.'));
     process.exit(0);
   }
 
@@ -84,36 +84,36 @@ async function main() {
       }
     },
     {
-      title: 'Core System Configuration',
+      title: 'System Setup',
       task: (ctx, task) => task.newListr([
         {
-          title: 'Configuring System Timezone',
+          title: 'Configuring timezone',
           task: () => runPowerShellScript(path.join(scriptsDir, 'set-timezone.ps1'), resolvedConfigPath, undo, dryRun)
         },
         {
-          title: 'Setting Computer Hostname',
+          title: 'Configuring computer name',
           task: () => runPowerShellScript(path.join(scriptsDir, 'set-computer-name.ps1'), resolvedConfigPath, undo, dryRun)
         },
         {
-          title: 'Configuring Scheduled Daily Reboot',
+          title: 'Scheduling daily reboot',
           task: () => runPowerShellScript(path.join(scriptsDir, 'enable-daily-reboot.ps1'), resolvedConfigPath, undo, dryRun)
         },
         {
-          title: 'Configuring Passwordless Autologon',
+          title: 'Configuring autologon',
           task: () => runPowerShellScript(path.join(scriptsDir, 'enable-auto-login.ps1'), resolvedConfigPath, undo, dryRun)
         },
         {
-          title: 'Configuring Exhibit Startup Task',
+          title: 'Setting up startup task',
           task: () => runPowerShellScript(path.join(scriptsDir, 'enable-startup-task.ps1'), resolvedConfigPath, undo, dryRun)
         },
         {
-          title: 'Provisioning Offline/Local Apps',
+          title: 'Installing local apps',
           task: () => runPowerShellScript(path.join(scriptsDir, 'install-local-apps.ps1'), resolvedConfigPath, undo, dryRun)
         }
       ], { concurrent: false })
     },
     {
-      title: 'Mounting Default User Registry Hive',
+      title: 'Mounting default user registry',
       skip: () => dryRun,
       task: async () => {
         await runPowerShellScript(
@@ -127,7 +127,7 @@ async function main() {
       }
     },
     {
-      title: 'OS Lockdowns & Shell Policies',
+      title: 'Applying lockdowns',
       task: (ctx, task) => task.newListr(
         OS_LOCKDOWN_TASKS.map(spec => ({
           title: undo
@@ -139,7 +139,7 @@ async function main() {
       )
     },
     {
-      title: 'Unmounting Default User Registry Hive',
+      title: 'Unmounting default user registry',
       skip: () => dryRun || !hiveMounted,
       task: async () => {
         await runPowerShellScript(
@@ -153,7 +153,7 @@ async function main() {
       }
     },
     {
-      title: 'Applying Shell Modifications',
+      title: 'Restarting Windows Shell',
       skip: () => dryRun,
       task: () => {
         try {
@@ -167,20 +167,24 @@ async function main() {
 
   try {
     await tasks.run();
-    outro(chalk.bold.green(' ✅ Ziptie lockdown done! '));
+    if (undo) {
+      outro(chalk.bold.green(' ✅ Revert complete.'));
+    } else {
+      outro(chalk.bold.green(' ✅ System locked down.'));
+    }
 
     if (!dryRun && !autoConfirm) {
       console.log('');
       const result = await confirm({
-        message: 'Restart computer now?',
+        message: 'Reboot computer now?',
         initialValue: true
       });
 
       if (typeof result === 'boolean' && result) {
-        outro(chalk.bold.green(' 🔄 Restarting now... '));
+        outro(chalk.bold.green(' 🔄 Rebooting... '));
         execSync('shutdown /r /t 0 /f', { stdio: 'ignore', windowsHide: true });
       } else {
-        outro(chalk.yellow('Restart skipped. Restart manually for changes to apply.'));
+        outro(chalk.yellow('Reboot skipped. Please reboot manually.'));
       }
     }
   } catch (err: any) {
@@ -192,7 +196,7 @@ async function main() {
         // Suppress secondary failures
       }
     }
-    outro(chalk.bold.red(` ❌ Ziptie execution encountered errors: ${err.message}`));
+    outro(chalk.bold.red(` ❌ Execution failed: ${err.message}`));
     process.exit(1);
   }
 }

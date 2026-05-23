@@ -21,21 +21,21 @@ export async function runSetupWizard(defaultConfigPath: string, userConfigPath: 
   }
 
   note(
-    chalk.yellow(`No local configuration file found at:\n${userConfigPath}`),
-    'Initial Setup Assistant'
+    chalk.yellow(`No configuration found at:\n${userConfigPath}`),
+    '🪢 Ziptie Setup'
   );
 
   const action = await select({
     message: 'How would you like to configure Ziptie?',
     options: [
-      { value: 'defaults', label: 'Use defaults (quick start)', hint: 'Runs Ziptie with pre-configured stable settings' },
-      { value: 'cli', label: 'Edit settings in the CLI', hint: 'Configure computer name, timezone, user, and startup task now' },
-      { value: 'file', label: 'Create a config file', hint: 'Creates ziptie.config.json and opens it in your default editor' }
+      { value: 'defaults', label: 'Use defaults', hint: 'Apply pre-configured stable settings' },
+      { value: 'cli', label: 'Configure via CLI', hint: 'Interactively set computer name, timezone, user, and startup task' },
+      { value: 'file', label: 'Create config file', hint: 'Generate ziptie.config.json and open it in your editor' }
     ]
   });
 
   if (isCancel(action)) {
-    outro(chalk.yellow('Setup wizard cancelled.'));
+    outro(chalk.yellow('Setup cancelled.'));
     process.exit(0);
   }
 
@@ -69,73 +69,73 @@ export async function runSetupWizard(defaultConfigPath: string, userConfigPath: 
 
   if (action === 'cli') {
     const computerName = await text({
-      message: 'Enter computer name:',
+      message: 'Computer name:',
       placeholder: defaultConfig.system.computerName,
       initialValue: defaultConfig.system.computerName,
       validate(value) {
-        if (value.trim().length === 0) return 'Computer name cannot be empty.';
-        if (/[^a-zA-Z0-9-]/.test(value)) return 'Computer name can only contain alphanumeric characters and hyphens.';
+        if (value?.trim().length === 0) return 'Computer name cannot be empty.';
+        if (/[^a-zA-Z0-9-]/.test(value ?? '')) return 'Computer name can only contain alphanumeric characters and hyphens.';
       }
     });
 
     if (isCancel(computerName)) {
-      outro(chalk.yellow('Setup wizard cancelled.'));
+      outro(chalk.yellow('Setup cancelled.'));
       process.exit(0);
     }
 
     const timezone = await text({
-      message: 'Enter system timezone (or "auto" to automatically detect):',
+      message: 'System timezone (or "auto"):',
       placeholder: defaultConfig.system.timezone,
       initialValue: defaultConfig.system.timezone,
       validate(value) {
-        if (value.trim().length === 0) return 'Timezone cannot be empty.';
+        if (value?.trim().length === 0) return 'Timezone cannot be empty.';
       }
     });
 
     if (isCancel(timezone)) {
-      outro(chalk.yellow('Setup wizard cancelled.'));
+      outro(chalk.yellow('Setup cancelled.'));
       process.exit(0);
     }
 
     const username = await text({
-      message: 'Enter autologon low-privilege username:',
+      message: 'Autologon low-privilege username:',
       placeholder: defaultConfig.autologon.username,
       initialValue: defaultConfig.autologon.username,
       validate(value) {
-        if (value.trim().length === 0) return 'Username cannot be empty.';
+        if (value?.trim().length === 0) return 'Username cannot be empty.';
       }
     });
 
     if (isCancel(username)) {
-      outro(chalk.yellow('Setup wizard cancelled.'));
+      outro(chalk.yellow('Setup cancelled.'));
       process.exit(0);
     }
 
     const executable = await text({
-      message: 'Enter exhibit startup executable/batch file name (relative to C:\\Exhibit):',
+      message: 'Startup executable/batch file name (relative to C:\\Exhibit):',
       placeholder: defaultConfig.startupTask.executable,
       initialValue: defaultConfig.startupTask.executable,
       validate(value) {
-        if (value.trim().length === 0) return 'Executable name cannot be empty.';
+        if (value?.trim().length === 0) return 'Executable name cannot be empty.';
       }
     });
 
     if (isCancel(executable)) {
-      outro(chalk.yellow('Setup wizard cancelled.'));
+      outro(chalk.yellow('Setup cancelled.'));
       process.exit(0);
     }
 
     const workingDir = await text({
-      message: 'Enter exhibit startup working directory:',
+      message: 'Startup working directory:',
       placeholder: defaultConfig.startupTask.workingDir,
       initialValue: defaultConfig.startupTask.workingDir,
       validate(value) {
-        if (value.trim().length === 0) return 'Working directory cannot be empty.';
+        if (value?.trim().length === 0) return 'Working directory cannot be empty.';
       }
     });
 
     if (isCancel(workingDir)) {
-      outro(chalk.yellow('Setup wizard cancelled.'));
+      outro(chalk.yellow('Setup cancelled.'));
       process.exit(0);
     }
 
@@ -159,8 +159,8 @@ export async function runSetupWizard(defaultConfigPath: string, userConfigPath: 
     try {
       fs.writeFileSync(userConfigPath, JSON.stringify(finalConfig, null, 2), 'utf8');
       note(
-        `Successfully wrote customized settings to:\n${userConfigPath}`,
-        'Configuration Saved'
+        `Successfully saved settings to:\n${userConfigPath}`,
+        '🪢 Configuration Saved'
       );
       return finalConfig;
     } catch (e: any) {

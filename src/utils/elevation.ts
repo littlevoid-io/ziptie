@@ -26,7 +26,7 @@ export function ensureElevated(dryRun: boolean): void {
   }
 
   if (!isAdmin() && !dryRun) {
-    console.log(chalk.yellow('Elevation required. Spawning administrative UAC prompt...'));
+    console.log(chalk.yellow('Elevation required. Spawning UAC prompt...'));
     
     const nodeExecutable = process.argv[0];
     const nodeArgs = process.argv.slice(1);
