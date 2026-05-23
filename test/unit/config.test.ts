@@ -81,6 +81,22 @@ describe('Config Utility', () => {
     consoleSpy.mockRestore();
   });
 
+  test('printConfig does not print array if elements match default regardless of order', () => {
+    const consoleSpy = spyOn(console, 'log').mockImplementation(() => {});
+    const sampleConfig = {
+      packageManager: {
+        apps: ["Git.Git", "CoreyButler.NVMforWindows", "Microsoft.VisualStudioCode"]
+      }
+    };
+
+    printConfig(sampleConfig);
+
+    const calls = consoleSpy.mock.calls.map(call => call.join(' '));
+    expect(calls.some(c => c.includes('[PackageManager Settings]'))).toBe(false);
+
+    consoleSpy.mockRestore();
+  });
+
   test('handleAutoConfirmTimeout runs countdown and resolves', async () => {
     let callback: (() => void) | null = null;
     
