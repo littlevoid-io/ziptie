@@ -47,10 +47,13 @@ export function loadAndMergeConfig(
     }
   }
 
-  const overwriteMerge = (destinationArray: any[], sourceArray: any[]) => sourceArray;
-  let mergedConfig = deepmerge(defaultConfig, userConfig, { arrayMerge: overwriteMerge });
+  const uniqueSortedMerge = (destinationArray: any[], sourceArray: any[]) => {
+    const combined = [...destinationArray, ...sourceArray];
+    return Array.from(new Set(combined)).sort((a, b) => String(a).localeCompare(String(b)));
+  };
+  let mergedConfig = deepmerge(defaultConfig, userConfig, { arrayMerge: uniqueSortedMerge });
   if (cliOverrides && Object.keys(cliOverrides).length > 0) {
-    mergedConfig = deepmerge(mergedConfig, cliOverrides, { arrayMerge: overwriteMerge });
+    mergedConfig = deepmerge(mergedConfig, cliOverrides, { arrayMerge: uniqueSortedMerge });
   }
 
   const configDir = path.dirname(configFilePath);
