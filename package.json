@@ -29,11 +29,11 @@
     "sandbox:local": "npm run package && node test/launch-sandbox.js --run-tests",
     "sandbox:remote": "node test/launch-sandbox-remote.js",
     "release": "node scripts/release.js",
-    "test": "bun test test/cli.test.ts test/unit && bun run test:pester",
-    "test:cli": "bun test test/cli.test.ts",
+    "test": "node scripts/build-assets.js && bun test test/cli.test.ts test/unit && bun run test:pester",
+    "test:cli": "node scripts/build-assets.js && bun test test/cli.test.ts",
     "test:pester": "powershell -ExecutionPolicy Bypass -File test/run-tests.ps1",
     "test:pester5": "powershell -ExecutionPolicy Bypass -File test/run-pester5.ps1",
-    "test:unit": "bun test test/unit"
+    "test:unit": "node scripts/build-assets.js && bun test test/unit"
   },
   "dependencies": {
     "@clack/prompts": "^1.4.0",
