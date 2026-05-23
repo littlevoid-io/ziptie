@@ -1,17 +1,24 @@
 param(
     [String]$InstallDir,
     [String]$ExtraArgs,
+    [String]$WorkingDir,
     [Switch]$Local,
     [Switch]$SkipElevation
 )
 $ErrorActionPreference = "Stop"
 
+# Immediately capture and switch/validate the working directory
+if (-not $WorkingDir) {
+    $WorkingDir = $PWD.Path
+}
+Set-Location -Path $WorkingDir
+
 # Detect if there's a user config in the caller's directory before changing location
-$callerConfigPath = Join-Path $PWD.Path "ziptie.config.json"
+$callerConfigPath = Join-Path $WorkingDir "ziptie.config.json"
 $hasCallerConfig = Test-Path $callerConfigPath -PathType Leaf
 
-# 1. Resolve target path, defaulting to a "ziptie" subfolder in CWD if not provided
-$targetPath = if ($InstallDir) { $InstallDir } else { Join-Path $PWD.Path "ziptie" }
+# 1. Resolve target path, defaulting to a "ziptie" subfolder in TEMP if not provided
+$targetPath = if ($InstallDir) { $InstallDir } else { Join-Path $env:TEMP "ziptie" }
 $targetPath = [System.IO.Path]::GetFullPath($targetPath)
 
 # Detect if running from a local repository copy
@@ -41,7 +48,7 @@ if ($Local -or $isLocalScript) {
 
 # Avoid downloading into protected system/Windows directories, system drive root, or active developer workspaces
 $systemRoot = [Environment]::GetFolderPath([Environment+SpecialFolder]::Windows)
-$isDevWorkspace = (Test-Path (Join-Path $PWD.Path "package.json")) -and (Test-Path (Join-Path $PWD.Path "tsconfig.json"))
+$isDevWorkspace = (Test-Path (Join-Path $WorkingDir "package.json")) -and (Test-Path (Join-Path $WorkingDir "tsconfig.json"))
 if ($targetPath -like "$systemRoot*" -or $targetPath -eq "C:\" -or $isDevWorkspace) {
     $targetPath = Join-Path $HOME "Downloads\ziptie"
 }
@@ -57,9 +64,10 @@ if (-not $isAdmin -and -not $SkipElevation) {
         $argsList = "-ExecutionPolicy Bypass -NoProfile -File `"$scriptPath`""
         if ($InstallDir) { $argsList += " -InstallDir `"$InstallDir`"" }
         if ($ExtraArgs) { $argsList += " -ExtraArgs `"$escapedExtraArgs`"" }
+        if ($WorkingDir) { $argsList += " -WorkingDir `"$WorkingDir`"" }
         $argsList += " -Local"
     } else {
-        $argsList = "-ExecutionPolicy Bypass -NoProfile -Command `"& { [scriptblock]::Create((irm https://raw.githubusercontent.com/littlevoid-io/ziptie/main/scripts/bootstrap.ps1)).Invoke('$targetPath', '$escapedExtraArgs') }`""
+        $argsList = "-ExecutionPolicy Bypass -NoProfile -Command `"& { [scriptblock]::Create((irm https://raw.githubusercontent.com/littlevoid-io/ziptie/main/scripts/bootstrap.ps1)).Invoke('$targetPath', '$escapedExtraArgs', '$WorkingDir') }`""
     }
     
     Start-Process powershell -ArgumentList $argsList -Verb RunAs
@@ -109,6 +117,8 @@ if ($Local) {
     Remove-Item $zipFile -Force
 }
 
+Set-Location -Path $WorkingDir
+
 Write-Host "Launching Ziptie..." -ForegroundColor Green
 $argArray = if ($ExtraArgs) { [regex]::Matches($ExtraArgs, '("[^"]*"|\S+)') | ForEach-Object { $_.Value.Trim('"') } } else { @() }
 
@@ -125,12 +135,16 @@ if ($hasCallerConfig -and -not $hasConfigArg) {
     $argArray += @("-c", $callerConfigPath)
 }
 
-if (Test-Path "ziptie.exe") {
-    & ".\ziptie.exe" $argArray
-} elseif (Test-Path "dist\ziptie.exe") {
-    & "dist\ziptie.exe" $argArray
-} elseif (Test-Path "setup.bat") {
-    & ".\setup.bat" $argArray
+$exePath = Join-Path $targetPath "ziptie.exe"
+$distExePath = Join-Path $targetPath "dist\ziptie.exe"
+$setupBatPath = Join-Path $targetPath "setup.bat"
+
+if (Test-Path $exePath) {
+    & $exePath $argArray
+} elseif (Test-Path $distExePath) {
+    & $distExePath $argArray
+} elseif (Test-Path $setupBatPath) {
+    & $setupBatPath $argArray
 } else {
     Write-Error "Could not locate ziptie.exe or setup.bat in the extracted files at $targetPath."
 }

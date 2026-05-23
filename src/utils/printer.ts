@@ -6,12 +6,15 @@ import { resolveProjectRoot } from './project.js';
 /**
  * Helper to recursively or shallowly compare two configuration values (supports order-independent array comparison).
  */
-function isEqual(val1: any, val2: any): boolean {
+function isEqual(val1: any, val2: any, key?: string): boolean {
   if (Array.isArray(val1) && Array.isArray(val2)) {
     if (val1.length !== val2.length) return false;
-    const s1 = [...val1].sort((a, b) => String(a).localeCompare(String(b)));
-    const s2 = [...val2].sort((a, b) => String(a).localeCompare(String(b)));
-    return s1.every((item, index) => item === s2[index]);
+    if (key === 'apps') {
+      const s1 = [...val1].sort((a, b) => String(a).localeCompare(String(b)));
+      const s2 = [...val2].sort((a, b) => String(a).localeCompare(String(b)));
+      return s1.every((item, index) => item === s2[index]);
+    }
+    return val1.every((item, index) => item === val2[index]);
   }
   return val1 === val2;
 }
@@ -60,7 +63,7 @@ export function printConfig(config: any, customConfigPath: string | null = null)
   for (const cat of categories) {
     const defaultCat = defaultConfig[cat] || {};
     const configCat = config[cat] || {};
-    const differingKeys = Object.keys(configCat).filter(key => !isEqual(configCat[key], defaultCat[key]));
+    const differingKeys = Object.keys(configCat).filter(key => !isEqual(configCat[key], defaultCat[key], key));
 
     if (differingKeys.length > 0) {
       totalChanges += differingKeys.length;

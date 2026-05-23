@@ -51,9 +51,20 @@ export function loadAndMergeConfig(
     const combined = [...destinationArray, ...sourceArray];
     return Array.from(new Set(combined)).sort((a, b) => String(a).localeCompare(String(b)));
   };
-  let mergedConfig = deepmerge(defaultConfig, userConfig, { arrayMerge: uniqueSortedMerge });
+  const mergeOptions: deepmerge.Options = {
+    arrayMerge: uniqueSortedMerge,
+    customMerge: (key) => {
+      if (key === 'args') {
+        return (target, source) => {
+          return Array.isArray(source) ? [...source] : source;
+        };
+      }
+      return undefined;
+    }
+  };
+  let mergedConfig = deepmerge(defaultConfig, userConfig, mergeOptions);
   if (cliOverrides && Object.keys(cliOverrides).length > 0) {
-    mergedConfig = deepmerge(mergedConfig, cliOverrides, { arrayMerge: uniqueSortedMerge });
+    mergedConfig = deepmerge(mergedConfig, cliOverrides, mergeOptions);
   }
 
   const configDir = path.dirname(configFilePath);

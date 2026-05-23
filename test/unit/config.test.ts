@@ -97,6 +97,67 @@ describe('Config Utility', () => {
     consoleSpy.mockRestore();
   });
 
+  test('loadAndMergeConfig preserves exact args order in startupTask and does not sort/union them', () => {
+    const fsExistsSpy = spyOn(fs, 'existsSync').mockImplementation((p: any) => {
+      const target = String(p);
+      if (target.endsWith('ziptie.default.config.json')) return true;
+      if (target.endsWith('ziptie.config.json')) return true;
+      return false;
+    });
+
+    const fsReadSpy = spyOn(fs, 'readFileSync').mockImplementation((p: any) => {
+      const target = String(p);
+      if (target.endsWith('ziptie.default.config.json')) {
+        return JSON.stringify({
+          startupTask: { args: [] }
+        });
+      }
+      if (target.endsWith('ziptie.config.json')) {
+        return JSON.stringify({
+          startupTask: { args: ['run', 'dev:drawing-room'] }
+        });
+      }
+      return '';
+    });
+
+    const fsWriteSpy = spyOn(fs, 'writeFileSync').mockImplementation(() => {});
+    const fsMkdirSpy = spyOn(fs, 'mkdirSync').mockImplementation(() => undefined);
+
+    const { config } = loadAndMergeConfig(null, {});
+
+    // Asserts: exact order and content is preserved
+    expect(config.startupTask.args).toEqual(['run', 'dev:drawing-room']);
+  });
+
+  test('printConfig is order-dependent for startupTask.args', () => {
+    const consoleSpy = spyOn(console, 'log').mockImplementation(() => {});
+    const sampleConfig = {
+      startupTask: {
+        args: ["run", "dev:drawing-room"]
+      }
+    };
+
+    const fsExistsSpy = spyOn(fs, 'existsSync').mockImplementation((p: any) => {
+      return String(p).endsWith('ziptie.default.config.json');
+    });
+    const fsReadSpy = spyOn(fs, 'readFileSync').mockImplementation((p: any) => {
+      return JSON.stringify({
+        startupTask: {
+          args: ["dev:drawing-room", "run"]
+        }
+      });
+    });
+
+    printConfig(sampleConfig);
+
+    const calls = consoleSpy.mock.calls.map(call => call.join(' '));
+    expect(calls.some(c => c.includes('[StartupTask Settings]'))).toBe(true);
+
+    consoleSpy.mockRestore();
+    fsExistsSpy.mockRestore();
+    fsReadSpy.mockRestore();
+  });
+
   test('handleAutoConfirmTimeout runs countdown and resolves', async () => {
     let callback: (() => void) | null = null;
     

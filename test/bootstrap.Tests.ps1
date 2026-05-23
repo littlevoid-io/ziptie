@@ -1,15 +1,20 @@
 Describe "Ziptie Bootstrap Loader" {
     BeforeAll {
         $bootstrapScript = "$PSScriptRoot/../scripts/bootstrap.ps1"
+        $global:repoRoot = (Resolve-Path "$PSScriptRoot/..").Path
+    }
+    AfterAll {
+        $global:repoRoot = $null
     }
 
     Context "Path Resolution & Safeguards" {
         It "Should resolve to user Downloads when running in a protected directory" {
             Mock Test-Path {
                 param($Path)
-                if ($Path -eq "ziptie.exe" -or $Path -eq "dist\ziptie.exe" -or $Path -eq "setup.bat") { return $false }
                 # Mock package.json / tsconfig.json dev check to return true to trigger safeguard fallback
                 if ($Path -like "*package.json" -or $Path -like "*tsconfig.json") { return $true }
+                if ($Path -like "$global:repoRoot*") { return $true }
+                if ($Path -like "*ziptie.exe" -or $Path -like "*dist\ziptie.exe" -or $Path -like "*setup.bat") { return $false }
                 return $false
             }
             Mock New-Item { }
@@ -35,7 +40,8 @@ Describe "Ziptie Bootstrap Loader" {
                 param($Path)
                 # Fail dev workspace check to preserve custom InstallDir
                 if ($Path -like "*package.json" -or $Path -like "*tsconfig.json") { return $false }
-                if ($Path -eq "ziptie.exe" -or $Path -eq "dist\ziptie.exe" -or $Path -eq "setup.bat") { return $false }
+                if ($Path -like "$global:repoRoot*") { return $true }
+                if ($Path -like "*ziptie.exe" -or $Path -like "*dist\ziptie.exe" -or $Path -like "*setup.bat") { return $false }
                 return $true
             }
             Mock New-Item { }
@@ -60,7 +66,8 @@ Describe "Ziptie Bootstrap Loader" {
                 param($Path)
                 # Force local repository checks to fail to trigger remote download flow
                 if ($Path -like "*ziptie.schema.json" -or $Path -like "*package.json" -or $Path -like "*tsconfig.json") { return $false }
-                if ($Path -eq "ziptie.exe" -or $Path -eq "dist\ziptie.exe" -or $Path -eq "setup.bat") { return $false }
+                if ($Path -like "$global:repoRoot*") { return $true }
+                if ($Path -like "*ziptie.exe" -or $Path -like "*dist\ziptie.exe" -or $Path -like "*setup.bat") { return $false }
                 return $true
             }
             Mock New-Item { }
@@ -89,7 +96,8 @@ Describe "Ziptie Bootstrap Loader" {
             Mock Test-Path {
                 param($Path)
                 if ($Path -like "*ziptie.config.json") { return $true }
-                if ($Path -eq "ziptie.exe" -or $Path -eq "dist\ziptie.exe" -or $Path -eq "setup.bat") { return $false }
+                if ($Path -like "$global:repoRoot*") { return $true }
+                if ($Path -like "*ziptie.exe" -or $Path -like "*dist\ziptie.exe" -or $Path -like "*setup.bat") { return $false }
                 return $false
             }
             Mock New-Item { }
@@ -105,6 +113,34 @@ Describe "Ziptie Bootstrap Loader" {
             if (($argArray -contains "-c") -ne $true) { throw "Expected argArray to contain -c" }
             $expectedPath = Join-Path $PWD.Path "ziptie.config.json"
             if (($argArray -contains $expectedPath) -ne $true) { throw "Expected argArray to contain caller config path: $expectedPath" }
+        }
+    }
+
+    Context "TEMP Directory Resolution & CWD Preservation" {
+        It "Should resolve to system TEMP folder when InstallDir is not provided" {
+            Mock Test-Path {
+                param($Path)
+                if ($Path -like "*package.json" -or $Path -like "*tsconfig.json") { return $false }
+                if ($Path -like "$global:repoRoot*") { return $true }
+                if ($Path -like "*ziptie.exe" -or $Path -like "*dist\ziptie.exe" -or $Path -like "*setup.bat") { return $false }
+                return $false
+            }
+            Mock New-Item { }
+            Mock Set-Location { } -Verifiable
+            Mock Invoke-WebRequest { }
+            Mock Expand-Archive { }
+            Mock Remove-Item { }
+            Mock Write-Error { }
+
+            . $bootstrapScript -SkipElevation
+
+            $expectedTempPath = Join-Path $env:TEMP "ziptie"
+            Assert-MockCalled New-Item -Times 1 -ParameterFilter {
+                $Path -eq $expectedTempPath
+            }
+            Assert-MockCalled Set-Location -Times 2 -ParameterFilter {
+                $Path -eq $PWD.Path
+            }
         }
     }
 }
