@@ -101,7 +101,7 @@ Describe "Ziptie Lockdown Script Verification" {
             $utils = Get-ChildItem -Path $script:utilsDir -Filter "*.ps1"
             
             foreach ($script in ($scripts + $utils)) {
-                $lines = Get-Content -Path $script.FullName
+                $lines = @(Get-Content -Path $script.FullName)
                 $lines.Count | Should BeLessThan 100
             }
         }
@@ -112,8 +112,10 @@ Describe "Ziptie Lockdown Script Verification" {
             
             foreach ($script in ($scripts + $utils)) {
                 $content = Get-Content -Raw -Path $script.FullName
-                $content | Should Not Match "password\s*=\s*'[^']+'"
-                $content | Should Not Match 'password\s*=\s*"[^"]+"'
+                if ($null -ne $content -and $content -ne "") {
+                    $content | Should Not Match "password\s*=\s*'[^']+'"
+                    $content | Should Not Match 'password\s*=\s*"[^"]+"'
+                }
             }
         }
     }

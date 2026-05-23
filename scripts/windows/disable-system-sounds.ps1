@@ -39,8 +39,8 @@ foreach ($hive in $hivePaths) {
 
             if ($shouldUndo) {
                 # Restore to the default value defined in the .Default sibling key
-                $defaultValue = (Get-Item -Path $defaultPath -ErrorAction SilentlyContinue).GetValue("")
-                if ($defaultValue -eq $null) { $defaultValue = "" }
+                $defaultKey = Get-Item -Path $defaultPath -ErrorAction SilentlyContinue
+                $defaultValue = if ($defaultKey -ne $null) { $defaultKey.GetValue("") } else { "" }
 
                 if ($DryRun) {
                     Write-Host "[DRY-RUN] Set-ItemProperty -Path '$currentPath' -Name '(Default)' -Value '$defaultValue'" -ForegroundColor Yellow
