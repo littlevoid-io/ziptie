@@ -25,6 +25,9 @@ jobs:
       - name: Install Project Dependencies
         run: bun install
 
+      - name: Run CLI Override Parser Unit Tests
+        run: bun run test
+
       - name: Compile Standalone Windows Executable
         run: bun run package
 

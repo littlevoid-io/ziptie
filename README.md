@@ -54,14 +54,31 @@ To revert the applied lockdowns and restore default OS settings:
 npm start -- --undo
 ```
 
-### 7. Run Isolated Sandbox Tests
+### 7. Command Line Overrides
+You can dynamically override any parameter in `ziptie.config.json` directly from the CLI. This is extremely useful for remote scripting, silent RMM deployments, or multi-machine provisioning:
+
+* **Direct Dot-Notation**: Pass the full category and parameter path.
+  ```bash
+  npm start -- --lockdown.disableScreensaver=false --system.computerName="EXHIBIT-99"
+  ```
+* **Smart Flat Shortcuts**: If a parameter name is unique in the configuration, you can omit the category! The engine will dynamically map it to its nested path and auto-cast the value to its correct primitive type (booleans, numbers, or comma-separated lists):
+  ```bash
+  npm start -- --timezone "Tokyo Standard Time" --disableScreensaver true --apps "Node.js,Git.Git"
+  ```
+* **Combinations**: You can mix and match standard flags, dot-notation, and shortcuts in a single command:
+  ```bash
+  npm start -- -y -d --computerName "EXHIBIT-02" --lockdown.disableEdgeSwipes=false
+  ```
+
+
+### 8. Run Isolated Sandbox Tests
 To safely verify configurations without altering your host machine, launch an isolated Windows Sandbox:
 ```bash
 npm run sandbox
 ```
 This command compiles the CLI, dynamically generates a .wsb mapping configuration at `.tmp/ziptie-sandbox.wsb` (gitignored), mounts the repository to `C:\ziptie` inside the guest environment, and runs `test/run-sandbox-tests.ps1` to validate the active configuration state.
 
-### 8. Test the One-Line Bootstrap Installer in a Clean Sandbox
+### 9. Test the One-Line Bootstrap Installer in a Clean Sandbox
 To verify the one-line bootstrap installer completely from scratch inside an isolated, clean Windows Sandbox with **no local folders mounted** (simulating a pure client machine with internet access):
 ```bash
 npm run sandbox:installer

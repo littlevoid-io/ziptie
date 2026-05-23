@@ -27,7 +27,8 @@
     "package": "bun build --compile --target=node ./src/index.ts --outfile=dist/ziptie.exe",
     "sandbox": "npm run package && node test/launch-sandbox.js",
     "sandbox:installer": "node test/launch-sandbox-installer.js",
-    "release": "node scripts/release.js"
+    "release": "node scripts/release.js",
+    "test": "bun test/cli.test.ts"
   },
   "dependencies": {
     "@clack/prompts": "^1.4.0",
