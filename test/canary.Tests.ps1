@@ -17,15 +17,21 @@ Describe "Ziptie Canary Mock Verification" {
         }
 
         It "Should mock the New-Item cmdlet and NOT create the physical file on the host" {
-            # Run the canary script (without -DryRun)
-            . $canaryScriptPath
-            
-            # Assert Pester intercepted the call
-            Assert-MockCalled New-Item -Times 1
-            
-            # Assert that the file does NOT exist on the host PC
-            $canaryFileExists = Test-Path $canaryFile
-            $canaryFileExists | Should Be $false
+            try {
+                # Run the canary script (without -DryRun)
+                . $canaryScriptPath
+                
+                # Assert Pester intercepted the call
+                Assert-MockCalled New-Item -Times 1
+                
+                # Assert that the file does NOT exist on the host PC
+                $canaryFileExists = Test-Path $canaryFile
+                if ($canaryFileExists) {
+                    throw "AssertionFailed: Canary file actually exists at '$canaryFile'!"
+                }
+            } catch {
+                throw "CanaryTestError: $_"
+            }
         }
     }
 }
