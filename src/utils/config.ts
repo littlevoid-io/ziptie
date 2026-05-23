@@ -94,6 +94,28 @@ export function loadAndMergeConfig(
     mergedConfig = deepmerge(mergedConfig, cliOverrides);
   }
 
+  // Resolve relative configuration paths (localInstallersPath, workingDir)
+  // relative to the parent directory of the configuration file instead of CWD/projectRoot
+  const configDir = path.dirname(configFilePath);
+
+  if (mergedConfig.packageManager && typeof mergedConfig.packageManager.localInstallersPath === 'string') {
+    if (!path.isAbsolute(mergedConfig.packageManager.localInstallersPath)) {
+      mergedConfig.packageManager.localInstallersPath = path.resolve(
+        configDir,
+        mergedConfig.packageManager.localInstallersPath
+      );
+    }
+  }
+
+  if (mergedConfig.startupTask && typeof mergedConfig.startupTask.workingDir === 'string') {
+    if (!path.isAbsolute(mergedConfig.startupTask.workingDir)) {
+      mergedConfig.startupTask.workingDir = path.resolve(
+        configDir,
+        mergedConfig.startupTask.workingDir
+      );
+    }
+  }
+
   // Ensure .tmp directory exists in CWD
   const tmpDir = path.resolve(process.cwd(), '.tmp');
   if (!fs.existsSync(tmpDir)) {

@@ -66,6 +66,7 @@ Describe "Ziptie Bootstrap Loader" {
             Mock New-Item { }
             Mock Set-Location { }
             Mock Remove-Item { }
+            Mock Copy-Item { }
             Mock Invoke-WebRequest { } -Verifiable
             Mock Expand-Archive { } -Verifiable
             Mock Write-Error { }
@@ -82,4 +83,29 @@ Describe "Ziptie Bootstrap Loader" {
             }
         }
     }
+
+    Context "Caller Directory Configuration Detection" {
+        It "Should pass the config file path via CLI argument if present in the caller directory" {
+            Mock Test-Path {
+                param($Path)
+                if ($Path -like "*ziptie.config.json") { return $true }
+                if ($Path -eq "ziptie.exe" -or $Path -eq "dist\ziptie.exe" -or $Path -eq "setup.bat") { return $false }
+                return $false
+            }
+            Mock New-Item { }
+            Mock Set-Location { }
+            Mock Remove-Item { }
+            Mock Copy-Item { }
+            Mock Invoke-WebRequest { }
+            Mock Expand-Archive { }
+            Mock Write-Error { }
+
+            . $bootstrapScript -InstallDir "C:\mock-target" -SkipElevation
+
+            if (($argArray -contains "-c") -ne $true) { throw "Expected argArray to contain -c" }
+            $expectedPath = Join-Path $PWD.Path "ziptie.config.json"
+            if (($argArray -contains $expectedPath) -ne $true) { throw "Expected argArray to contain caller config path: $expectedPath" }
+        }
+    }
 }
+

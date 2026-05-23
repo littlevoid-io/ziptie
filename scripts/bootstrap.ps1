@@ -6,6 +6,10 @@ param(
 )
 $ErrorActionPreference = "Stop"
 
+# Detect if there's a user config in the caller's directory before changing location
+$callerConfigPath = Join-Path $PWD.Path "ziptie.config.json"
+$hasCallerConfig = Test-Path $callerConfigPath -PathType Leaf
+
 # 1. Resolve target path, defaulting to a "ziptie" subfolder in CWD if not provided
 $targetPath = if ($InstallDir) { $InstallDir } else { Join-Path $PWD.Path "ziptie" }
 $targetPath = [System.IO.Path]::GetFullPath($targetPath)
@@ -107,6 +111,19 @@ if ($Local) {
 
 Write-Host "Launching Ziptie..." -ForegroundColor Green
 $argArray = if ($ExtraArgs) { [regex]::Matches($ExtraArgs, '("[^"]*"|\S+)') | ForEach-Object { $_.Value.Trim('"') } } else { @() }
+
+# Pass the caller's config via CLI if detected and not already overridden in ExtraArgs
+$hasConfigArg = $false
+foreach ($arg in $argArray) {
+    if ($arg -eq "-c" -or $arg -eq "--config") {
+        $hasConfigArg = $true
+        break
+    }
+}
+if ($hasCallerConfig -and -not $hasConfigArg) {
+    Write-Host "Detected local config in caller directory at $callerConfigPath. Passing to Ziptie..." -ForegroundColor Cyan
+    $argArray += @("-c", $callerConfigPath)
+}
 
 if (Test-Path "ziptie.exe") {
     & ".\ziptie.exe" $argArray
