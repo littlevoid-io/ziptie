@@ -64,7 +64,7 @@ describe('Config Utility', () => {
     const consoleSpy = spyOn(console, 'log').mockImplementation(() => {});
     const sampleConfig = {
       system: { computerName: 'TEST-PC' },
-      lockdown: { disableScreensaver: true }
+      lockdown: { disableFirewall: true }
     };
 
     printConfig(sampleConfig);
@@ -72,7 +72,7 @@ describe('Config Utility', () => {
     expect(consoleSpy).toHaveBeenCalled();
     const calls = consoleSpy.mock.calls.map(call => call.join(' '));
     expect(calls.some(c => c.includes('TEST-PC'))).toBe(true);
-    expect(calls.some(c => c.includes('disableScreensaver'))).toBe(true);
+    expect(calls.some(c => c.includes('disableFirewall'))).toBe(true);
 
     consoleSpy.mockRestore();
   });

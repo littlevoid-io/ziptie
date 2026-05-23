@@ -46,7 +46,7 @@ async function main() {
   const { projectRoot, resolvedConfigPath, config } = loadAndMergeConfig(customConfigPath, overrides);
 
   // Print final composited config settings
-  printConfig(config);
+  printConfig(config, customConfigPath);
 
   // Verify and confirm
   const actionMessage = dryRun
