@@ -146,6 +146,22 @@ export function showHelp(): void {
 }
 
 /**
+ * Safely extracts CLI arguments depending on the runtime context (standard node/bun vs standalone compiled binary).
+ */
+export function getArgs(): string[] {
+  const args = process.argv;
+  if (!args || args.length === 0) return [];
+  
+  const isJS = args[1] && (args[1].endsWith('.js') || args[1].endsWith('.ts'));
+  const isBinary = args[0] && (args[0].endsWith('.exe') || (!args[0].includes('node') && !args[0].includes('bun')));
+  
+  if (isBinary && !isJS) {
+    return args.slice(1);
+  }
+  return args.slice(2);
+}
+
+/**
  * Main parser entry point. Parses yargs command line parameters and maps flat/nested overrides dynamically.
  */
 export function parseCLI(): CLIContext {
@@ -164,7 +180,7 @@ export function parseCLI(): CLIContext {
   const leafProps = getLeafProperties(defaultConfig);
 
   // Initialize yargs parser with dot-notation enabled (yargs parses dot-notation natively)
-  const argvInstance = yargs(hideBin(process.argv))
+  const argvInstance = yargs(getArgs())
     .parserConfiguration({
       'dot-notation': true,
       'boolean-negation': true,
