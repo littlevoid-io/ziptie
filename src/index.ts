@@ -36,7 +36,9 @@ async function main() {
   // 1. Elevate process if not Administrator and not a DryRun
   ensureElevated(dryRun);
 
-  intro(chalk.bold.cyan(' 🚀 SLAB SYSTEM LOCKDOWN ENGINE '));
+  intro(chalk.bold.cyan('----------------------------'));
+  intro(chalk.bold.cyan(' 🧱 SLAB SYSTEM LOCKDOWN 🧱'));
+  intro(chalk.bold.cyan('----------------------------'));
 
   // Check if no user config exists and we are run interactively
   const expectedConfigPath = customConfigPath
@@ -53,7 +55,7 @@ async function main() {
   const { projectRoot, resolvedConfigPath, config } = loadAndMergeConfig(customConfigPath);
 
   // Verify and confirm
-  const actionName = undo ? 'Undo Kiosk Lockdown' : 'Pour Concrete Slab & Lock Down PC';
+  const actionName = undo ? 'Undo Lockdown ↩️' : 'Start Lockdown 🔒';
   let proceed: boolean | symbol = true;
   if (!autoConfirm) {
     proceed = await confirm({
@@ -165,20 +167,20 @@ async function main() {
 
   try {
     await tasks.run();
-    outro(chalk.bold.green(' ✔ Slab kiosk lockdown pipeline completed successfully! '));
+    outro(chalk.bold.green(' ✅ Slab lockdown done! '));
 
     if (!dryRun && !autoConfirm) {
       console.log('');
       const result = await confirm({
-        message: 'Would you like to restart the computer now to finalize all changes?',
-        initialValue: false
+        message: 'Restart computer now?',
+        initialValue: true
       });
 
       if (typeof result === 'boolean' && result) {
-        outro(chalk.bold.green(' 🔄 Restarting computer now... '));
+        outro(chalk.bold.green(' 🔄 Restarting now... '));
         execSync('shutdown /r /t 0 /f', { stdio: 'ignore', windowsHide: true });
       } else {
-        outro(chalk.yellow('Restart skipped. Please restart manually for all changes to apply.'));
+        outro(chalk.yellow('Restart skipped. Restart manually for changes to apply.'));
       }
     }
   } catch (err: any) {
@@ -190,7 +192,7 @@ async function main() {
         // Suppress secondary failures
       }
     }
-    outro(chalk.bold.red(` ✘ Slab execution encountered errors: ${err.message}`));
+    outro(chalk.bold.red(` ❌ Slab execution encountered errors: ${err.message}`));
     process.exit(1);
   }
 }
