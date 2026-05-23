@@ -47,9 +47,10 @@ export function loadAndMergeConfig(
     }
   }
 
-  let mergedConfig = deepmerge(defaultConfig, userConfig);
+  const overwriteMerge = (destinationArray: any[], sourceArray: any[]) => sourceArray;
+  let mergedConfig = deepmerge(defaultConfig, userConfig, { arrayMerge: overwriteMerge });
   if (cliOverrides && Object.keys(cliOverrides).length > 0) {
-    mergedConfig = deepmerge(mergedConfig, cliOverrides);
+    mergedConfig = deepmerge(mergedConfig, cliOverrides, { arrayMerge: overwriteMerge });
   }
 
   const configDir = path.dirname(configFilePath);

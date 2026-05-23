@@ -27,12 +27,14 @@ describe('Config Utility', () => {
       if (target.endsWith('ziptie.default.config.json')) {
         return JSON.stringify({
           system: { computerName: 'DEFAULT-EXHIBIT', timezone: 'UTC' },
+          packageManager: { apps: ['App1', 'App2'] },
           lockdown: { disableScreensaver: true, disableWidgets: true }
         });
       }
       if (target.endsWith('ziptie.config.json')) {
         return JSON.stringify({
-          system: { computerName: 'USER-CUSTOM' }
+          system: { computerName: 'USER-CUSTOM' },
+          packageManager: { apps: ['App3'] }
         });
       }
       return '';
@@ -55,6 +57,8 @@ describe('Config Utility', () => {
     // 3. CLI overrides merged over user config and defaults
     expect(config.system.timezone).toBe('Tokyo Standard Time');
     expect(config.lockdown.disableScreensaver).toBe(false);
+    // 4. Arrays are overwritten instead of concatenated/duplicated
+    expect(config.packageManager.apps).toEqual(['App3']);
 
     // Assert that temporary config was written
     expect(fsWriteSpy).toHaveBeenCalled();
