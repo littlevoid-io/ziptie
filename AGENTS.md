@@ -123,9 +123,10 @@ Following strict architectural oversight, the framework has been successfully re
 - **Decoupled Data Configurations**: Volatile structures like UWP package lists have been extracted from logic script bodies into declarative assets like `bloatware-list.json`.
 
 ### Sandbox Test Loop
-- **Gitignored absolute-path WSB Configs**: Dynamic Sandbox XML mapping is generated on the fly inside `.tmp/ziptie-sandbox.wsb` (which is safely gitignored), mapping the current host directory to `C:\ziptie` in isolation.
-- **Single-command Launch Loop**: Executing `npm run sandbox` automatically compiles the TS CLI, generates the WSB file, and opens an isolated Windows Sandbox environment.
-- **Automated Validation Assertions**: The Sandbox runs `test/run-sandbox-tests.ps1` inside the elevated guest context. It executes Ziptie in active mode, runs automated registry/scheduled task assertions, and pauses to allow developers to perform physical spot-checks. This guarantees 100% safety with zero host configuration drift.
+- **Gitignored absolute-path WSB Configs**: Dynamic Sandbox XML mapping is generated on the fly inside `.tmp/ziptie-sandbox.wsb` and `.tmp/ziptie-sandbox-remote.wsb` (which are safely gitignored), mapping the current host directory directly to the guest Desktop at `C:\Users\WDAGUtilityAccount\Desktop\ziptie` in isolation.
+- **Interactive Mapped Sandbox**: Running `npm run sandbox` automatically compiles the TS CLI, generates the WSB file, and opens an isolated Sandbox with an elevated interactive PowerShell terminal ready for manual spot-checks or CLI execution, without running the automated test script.
+- **Automated Verification**: Running `npm run sandbox:local` launches the mapped Sandbox and automatically executes the automated integration test suite `test/run-sandbox-tests.ps1` to assert configuration state, pausing for final check.
+- **Remote Installer Verification**: Running `npm run sandbox:remote` launches a clean, unmapped Sandbox to execute the GitHub one-line bootstrap installer block directly from the active git branch.
 
 ### Windows 11 Compatibility & Sandbox Hardening
 - **User Choice Protection Driver (UCPD) Resiliency**: Discovered that modern Windows 11 cumulative updates protect per-user registry values like `TaskbarDa` under `HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced` via the kernel-mode UCPD driver. Standardized absolute `Registry::HKEY_CURRENT_USER\` naming to bypass session drive scoping bugs and wrapped registry helper writes in `try/catch` blocks. Access errors are logged as warnings instead of halting execution, keeping the Ziptie pipeline robust.

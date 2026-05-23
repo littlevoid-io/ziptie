@@ -22,7 +22,7 @@ This script will:
 You can execute the cloud installer with automated confirmation flags, safe dry-runs, or custom configuration overrides by running it as a script block and passing the `-ExtraArgs` parameter:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -Command "& { [scriptblock]::Create((irm https://raw.githubusercontent.com/littlevoid-io/ziptie/main/scripts/bootstrap.ps1)) } -ExtraArgs '-y -d --timezone \"Tokyo Standard Time\" --disableScreensaver false'"
+powershell -ExecutionPolicy Bypass -Command "& ([scriptblock]::Create((irm https://raw.githubusercontent.com/littlevoid-io/ziptie/main/scripts/bootstrap.ps1))) -ExtraArgs '-y -d --timezone \"Tokyo Standard Time\" --disableScreensaver false'"
 ```
 
 ---
@@ -78,19 +78,28 @@ You can dynamically override any parameter in `ziptie.config.json` directly from
   ```
 
 
-### 8. Run Isolated Sandbox Tests
-To safely verify configurations without altering your host machine, launch an isolated Windows Sandbox:
-```bash
-npm run sandbox
-```
-This command compiles the CLI, dynamically generates a .wsb mapping configuration at `.tmp/ziptie-sandbox.wsb` (gitignored), mounts the repository to `C:\ziptie` inside the guest environment, and runs `test/run-sandbox-tests.ps1` to validate the active configuration state.
+### 8. Run Isolated Sandbox Environments
 
-### 9. Test the One-Line Bootstrap Installer in a Clean Sandbox
-To verify the one-line bootstrap installer completely from scratch inside an isolated, clean Windows Sandbox with **no local folders mounted** (simulating a pure client machine with internet access):
-```bash
-npm run sandbox:installer
-```
-This command dynamically generates a `.wsb` configuration at `.tmp/ziptie-sandbox-installer.wsb` (gitignored) and launches Windows Sandbox to execute the GitHub one-line command (`irm | iex`) in an elevated guest PowerShell window automatically at logon.
+Ziptie includes three distinct isolated Sandbox environment workflows for local validation without host system drift:
+
+*   **Interactive Mapped Sandbox (Default)**
+    Mounts the repository directly to the guest User Desktop (`C:\Users\WDAGUtilityAccount\Desktop\ziptie`) and launches an elevated interactive PowerShell prompt without executing automated tests:
+    ```bash
+    npm run sandbox
+    ```
+    This is highly useful for manual spot-checks, interactive CLI testing, and active step-by-step experimentation.
+
+*   **Automated Local Integration Tests**
+    Mounts the repository directly to the guest User Desktop and automatically executes the end-to-end integration test suite (`test/run-sandbox-tests.ps1`) to assert system configuration state:
+    ```bash
+    npm run sandbox:local
+    ```
+
+*   **Clean Remote Cloud Installer**
+    Launches a completely fresh guest environment with **no local folders mounted** (simulating a pure target machine with internet access) and executes the GitHub one-line bootstrap installer (`irm | iex`) from the current branch automatically at logon:
+    ```bash
+    npm run sandbox:remote
+    ```
 
 
 ---

@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 
 // Project root is one level up from "test"
 const projectRoot = path.resolve(__dirname, "..");
-const wsbPath = path.join(projectRoot, ".tmp", "ziptie-sandbox-installer.wsb");
+const wsbPath = path.join(projectRoot, ".tmp", "ziptie-sandbox-remote.wsb");
 
 // Ensure .tmp exists
 const tmpDir = path.join(projectRoot, ".tmp");
@@ -37,7 +37,7 @@ const wsbContent = `<Configuration>
 
 try {
   fs.writeFileSync(wsbPath, wsbContent, "utf8");
-  console.log(`\x1b[32mSuccessfully generated dynamic installer Sandbox WSB file at:\x1b[0m ${wsbPath}`);
+  console.log(`\x1b[32mSuccessfully generated dynamic remote Sandbox WSB file at:\x1b[0m ${wsbPath}`);
   console.log("Launching clean Windows Sandbox... Please wait.");
 
   // Launch WSB via OS shell file association
