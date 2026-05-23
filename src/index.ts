@@ -24,7 +24,11 @@ async function main() {
   // 1. Elevate process if not Administrator and not a DryRun
   ensureElevated(dryRun);
 
-  intro(chalk.bold.cyan(' 🪢 Ziptie Setup'));
+  if (dryRun) {
+    intro(chalk.bold.yellow(' 🪢 Ziptie Setup (DRY RUN MODE - Read Only)'));
+  } else {
+    intro(chalk.bold.cyan(' 🪢 Ziptie Setup'));
+  }
 
   // Check if no user config exists and we are run interactively
   const expectedConfigPath = customConfigPath
@@ -41,9 +45,9 @@ async function main() {
   const { projectRoot, resolvedConfigPath, config } = loadAndMergeConfig(customConfigPath, overrides);
 
   // Verify and confirm
-  const actionMessage = undo
-    ? 'Ready to revert all configurations?'
-    : 'Ready to lock down this system?';
+  const actionMessage = dryRun
+    ? 'Ready to perform a safe dry-run validation?'
+    : (undo ? 'Ready to revert all configurations?' : 'Ready to lock down this system?');
   let proceed: boolean | symbol = true;
   if (!autoConfirm) {
     proceed = await confirm({
@@ -155,7 +159,9 @@ async function main() {
 
   try {
     await tasks.run();
-    if (undo) {
+    if (dryRun) {
+      outro(chalk.bold.yellow(' ✅ Dry run verification complete. No system changes were made.'));
+    } else if (undo) {
       outro(chalk.bold.green(' ✅ Revert complete.'));
     } else {
       outro(chalk.bold.green(' ✅ System locked down.'));
