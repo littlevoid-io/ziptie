@@ -6,3 +6,4 @@ dist/
 ziptie.config.json
 *.zip
 .env
+src/assets.ts
