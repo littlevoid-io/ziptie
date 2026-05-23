@@ -9,7 +9,7 @@ $ErrorActionPreference = "Stop"
 
 # Immediately capture and switch/validate the working directory
 if (-not $WorkingDir) {
-    $WorkingDir = $PWD.Path
+    $WorkingDir = $PWD.ProviderPath
 }
 Set-Location -Path $WorkingDir
 
@@ -39,7 +39,7 @@ if ($Local -or $isLocalScript) {
     }
     if ($Local -and -not $repoRoot) {
         if (Test-Path "ziptie.schema.json") {
-            $repoRoot = $PWD.Path
+            $repoRoot = $PWD.ProviderPath
         } elseif (Test-Path "..\ziptie.schema.json") {
             $repoRoot = (Get-Item "..").FullName
         }

@@ -111,7 +111,7 @@ Describe "Ziptie Bootstrap Loader" {
             . $bootstrapScript -InstallDir "C:\mock-target" -SkipElevation
 
             if (($argArray -contains "-c") -ne $true) { throw "Expected argArray to contain -c" }
-            $expectedPath = Join-Path $PWD.Path "ziptie.config.json"
+            $expectedPath = Join-Path $PWD.ProviderPath "ziptie.config.json"
             if (($argArray -contains $expectedPath) -ne $true) { throw "Expected argArray to contain caller config path: $expectedPath" }
         }
     }
@@ -139,7 +139,7 @@ Describe "Ziptie Bootstrap Loader" {
                 [System.IO.Path]::GetFullPath($Path).TrimEnd('\', '/') -eq [System.IO.Path]::GetFullPath($expectedTempPath).TrimEnd('\', '/')
             }
             Assert-MockCalled Set-Location -Times 2 -ParameterFilter {
-                [System.IO.Path]::GetFullPath($Path).TrimEnd('\', '/') -eq [System.IO.Path]::GetFullPath($PWD.Path).TrimEnd('\', '/')
+                [System.IO.Path]::GetFullPath($Path).TrimEnd('\', '/') -eq [System.IO.Path]::GetFullPath($PWD.ProviderPath).TrimEnd('\', '/')
             }
         }
     }
