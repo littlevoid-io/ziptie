@@ -215,10 +215,31 @@ Describe "Ziptie Lockdown Script Verification" {
         Mock Write-Host { }
         Mock Write-Warning { }
 
-        function New-LockdownTest {
-            param($TestScript)
+        # Bypass Get-ChildItem Mock using pure .NET static Directory methods for un-mockable test discovery
+        $resolvedScriptsDir = $script:scriptsDir
+        if ($null -eq $resolvedScriptsDir) {
+            $scriptsPath = "$PSScriptRoot/../scripts/windows"
+            if (!(Test-Path $scriptsPath)) { $scriptsPath = "./scripts/windows" }
+            $resolvedScriptsDir = (Resolve-Path $scriptsPath).Path
+        }
+        $files = [System.IO.Directory]::GetFiles($resolvedScriptsDir, "*.ps1")
+        foreach ($file in $files) {
+            $scriptName = Split-Path -Leaf $file
+            # Skip helper/installer/test scripts to test in dedicated blocks
+            if ($scriptName -eq "install-local-apps.ps1" -or $scriptName -eq "test-canary.ps1") {
+                continue
+            }
+            $baseName = [System.IO.Path]::GetFileNameWithoutExtension($scriptName)
+            $scriptObj = [PSCustomObject]@{
+                FullName = $file
+                Name = $scriptName
+                BaseName = $baseName
+            }
+            
+            $case = @{ TestScript = $scriptObj; BaseName = $baseName }
 
-            It "Should run $($TestScript.BaseName) in Dry-Run Mode successfully" {
+            It "Should run <BaseName> in Dry-Run Mode successfully" -TestCases @($case) {
+                param($TestScript)
                 try {
                     $mockConfig = Get-Content -Raw -Path $script:defaultConfigPath | ConvertFrom-Json
                     . $TestScript.FullName -Config $mockConfig -DryRun
@@ -228,7 +249,8 @@ Describe "Ziptie Lockdown Script Verification" {
                 }
             }
 
-            It "Should run $($TestScript.BaseName) in Full Mock Active Mode successfully" {
+            It "Should run <BaseName> in Full Mock Active Mode successfully" -TestCases @($case) {
+                param($TestScript)
                 try {
                     $mockConfig = Get-Content -Raw -Path $script:defaultConfigPath | ConvertFrom-Json
                     . $TestScript.FullName -Config $mockConfig
@@ -238,7 +260,8 @@ Describe "Ziptie Lockdown Script Verification" {
                 }
             }
 
-            It "Should run $($TestScript.BaseName) in Undo Mode successfully" {
+            It "Should run <BaseName> in Undo Mode successfully" -TestCases @($case) {
+                param($TestScript)
                 try {
                     $mockConfig = Get-Content -Raw -Path $script:defaultConfigPath | ConvertFrom-Json
                     . $TestScript.FullName -Config $mockConfig -Undo
@@ -248,7 +271,8 @@ Describe "Ziptie Lockdown Script Verification" {
                 }
             }
 
-            It "Should run $($TestScript.BaseName) with tweaks disabled in config successfully" {
+            It "Should run <BaseName> with tweaks disabled in config successfully" -TestCases @($case) {
+                param($TestScript)
                 try {
                     $mockConfig = Get-Content -Raw -Path $script:defaultConfigPath | ConvertFrom-Json
                     
@@ -267,28 +291,6 @@ Describe "Ziptie Lockdown Script Verification" {
                     throw "Disabled config script $($TestScript.Name) failed with exception: $_"
                 }
             }
-        }
-
-        # Bypass Get-ChildItem Mock using pure .NET static Directory methods for un-mockable test discovery
-        $resolvedScriptsDir = $script:scriptsDir
-        if ($null -eq $resolvedScriptsDir) {
-            $scriptsPath = "$PSScriptRoot/../scripts/windows"
-            if (!(Test-Path $scriptsPath)) { $scriptsPath = "./scripts/windows" }
-            $resolvedScriptsDir = (Resolve-Path $scriptsPath).Path
-        }
-        $files = [System.IO.Directory]::GetFiles($resolvedScriptsDir, "*.ps1")
-        foreach ($file in $files) {
-            $scriptName = Split-Path -Leaf $file
-            # Skip helper/installer/test scripts to test in dedicated blocks
-            if ($scriptName -eq "install-local-apps.ps1" -or $scriptName -eq "test-canary.ps1") {
-                continue
-            }
-            $scriptObj = [PSCustomObject]@{
-                FullName = $file
-                Name = $scriptName
-                BaseName = [System.IO.Path]::GetFileNameWithoutExtension($scriptName)
-            }
-            New-LockdownTest -TestScript $scriptObj
         }
     }
 }
