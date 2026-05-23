@@ -86,26 +86,63 @@ async function main() {
       task: (ctx, task) => task.newListr([
         {
           title: 'Configuring timezone',
+          skip: () => {
+            if (undo) return false;
+            const val = config.system?.timezone;
+            if (!val || val === 'none' || val === 'false') return 'Disabled in configuration';
+            return false;
+          },
           task: () => runPowerShellScript(path.join(scriptsDir, 'set-timezone.ps1'), resolvedConfigPath, undo, dryRun)
         },
         {
           title: 'Configuring computer name',
+          skip: () => {
+            if (undo) return false;
+            const val = config.system?.computerName;
+            if (!val || val === 'none' || val === 'false') return 'Disabled in configuration';
+            return false;
+          },
           task: () => runPowerShellScript(path.join(scriptsDir, 'set-computer-name.ps1'), resolvedConfigPath, undo, dryRun)
         },
         {
           title: 'Scheduling daily reboot',
+          skip: () => {
+            if (undo) return false;
+            const val = config.system?.enableDailyReboot;
+            if (val === false || val === null || val === undefined) return 'Disabled in configuration';
+            return false;
+          },
           task: () => runPowerShellScript(path.join(scriptsDir, 'enable-daily-reboot.ps1'), resolvedConfigPath, undo, dryRun)
         },
         {
           title: 'Configuring autologon',
+          skip: () => {
+            if (undo) return false;
+            const val = config.autologon?.enabled;
+            if (val === false || val === null || val === undefined) return 'Disabled in configuration';
+            return false;
+          },
           task: () => runPowerShellScript(path.join(scriptsDir, 'enable-auto-login.ps1'), resolvedConfigPath, undo, dryRun)
         },
         {
           title: 'Setting up startup task',
+          skip: () => {
+            if (undo) return false;
+            const val = config.startupTask?.enabled;
+            if (val === false || val === null || val === undefined) return 'Disabled in configuration';
+            return false;
+          },
           task: () => runPowerShellScript(path.join(scriptsDir, 'enable-startup-task.ps1'), resolvedConfigPath, undo, dryRun)
         },
         {
           title: 'Installing local apps',
+          skip: () => {
+            if (undo) return false;
+            const provider = config.packageManager?.provider;
+            const allowOffline = config.packageManager?.allowOfflineFallback;
+            if (provider === 'none' && !allowOffline) return 'Disabled in configuration';
+            return false;
+          },
           task: () => runPowerShellScript(path.join(scriptsDir, 'install-local-apps.ps1'), resolvedConfigPath, undo, dryRun)
         }
       ], { concurrent: false })
@@ -131,6 +168,14 @@ async function main() {
           title: undo
             ? `${spec.undoAction || 'Restoring'} ${spec.title}`
             : `${spec.action || 'Disabling'} ${spec.title}`,
+          skip: () => {
+            if (undo) return false;
+            const val = config.lockdown?.[spec.configKey];
+            if (val === false || val === null || val === undefined) {
+              return 'Disabled in configuration';
+            }
+            return false;
+          },
           task: () => runPowerShellScript(path.join(scriptsDir, spec.file), resolvedConfigPath, undo, dryRun)
         })),
         { concurrent: false }
