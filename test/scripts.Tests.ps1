@@ -6,39 +6,39 @@ $scriptsPath = "$PSScriptRoot/../scripts/windows"
 if (!(Test-Path $scriptsPath)) {
     $scriptsPath = "./scripts/windows"
 }
-$script:scriptsDir = (Resolve-Path $scriptsPath).Path
+$scriptsDir = (Resolve-Path $scriptsPath).Path
 
 $utilsPath = "$PSScriptRoot/../scripts/utils"
 if (!(Test-Path $utilsPath)) {
     $utilsPath = "./scripts/utils"
 }
-$script:utilsDir = (Resolve-Path $utilsPath).Path
+$utilsDir = (Resolve-Path $utilsPath).Path
 
 $configPath = "$PSScriptRoot/../ziptie.default.config.json"
 if (!(Test-Path $configPath)) {
     $configPath = "./ziptie.default.config.json"
 }
-$script:defaultConfigPath = (Resolve-Path $configPath).Path
+$defaultConfigPath = (Resolve-Path $configPath).Path
 
 Describe "Ziptie Lockdown Script Verification" {
     BeforeAll {
         # Initialize paths in BeforeAll unconditionally to ensure Pester 5 compatibility
         $configPath = "$PSScriptRoot/../ziptie.default.config.json"
         if (!(Test-Path $configPath)) { $configPath = "./ziptie.default.config.json" }
-        $script:defaultConfigPath = (Resolve-Path $configPath).Path
+        $defaultConfigPath = (Resolve-Path $configPath).Path
 
         $utilsPath = "$PSScriptRoot/../scripts/utils"
         if (!(Test-Path $utilsPath)) { $utilsPath = "./scripts/utils" }
-        $script:utilsDir = (Resolve-Path $utilsPath).Path
+        $utilsDir = (Resolve-Path $utilsPath).Path
 
         $scriptsPath = "$PSScriptRoot/../scripts/windows"
         if (!(Test-Path $scriptsPath)) { $scriptsPath = "./scripts/windows" }
-        $script:scriptsDir = (Resolve-Path $scriptsPath).Path
+        $scriptsDir = (Resolve-Path $scriptsPath).Path
 
-        if (!(Test-Path $script:defaultConfigPath)) {
-            throw "Error: Production config not found at $script:defaultConfigPath"
+        if (!(Test-Path $defaultConfigPath)) {
+            throw "Error: Production config not found at $defaultConfigPath"
         }
-        $mockConfig = Get-Content -Raw -Path $script:defaultConfigPath | ConvertFrom-Json
+        $mockConfig = Get-Content -Raw -Path $defaultConfigPath | ConvertFrom-Json
 
         # Compile the Win32 P/Invoke type in BeforeAll so it is safely defined once in the AppDomain,
         # preventing any duplicate compilation compiler errors during repetitive test runs.
@@ -62,7 +62,7 @@ Describe "Ziptie Lockdown Script Verification" {
             New-Item -ItemType Directory -Path $utilsBackupPath -Force | Out-Null
         }
 
-        $utils = Get-ChildItem -Path $script:utilsDir -Filter "*.ps1"
+        $utils = Get-ChildItem -Path $utilsDir -Filter "*.ps1"
         foreach ($u in $utils) {
             # Backup original utility file
             Copy-Item -Path $u.FullName -Destination $utilsBackupPath -Force
@@ -93,8 +93,8 @@ Describe "Ziptie Lockdown Script Verification" {
 
     Context "Static Analysis & Architecture Guidelines" {
         It "Should strictly cap every script under 100 lines of code" {
-            $scripts = Get-ChildItem -Path $script:scriptsDir -Filter "*.ps1" -Recurse
-            $utils = Get-ChildItem -Path $script:utilsDir -Filter "*.ps1"
+            $scripts = Get-ChildItem -Path $scriptsDir -Filter "*.ps1" -Recurse
+            $utils = Get-ChildItem -Path $utilsDir -Filter "*.ps1"
             
             foreach ($script in ($scripts + $utils)) {
                 $lines = @(Get-Content -Path $script.FullName)
@@ -103,8 +103,8 @@ Describe "Ziptie Lockdown Script Verification" {
         }
 
         It "Should not contain hardcoded plain-text passwords or secrets" {
-            $scripts = Get-ChildItem -Path $script:scriptsDir -Filter "*.ps1" -Recurse
-            $utils = Get-ChildItem -Path $script:utilsDir -Filter "*.ps1"
+            $scripts = Get-ChildItem -Path $scriptsDir -Filter "*.ps1" -Recurse
+            $utils = Get-ChildItem -Path $utilsDir -Filter "*.ps1"
             
             foreach ($script in ($scripts + $utils)) {
                 $content = Get-Content -Raw -Path $script.FullName
@@ -216,7 +216,7 @@ Describe "Ziptie Lockdown Script Verification" {
         }
 
         # Bypass Get-ChildItem Mock using pure .NET static Directory methods for un-mockable test discovery
-        $resolvedScriptsDir = $script:scriptsDir
+        $resolvedScriptsDir = $scriptsDir
         if ($null -eq $resolvedScriptsDir) {
             $scriptsPath = "$PSScriptRoot/../scripts/windows"
             if (!(Test-Path $scriptsPath)) { $scriptsPath = "./scripts/windows" }
@@ -241,7 +241,7 @@ Describe "Ziptie Lockdown Script Verification" {
             It "Should run <BaseName> in Dry-Run Mode successfully" -TestCases @($case) {
                 param($TestScript)
                 try {
-                    $mockConfig = Get-Content -Raw -Path $script:defaultConfigPath | ConvertFrom-Json
+                    $mockConfig = Get-Content -Raw -Path $defaultConfigPath | ConvertFrom-Json
                     . $TestScript.FullName -Config $mockConfig -DryRun
                 } catch {
                     $global:Error.Clear()
@@ -252,7 +252,7 @@ Describe "Ziptie Lockdown Script Verification" {
             It "Should run <BaseName> in Full Mock Active Mode successfully" -TestCases @($case) {
                 param($TestScript)
                 try {
-                    $mockConfig = Get-Content -Raw -Path $script:defaultConfigPath | ConvertFrom-Json
+                    $mockConfig = Get-Content -Raw -Path $defaultConfigPath | ConvertFrom-Json
                     . $TestScript.FullName -Config $mockConfig
                 } catch {
                     $global:Error.Clear()
@@ -263,7 +263,7 @@ Describe "Ziptie Lockdown Script Verification" {
             It "Should run <BaseName> in Undo Mode successfully" -TestCases @($case) {
                 param($TestScript)
                 try {
-                    $mockConfig = Get-Content -Raw -Path $script:defaultConfigPath | ConvertFrom-Json
+                    $mockConfig = Get-Content -Raw -Path $defaultConfigPath | ConvertFrom-Json
                     . $TestScript.FullName -Config $mockConfig -Undo
                 } catch {
                     $global:Error.Clear()
@@ -274,7 +274,7 @@ Describe "Ziptie Lockdown Script Verification" {
             It "Should run <BaseName> with tweaks disabled in config successfully" -TestCases @($case) {
                 param($TestScript)
                 try {
-                    $mockConfig = Get-Content -Raw -Path $script:defaultConfigPath | ConvertFrom-Json
+                    $mockConfig = Get-Content -Raw -Path $defaultConfigPath | ConvertFrom-Json
                     
                     # Programmatically toggle all boolean config options to false
                     if ($mockConfig.lockdown) {
