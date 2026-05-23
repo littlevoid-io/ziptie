@@ -9,7 +9,8 @@ This directory contains the dual-layer testing suite designed for validating Zip
 To ensure maximum safety and consistency, the test suite is partitioned into two distinct execution tiers:
 
 1. **Mock-Safe Local Unit Tests (`test/unit/` & `test/*.Tests.ps1`)**
-   - Verified locally on the host machine using `npm test`.
+   - Verified locally on the host machine using `npm test` or `npm run test:pester` (running under your system default Pester, e.g., Pester 3.4.0).
+   - Simulates the GitHub Actions Pester 5 environment locally using `npm run test:pester5` (which dynamically downloads and loads Pester 5 inside the `.tmp/` directory without polluting system packages).
    - Mocks all system-altering commands (`powercfg`, `Rename-Computer`, registry writes, etc.) so that tests run completely in-memory in milliseconds with zero side effects.
 2. **Automated Sandbox Integration Tests (`test/run-sandbox-tests.ps1`)**
    - Executed inside an isolated Windows Sandbox guest environment via `npm run sandbox:local`.
