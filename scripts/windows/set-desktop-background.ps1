@@ -40,7 +40,7 @@ if ($shouldUndo) {
     &$registryTweak -Path $userWallpapersPath -Name "BackgroundType" -Value 1 -Type "DWord"
 }
 
-if (!$DryRun) {
+if (!$DryRun -and !$global:ZiptieTestMode) {
     try {
         if (-not ("ZiptieWin32.Win32SystemParametersInfoBackground" -as [type])) {
             $sig = '[DllImport("user32.dll", CharSet=CharSet.Auto)] public static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);'

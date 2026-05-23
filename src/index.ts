@@ -7,7 +7,7 @@ import chalk from 'chalk';
 
 import { ensureElevated } from './utils/elevation.js';
 import { runPowerShellScript } from './utils/powershell.js';
-import { loadAndMergeConfig, resolveProjectRoot } from './utils/config.js';
+import { loadAndMergeConfig, resolveProjectRoot, printConfig, handleAutoConfirmTimeout } from './utils/config.js';
 import { runSetupWizard } from './utils/setupWizard.js';
 import { OS_LOCKDOWN_TASKS } from './tasks.js';
 import { parseCLI } from './utils/cli.js';
@@ -45,6 +45,9 @@ async function main() {
   // 2. Load and deep-merge default/user configurations with CLI overrides
   const { projectRoot, resolvedConfigPath, config } = loadAndMergeConfig(customConfigPath, overrides);
 
+  // Print final composited config settings
+  printConfig(config);
+
   // Verify and confirm
   const actionMessage = dryRun
     ? 'Ready to perform a safe dry-run validation?'
@@ -55,6 +58,8 @@ async function main() {
       message: actionMessage,
       initialValue: true,
     });
+  } else {
+    await handleAutoConfirmTimeout(10);
   }
 
   if (typeof proceed === 'symbol' || !proceed) {

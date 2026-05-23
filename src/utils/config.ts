@@ -132,3 +132,74 @@ export function loadAndMergeConfig(
     config: mergedConfig,
   };
 }
+
+/**
+ * Beautifully pretty-prints the loaded configuration to the console with basic colorized syntax highlighting.
+ */
+export function printConfig(config: any): void {
+  console.log(chalk.bold.cyan('\n⚙️  Composited Configuration Settings:'));
+
+  const jsonString = JSON.stringify(config, null, 2);
+  const lines = jsonString.split('\n');
+
+  for (const line of lines) {
+    const match = line.match(/^(\s*)("([^"]+)")(\s*:\s*)(.*)$/);
+    if (match) {
+      const indent = match[1];
+      const key = match[2];
+      const colon = match[4];
+      const value = match[5];
+
+      let highlightedValue = value;
+      if (value.startsWith('"')) {
+        const endsWithComma = value.endsWith(',');
+        const strVal = endsWithComma ? value.slice(0, -1) : value;
+        highlightedValue = chalk.yellow(strVal) + (endsWithComma ? ',' : '');
+      } else if (value.startsWith('true') || value.startsWith('false')) {
+        const endsWithComma = value.endsWith(',');
+        const boolVal = endsWithComma ? value.slice(0, -1) : value;
+        highlightedValue = chalk.magenta(boolVal) + (endsWithComma ? ',' : '');
+      } else if (/^\d/.test(value)) {
+        const endsWithComma = value.endsWith(',');
+        const numVal = endsWithComma ? value.slice(0, -1) : value;
+        highlightedValue = chalk.blue(numVal) + (endsWithComma ? ',' : '');
+      } else if (value === '[]' || value === '{}' || value.startsWith('[') || value.startsWith('{')) {
+        highlightedValue = chalk.white(value);
+      }
+
+      console.log(`${indent}${chalk.green(key)}${colon}${highlightedValue}`);
+    } else {
+      console.log(chalk.white(line));
+    }
+  }
+  console.log('');
+}
+
+/**
+ * Initiates a non-blocking console countdown timeout before automatically proceeding.
+ */
+export async function handleAutoConfirmTimeout(seconds: number = 10): Promise<void> {
+  return new Promise((resolve) => {
+    let remaining = seconds;
+
+    const interval = setInterval(() => {
+      if (remaining <= 0) {
+        clearInterval(interval);
+        process.stdout.write('\r\x1b[K'); // clear the countdown line
+        resolve();
+        return;
+      }
+      process.stdout.write(
+        `\r${chalk.cyan('⏱️  Automatically applying configurations in')} ${chalk.bold.yellow(remaining)} ${chalk.cyan('seconds... Press Ctrl+C to abort.')}`
+      );
+      remaining--;
+    }, 1000);
+
+    // Initial print
+    process.stdout.write(
+      `\r${chalk.cyan('⏱️  Automatically applying configurations in')} ${chalk.bold.yellow(remaining)} ${chalk.cyan('seconds... Press Ctrl+C to abort.')}`
+    );
+    remaining--;
+  });
+}
+

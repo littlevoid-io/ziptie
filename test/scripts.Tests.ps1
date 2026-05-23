@@ -22,6 +22,7 @@ $defaultConfigPath = (Resolve-Path $configPath).Path
 
 Describe "Ziptie Lockdown Script Verification" {
     BeforeAll {
+        $global:ZiptieTestMode = $true
         # Initialize paths in BeforeAll unconditionally to ensure Pester 5 compatibility
         $configPath = "$PSScriptRoot/../ziptie.default.config.json"
         if (!(Test-Path $configPath)) { $configPath = "./ziptie.default.config.json" }
