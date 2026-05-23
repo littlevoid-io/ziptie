@@ -39,4 +39,8 @@ jobs:
         shell: pwsh
         run: |
           $version = node -p "require('./package.json').version"
-          gh release create "v$version" ziptie.zip --title "Ziptie Release v$version" --notes "Automated precompiled system foundation release." --clobber
+          gh release view "v$version" > $null 2>&1
+          if ($LASTEXITCODE -ne 0) {
+            gh release create "v$version" --title "Ziptie Release v$version" --notes "Automated precompiled system foundation release."
+          }
+          gh release upload "v$version" ziptie.zip --clobber
