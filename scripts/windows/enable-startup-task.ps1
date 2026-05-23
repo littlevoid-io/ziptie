@@ -46,8 +46,8 @@ if ($shouldUndo) {
     $actionArgs = ""
 
     # Check if explicit args are supplied in config
-    if ($null -ne $Config.startupTask.args -and "$($Config.startupTask.args)".Trim() -ne "") {
-        $actionArgs = $Config.startupTask.args
+    if ($null -ne $Config.startupTask.args -and @($Config.startupTask.args).Count -gt 0) {
+        $actionArgs = @($Config.startupTask.args) -join ' '
     } else {
         if ($executable -match '^"([^"]+)"\s*(.*)$') {
             $actionExec = $Matches[1]

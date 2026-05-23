@@ -66,8 +66,11 @@
           "description": "The path to the executable to run (e.g. 'C:\\Exhibit\\launch.bat' or 'node'). If 'args' is not provided, this field will be parsed for arguments automatically."
         },
         "args": {
-          "type": "string",
-          "description": "Optional arguments to pass to the executable (e.g. 'index.js --port 3000'). If specified, 'executable' is treated strictly as the command/file path without any regex argument parsing."
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Optional command-line arguments to pass to the executable as an array of strings (e.g. ['index.js', '--port', '3000']). If specified, 'executable' is treated strictly as the command/file path without any regex argument parsing."
         },
         "trigger": {
           "type": "string",

@@ -181,6 +181,7 @@ Describe "Ziptie Lockdown Script Verification" {
             # Mock Scheduled Tasks (only modifying commands)
             $global:lastExecutedAction = $null
             Mock Register-ScheduledTask {
+                param($TaskName, $TaskPath, $Action, $Trigger, $Settings, $Force)
                 if ($TaskName -eq "Launch Exhibit") {
                     $global:lastExecutedAction = $Action
                 }
@@ -304,49 +305,57 @@ Describe "Ziptie Lockdown Script Verification" {
             }
         }
 
-        Context "enable-startup-task parameter validation" {
-            It "Should split executable into command and arguments if args is empty" {
-                $mockConfig = Get-Content -Raw -Path $defaultConfigPath | ConvertFrom-Json
-                $mockConfig.startupTask.enabled = $true
-                $mockConfig.startupTask.executable = "node index.js --port 80"
-                $mockConfig.startupTask.args = ""
+        It "Should split executable into command and arguments if args is empty" {
+            $testScriptsPath = "$PSScriptRoot/../scripts/windows"
+            if (!(Test-Path $testScriptsPath)) { $testScriptsPath = "./scripts/windows" }
+            $resolvedPath = (Resolve-Path "$testScriptsPath/enable-startup-task.ps1").Path
 
-                $global:lastExecutedAction = $null
-                . "$resolvedScriptsDir/enable-startup-task.ps1" -Config $mockConfig
+            $mockConfig = Get-Content -Raw -Path $defaultConfigPath | ConvertFrom-Json
+            $mockConfig.startupTask.enabled = $true
+            $mockConfig.startupTask.executable = "node index.js --port 80"
+            $mockConfig.startupTask.args = @()
 
-                $global:lastExecutedAction.Execute | Should Be "node"
-                $global:lastExecutedAction.Arguments | Should Be "index.js --port 80"
-            }
+            $global:lastExecutedAction = $null
+            & $resolvedPath -Config $mockConfig
 
-            It "Should use explicit args and treat executable literally if args is provided" {
-                $mockConfig = Get-Content -Raw -Path $defaultConfigPath | ConvertFrom-Json
-                $mockConfig.startupTask.enabled = $true
-                $mockConfig.startupTask.executable = "C:\Path With Spaces\node.exe"
-                $mockConfig.startupTask.args = "index.js --port 80"
+            $global:lastExecutedAction.Execute | Should Be "node"
+            $global:lastExecutedAction.Arguments | Should Be "index.js --port 80"
+        }
 
-                $global:lastExecutedAction = $null
-                . "$resolvedScriptsDir/enable-startup-task.ps1" -Config $mockConfig
+        It "Should use explicit args and treat executable literally if args is provided" {
+            $testScriptsPath = "$PSScriptRoot/../scripts/windows"
+            if (!(Test-Path $testScriptsPath)) { $testScriptsPath = "./scripts/windows" }
+            $resolvedPath = (Resolve-Path "$testScriptsPath/enable-startup-task.ps1").Path
 
-                $global:lastExecutedAction.Execute | Should Be "C:\Path With Spaces\node.exe"
-                $global:lastExecutedAction.Arguments | Should Be "index.js --port 80"
-            }
+            $mockConfig = Get-Content -Raw -Path $defaultConfigPath | ConvertFrom-Json
+            $mockConfig.startupTask.enabled = $true
+            $mockConfig.startupTask.executable = "C:\Path With Spaces\node.exe"
+            $mockConfig.startupTask.args = @("index.js", "--port", "80")
 
-            It "Should handle null args correctly by falling back to regex splitting" {
-                $mockConfig = Get-Content -Raw -Path $defaultConfigPath | ConvertFrom-Json
-                $mockConfig.startupTask.enabled = $true
-                $mockConfig.startupTask.executable = "node index.js"
-                
-                # Remove args property or set to null
-                if ($mockConfig.startupTask.PSObject.Properties['args']) {
-                    $mockConfig.startupTask.PSObject.Properties.Remove('args')
-                }
+            $global:lastExecutedAction = $null
+            & $resolvedPath -Config $mockConfig
 
-                $global:lastExecutedAction = $null
-                . "$resolvedScriptsDir/enable-startup-task.ps1" -Config $mockConfig
+            $global:lastExecutedAction.Execute | Should Be "C:\Path With Spaces\node.exe"
+            $global:lastExecutedAction.Arguments | Should Be "index.js --port 80"
+        }
 
-                $global:lastExecutedAction.Execute | Should Be "node"
-                $global:lastExecutedAction.Arguments | Should Be "index.js"
-            }
+        It "Should handle null args correctly by falling back to regex splitting" {
+            $testScriptsPath = "$PSScriptRoot/../scripts/windows"
+            if (!(Test-Path $testScriptsPath)) { $testScriptsPath = "./scripts/windows" }
+            $resolvedPath = (Resolve-Path "$testScriptsPath/enable-startup-task.ps1").Path
+
+            $mockConfig = Get-Content -Raw -Path $defaultConfigPath | ConvertFrom-Json
+            $mockConfig.startupTask.enabled = $true
+            $mockConfig.startupTask.executable = "node index.js"
+            
+            # Simulate absent property by setting to null
+            $mockConfig.startupTask.args = $null
+
+            $global:lastExecutedAction = $null
+            & $resolvedPath -Config $mockConfig
+
+            $global:lastExecutedAction.Execute | Should Be "node"
+            $global:lastExecutedAction.Arguments | Should Be "index.js"
         }
     }
 }

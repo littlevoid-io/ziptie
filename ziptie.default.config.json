@@ -15,7 +15,7 @@
     "enabled": true,
     "workingDir": "C:\\Exhibit",
     "executable": "launch.bat",
-    "args": "",
+    "args": [],
     "trigger": "AtLogon",
     "delay": "PT1M"
   },
