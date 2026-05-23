@@ -78,28 +78,6 @@ You can dynamically override any parameter in `ziptie.config.json` directly from
   ```
 
 
-### 8. Run Isolated Sandbox Environments
-
-Ziptie includes three distinct isolated Sandbox environment workflows for local validation without host system drift:
-
-*   **Interactive Mapped Sandbox (Default)**
-    Mounts the repository directly to the guest User Desktop (`C:\Users\WDAGUtilityAccount\Desktop\ziptie`) and launches an elevated interactive PowerShell prompt without executing automated tests:
-    ```bash
-    npm run sandbox
-    ```
-    This is highly useful for manual spot-checks, interactive CLI testing, and active step-by-step experimentation.
-
-*   **Automated Local Integration Tests**
-    Mounts the repository directly to the guest User Desktop and automatically executes the end-to-end integration test suite (`test/run-sandbox-tests.ps1`) to assert system configuration state:
-    ```bash
-    npm run sandbox:local
-    ```
-
-*   **Clean Remote Cloud Installer**
-    Launches a completely fresh guest environment with **no local folders mounted** (simulating a pure target machine with internet access) and executes the GitHub one-line bootstrap installer (`irm | iex`) from the current branch automatically at logon:
-    ```bash
-    npm run sandbox:remote
-    ```
 ---
 
 ## Development
@@ -119,6 +97,60 @@ You can also pass custom configuration overrides, silent install confirmations, 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\bootstrap.ps1 -InstallDir "C:\ziptie-dev" -ExtraArgs "-d -y --timezone `"Tokyo Standard Time`""
 ```
+
+
+---
+
+## Testing
+
+Ziptie features a comprehensive, dual-layer test suite to ensure robust configuration parsing, correct CLI argument handling, and safe PowerShell scripts before execution on any target machine.
+
+### 1. Test Architecture
+*   **TypeScript Unit & CLI Tests (via Bun)**: Blazing-fast, mock-driven tests validating CLI overrides, dot-notation mapping, configuration deep merging, and elevation status checks.
+*   **PowerShell Pester Unit Tests**: Non-destructive Pester unit tests confirming dry-run execution, script revertibility (`-Undo`), installer cleanups, and local simulation paths safely without modifying host configurations.
+*   **Isolated Sandbox Environments**: Automated and interactive Windows Sandbox workflows verifying complete system configuration changes, registry states, scheduled task triggers, and dynamic WinGet provisioning.
+
+### 2. Running Local Tests
+You can execute tests locally on your development system using the npm scripts:
+
+*   **Run Entire Test Suite (TypeScript + Pester)**:
+    ```bash
+    npm test
+    ```
+*   **Run TypeScript Unit Tests Only**:
+    ```bash
+    npm run test:unit
+    ```
+*   **Run CLI Integration Tests Only**:
+    ```bash
+    npm run test:cli
+    ```
+*   **Run Pester Unit Tests Only**:
+    ```bash
+    npm run test:pester
+    ```
+
+### 3. Run Isolated Sandbox Environments
+Safely verify active registry modifications, Winget/Chocolatey installers, and the bootstrapping pipeline without any host system drift:
+
+*   **Interactive Mapped Sandbox (Default)**:
+    Mounts the repository directly to the guest User Desktop (`C:\Users\WDAGUtilityAccount\Desktop\ziptie`) and launches an elevated interactive PowerShell prompt without executing automated tests:
+    ```bash
+    npm run sandbox
+    ```
+    This is highly useful for manual spot-checks, interactive CLI testing, and active step-by-step experimentation.
+
+*   **Automated Local Integration Tests**:
+    Mounts the repository directly to the guest User Desktop and automatically executes the end-to-end integration test suite (`test/run-sandbox-tests.ps1`) to assert system configuration state:
+    ```bash
+    npm run sandbox:local
+    ```
+
+*   **Clean Remote Cloud Installer**:
+    Launches a completely fresh guest environment with **no local folders mounted** (simulating a pure target machine with internet access) and executes the GitHub one-line bootstrap installer (`irm | iex`) from the current branch automatically at logon:
+    ```bash
+    npm run sandbox:remote
+    ```
 
 ---
 

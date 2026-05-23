@@ -122,11 +122,16 @@ Following strict architectural oversight, the framework has been successfully re
 - **Convergent Pipeline Execution**: The orchestrator runs all lockdown scripts unconditionally. Tweak scripts read configuration parameters and execute native DryRun or Undo sequences locally. This guarantees that toggling a configuration setting to `false` and re-running Ziptie automatically reverts the tweak on the next run, maintaining state synchronization.
 - **Decoupled Data Configurations**: Volatile structures like UWP package lists have been extracted from logic script bodies into declarative assets like `bloatware-list.json`.
 
-### Sandbox Test Loop
-- **Gitignored absolute-path WSB Configs**: Dynamic Sandbox XML mapping is generated on the fly inside `.tmp/ziptie-sandbox.wsb` and `.tmp/ziptie-sandbox-remote.wsb` (which are safely gitignored), mapping the current host directory directly to the guest Desktop at `C:\Users\WDAGUtilityAccount\Desktop\ziptie` in isolation.
-- **Interactive Mapped Sandbox**: Running `npm run sandbox` automatically compiles the TS CLI, generates the WSB file, and opens an isolated Sandbox with an elevated interactive PowerShell terminal ready for manual spot-checks or CLI execution, without running the automated test script.
-- **Automated Verification**: Running `npm run sandbox:local` launches the mapped Sandbox and automatically executes the automated integration test suite `test/run-sandbox-tests.ps1` to assert configuration state, pausing for final check.
-- **Remote Installer Verification**: Running `npm run sandbox:remote` launches a clean, unmapped Sandbox to execute the GitHub one-line bootstrap installer block directly from the active git branch.
+### Testing Framework & Verification Loop
+
+To ensure ultimate stability across diverse environments, the framework implements a dual-layer local testing architecture alongside dynamic guest Sandbox verification:
+
+- **TypeScript Unit & CLI Tests (via Bun)**: Blazing-fast, fully mocked unit tests verifying configuration loading, `deepmerge` defaults resolution, CLI argument overrides, dot-notation mapping, child process spawning, and UAC elevation checks.
+- **PowerShell Pester Unit Tests**: Non-destructive, host-safe unit testing (`test/*.Tests.ps1`) targeting the core lockdown scripts and the bootstrap loader. They mock system interactions to assert registry dry-runs, directory cleanup steps, and rollback commands safely without modifying host state.
+- **Dynamic Mapped WSB Configs**: Generates sandbox XML files on the fly at `.tmp/ziptie-sandbox.wsb` and `.tmp/ziptie-sandbox-remote.wsb` (both safely gitignored), mapping the host directory to the guest desktop at `C:\Users\WDAGUtilityAccount\Desktop\ziptie`.
+- **Interactive Sandbox Spot-Checks**: Running `npm run sandbox` launches an isolated, elevated guest PowerShell terminal inside a mapped Sandbox for manual debugging, quick CLI trials, and active inspection.
+- **Automated Sandbox Verification**: Running `npm run sandbox:local` executes the end-to-end sandbox test suite (`test/run-sandbox-tests.ps1`) in the guest environment to verify active registry values and scheduled task creations.
+- **Remote Installer Verification**: Running `npm run sandbox:remote` launches a fresh, unmapped guest Sandbox to download and verify the cloud bootstrap installer script directly from the active git branch.
 
 ### Windows 11 Compatibility & Sandbox Hardening
 - **User Choice Protection Driver (UCPD) Resiliency**: Discovered that modern Windows 11 cumulative updates protect per-user registry values like `TaskbarDa` under `HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced` via the kernel-mode UCPD driver. Standardized absolute `Registry::HKEY_CURRENT_USER\` naming to bypass session drive scoping bugs and wrapped registry helper writes in `try/catch` blocks. Access errors are logged as warnings instead of halting execution, keeping the Ziptie pipeline robust.
@@ -149,6 +154,7 @@ To align with Ziptie's design as an air-gapped, secure, and locally controlled f
 
 - **Strict Local Execution (Never Push)**: Coding agents must **NEVER** push local Git commits or branches to remote upstream repositories (e.g., executing `git push` is strictly forbidden). Upstream pushing remains exclusively a human developer operation.
 - **No Direct-to-Host Configuration**: Lockdown configuration runs, registry overrides, and active OS modifications must **NEVER** be executed directly on the host development machine. All runtime tests, dry-runs, and active configurations must be run inside the isolated Windows Sandbox environment via the guest test suite (`npm run sandbox`).
+- **Mandatory Local Testing**: Before concluding a task, agents **MUST** execute the local test suite using `npm test` (or specific sub-suites like `npm run test:unit` and `npm run test:pester`) to ensure all core behaviors are completely validated and zero regressions are introduced.
 - **Strict Conventional Commits Mandate**: Every git commit message MUST strictly adhere to the conventional commit standard format of `<type>(<action>): <subject>`. The subject line MUST be strictly less than **50 characters** in length, and any verbose descriptions or list details must be moved entirely into the commit message body separated by a blank line.
 
 ## 6. Tool Use
