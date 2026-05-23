@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "slab configuration schema",
-  "description": "Configuration schema for @littlevoid/slab system bootstrapping and kiosk lockdown framework.",
+  "title": "ziptie configuration schema",
+  "description": "Configuration schema for @littlevoid/ziptie system bootstrapping and kiosk lockdown framework.",
   "type": "object",
   "properties": {
     "system": {

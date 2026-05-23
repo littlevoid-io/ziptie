@@ -10,7 +10,7 @@ if ($DryRun) {
     return
 }
 
-$tempDir = "$env:TEMP\SlabWinGet"
+$tempDir = "$env:TEMP\ZiptieWinGet"
 if (!(Test-Path $tempDir)) {
     New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
 }

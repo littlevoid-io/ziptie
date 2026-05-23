@@ -40,7 +40,7 @@ function incrementVersion(version, type) {
 }
 
 async function main() {
-  intro(chalk.cyan('Slab Git Flow Release Orchestrator'));
+  intro(chalk.cyan('Ziptie Git Flow Release Orchestrator'));
 
   // Pre-flight check A: Must be on develop branch
   let currentBranch = '';
@@ -102,10 +102,10 @@ async function main() {
     s.message('Bumping package versions...');
     runCmd(`npm version ${nextVersion} --no-git-tag-version`);
 
-    // 3. Compile standalone slab.exe and package slab.zip
-    s.message('Compiling and packaging Slab release assets...');
+    // 3. Compile standalone ziptie.exe and package ziptie.zip
+    s.message('Compiling and packaging Ziptie release assets...');
     runCmd('npm run package');
-    runCmd(`powershell -Command "Compress-Archive -Path dist/slab.exe, scripts, slab.default.config.json, slab-schema.json, setup.bat -DestinationPath dist/slab.zip -Force"`);
+    runCmd(`powershell -Command "Compress-Archive -Path dist/ziptie.exe, scripts, ziptie.default.config.json, ziptie-schema.json, setup.bat -DestinationPath dist/ziptie.zip -Force"`);
 
     // 4. Commit version bumps
     s.message('Committing version bump...');
@@ -174,7 +174,7 @@ async function main() {
     console.error(chalk.red(err.message));
   }
 
-  outro(chalk.green(`\nSlab Release process finished for v${nextVersion}!`));
+  outro(chalk.green(`\nZiptie Release process finished for v${nextVersion}!`));
 }
 
 main();

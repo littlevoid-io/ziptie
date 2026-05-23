@@ -1,6 +1,6 @@
 {
   "hooks": {
-    "after:bump": "npm run package && powershell -Command \"Compress-Archive -Path dist/slab.exe, scripts, slab.default.config.json, slab-schema.json, setup.bat -DestinationPath dist/slab.zip -Force\""
+    "after:bump": "npm run package && powershell -Command \"Compress-Archive -Path dist/ziptie.exe, scripts, ziptie.default.config.json, ziptie-schema.json, setup.bat -DestinationPath dist/ziptie.zip -Force\""
   },
   "git": {
     "requireBranch": "main",
@@ -11,9 +11,9 @@
   },
   "github": {
     "release": true,
-    "releaseName": "Slab Release v${version}",
+    "releaseName": "Ziptie Release v${version}",
     "draft": false,
-    "assets": ["dist/slab.zip"],
+    "assets": ["dist/ziptie.zip"],
     "changelog": "git log --pretty=format:\"* %s (%h)\" \"${from}...${to}\""
   },
   "npm": {

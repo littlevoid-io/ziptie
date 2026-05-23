@@ -7,7 +7,7 @@ import deepmerge from 'deepmerge';
 /**
  * Runs an interactive setup wizard if no user configuration is present.
  *
- * @param defaultConfigPath Path to the default slab configuration JSON file.
+ * @param defaultConfigPath Path to the default ziptie configuration JSON file.
  * @param userConfigPath Path to write the user-customized config to.
  */
 export async function runSetupWizard(defaultConfigPath: string, userConfigPath: string): Promise<any> {
@@ -26,11 +26,11 @@ export async function runSetupWizard(defaultConfigPath: string, userConfigPath: 
   );
 
   const action = await select({
-    message: 'How would you like to configure Slab?',
+    message: 'How would you like to configure Ziptie?',
     options: [
-      { value: 'defaults', label: 'Use defaults (quick start)', hint: 'Runs Slab with pre-configured stable settings' },
+      { value: 'defaults', label: 'Use defaults (quick start)', hint: 'Runs Ziptie with pre-configured stable settings' },
       { value: 'cli', label: 'Edit settings in the CLI', hint: 'Configure computer name, timezone, user, and startup task now' },
-      { value: 'file', label: 'Create a config file', hint: 'Creates slab.config.json and opens it in your default editor' }
+      { value: 'file', label: 'Create a config file', hint: 'Creates ziptie.config.json and opens it in your default editor' }
     ]
   });
 
@@ -49,7 +49,7 @@ export async function runSetupWizard(defaultConfigPath: string, userConfigPath: 
       outro(chalk.green(`Created configuration file at: ${userConfigPath}`));
       
       note(
-        'Opening config file in your default editor...\nPlease customize your settings and run Slab again.',
+        'Opening config file in your default editor...\nPlease customize your settings and run Ziptie again.',
         'File Created Successfully'
       );
       

@@ -27,14 +27,14 @@ $hasChoco = $null -ne (Get-Command "choco" -ErrorAction SilentlyContinue)
 # Attempt WinGet bootstrap if designated but missing
 if ($provider -eq "winget" -and $isOnline -and !$hasWinget) {
     Write-Warning "Winget is not installed. Bootstrapping Windows Package Manager..."
-    & "$PSScriptRoot/../utils/slab-install-winget.ps1" -DryRun:$DryRun
+    & "$PSScriptRoot/../utils/ziptie-install-winget.ps1" -DryRun:$DryRun
     $hasWinget = $null -ne (Get-Command "winget" -ErrorAction SilentlyContinue)
 }
 
 # Attempt Choco bootstrap if designated/fallback but missing
 if (($provider -eq "choco" -or ($provider -eq "winget" -and !$hasWinget)) -and $isOnline -and !$hasChoco) {
     Write-Warning "Chocolatey is not installed. Bootstrapping Chocolatey..."
-    & "$PSScriptRoot/../utils/slab-install-choco.ps1"
+    & "$PSScriptRoot/../utils/ziptie-install-choco.ps1"
     $hasChoco = $null -ne (Get-Command "choco" -ErrorAction SilentlyContinue)
 }
 
@@ -70,11 +70,11 @@ elseif (($provider -eq "choco" -or ($provider -eq "winget" -and !$hasWinget)) -a
 # 3. Offline installer Fallback
 elseif ($allowOffline) {
     Write-Host "Falling back to offline installers..." -ForegroundColor Yellow
-    & "$PSScriptRoot/../utils/slab-install-offline.ps1" -LocalPath $localPath -DryRun:$DryRun -RunRoot $PSScriptRoot/../../
+    & "$PSScriptRoot/../utils/ziptie-install-offline.ps1" -LocalPath $localPath -DryRun:$DryRun -RunRoot $PSScriptRoot/../../
 }
 else { Write-Host "Skipping package installations (provider is none, or system is offline with fallback disabled)." -ForegroundColor Gray }
 
 # 4. Post-install: NVM Configuration
 if (($apps -match "NVM") -and $isOnline) {
-    & "$PSScriptRoot/../utils/slab-configure-nvm.ps1" -DryRun:$DryRun
+    & "$PSScriptRoot/../utils/ziptie-configure-nvm.ps1" -DryRun:$DryRun
 }

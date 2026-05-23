@@ -10,7 +10,7 @@ $tweakEnabled = $Config.system.enableDailyReboot
 $shouldUndo = $Undo -or !$tweakEnabled
 
 $taskName = "Daily System Reboot"
-$taskPath = "\Slab\"
+$taskPath = "\Ziptie\"
 
 if ($shouldUndo) {
     if ($DryRun) {

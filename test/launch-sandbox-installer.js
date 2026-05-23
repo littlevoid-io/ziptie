@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 
 // Project root is one level up from "test"
 const projectRoot = path.resolve(__dirname, "..");
-const wsbPath = path.join(projectRoot, ".tmp", "slab-sandbox-installer.wsb");
+const wsbPath = path.join(projectRoot, ".tmp", "ziptie-sandbox-installer.wsb");
 
 // Ensure .tmp exists
 const tmpDir = path.join(projectRoot, ".tmp");
@@ -30,7 +30,7 @@ console.log(`\x1b[36m[Sandbox Config]\x1b[0m Targeting remote GitHub branch: \x1
 const wsbContent = `<Configuration>
   <Networking>Default</Networking>
   <LogonCommand>
-    <Command>powershell.exe -ExecutionPolicy Bypass -NoExit -Command "Start-Process powershell.exe -ArgumentList '-ExecutionPolicy Bypass -NoExit -Command \\\"irm https://raw.githubusercontent.com/littlevoid-io/slab/${branchName}/scripts/bootstrap.ps1 | iex\\\"' -Verb RunAs"</Command>
+    <Command>powershell.exe -ExecutionPolicy Bypass -NoExit -Command "Start-Process powershell.exe -ArgumentList '-ExecutionPolicy Bypass -NoExit -Command \\\"irm https://raw.githubusercontent.com/littlevoid-io/ziptie/${branchName}/scripts/bootstrap.ps1 | iex\\\"' -Verb RunAs"</Command>
   </LogonCommand>
 </Configuration>
 `;

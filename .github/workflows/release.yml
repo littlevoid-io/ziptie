@@ -1,4 +1,4 @@
-name: Automated Slab Release
+name: Automated Ziptie Release
 
 on:
   push:
@@ -31,7 +31,7 @@ jobs:
       - name: Package Release ZIP Archive
         shell: pwsh
         run: |
-          Compress-Archive -Path dist/slab.exe, scripts, slab.default.config.json, slab-schema.json, setup.bat -DestinationPath slab.zip -Force
+          Compress-Archive -Path dist/ziptie.exe, scripts, ziptie.default.config.json, ziptie-schema.json, setup.bat -DestinationPath ziptie.zip -Force
 
       - name: Publish Release via GitHub CLI
         env:
@@ -39,4 +39,4 @@ jobs:
         shell: pwsh
         run: |
           $version = node -p "require('./package.json').version"
-          gh release create "v$version" slab.zip --title "Slab Release v$version" --notes "Automated precompiled system foundation release." --clobber
+          gh release create "v$version" ziptie.zip --title "Ziptie Release v$version" --notes "Automated precompiled system foundation release." --clobber

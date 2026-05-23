@@ -9,7 +9,7 @@ Param(
 $tweakEnabled = $Config.lockdown.enableDarkMode
 $shouldUndo = $Undo -or !$tweakEnabled
 
-. "$PSScriptRoot/../utils/slab-init.ps1"
+. "$PSScriptRoot/../utils/ziptie-init.ps1"
 
 $personalizePath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
 

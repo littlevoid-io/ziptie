@@ -20,7 +20,7 @@ if ($bgConfig -eq $true) {
     $rgbColor = "$r $g $b"
 }
 
-. "$PSScriptRoot/../utils/slab-init.ps1"
+. "$PSScriptRoot/../utils/ziptie-init.ps1"
 
 $userWallpapersPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers"
 $userColorsPath = "HKCU:\Control Panel\Colors"
@@ -42,11 +42,11 @@ if ($shouldUndo) {
 
 if (!$DryRun) {
     try {
-        if (-not ("SlabWin32.Win32SystemParametersInfoBackground" -as [type])) {
+        if (-not ("ZiptieWin32.Win32SystemParametersInfoBackground" -as [type])) {
             $sig = '[DllImport("user32.dll", CharSet=CharSet.Auto)] public static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);'
-            Add-Type -MemberDefinition $sig -Name "Win32SystemParametersInfoBackground" -Namespace "SlabWin32" -ErrorAction SilentlyContinue | Out-Null
+            Add-Type -MemberDefinition $sig -Name "Win32SystemParametersInfoBackground" -Namespace "ZiptieWin32" -ErrorAction SilentlyContinue | Out-Null
         }
-        [SlabWin32.Win32SystemParametersInfoBackground]::SystemParametersInfo(0x0014, 0, "", 3) | Out-Null
+        [ZiptieWin32.Win32SystemParametersInfoBackground]::SystemParametersInfo(0x0014, 0, "", 3) | Out-Null
         Write-Host "Triggered active session desktop background refresh." -ForegroundColor Green
     } catch {
         Write-Warning "Could not refresh desktop background via Win32 API: $_"

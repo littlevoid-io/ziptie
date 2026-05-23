@@ -1,5 +1,5 @@
 {
-  "$schema": "./slab-schema.json",
+  "$schema": "./ziptie-schema.json",
   "system": {
     "computerName": "EXHIBIT-PC-01",
     "timezone": "auto",

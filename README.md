@@ -1,4 +1,4 @@
-# @littlevoid/slab
+# @littlevoid/ziptie
 
 A modern, zero-dependency, and offline-first Windows 11 system bootstrapping and kiosk lockdown framework. It configures and locks down Windows installations to run interactive museum exhibits, gallery installations, and unattended digital signage.
 
@@ -9,14 +9,14 @@ A modern, zero-dependency, and offline-first Windows 11 system bootstrapping and
 To bootstrap a new Windows 11 system completely from scratch with **zero dependencies pre-installed** (no Git or Node.js required), open **PowerShell as Administrator** and run:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/littlevoid-io/slab/main/scripts/bootstrap.ps1 | iex"
+powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/littlevoid-io/ziptie/main/scripts/bootstrap.ps1 | iex"
 ```
 
 This script will automatically:
 1. Check for and request administrative elevation.
-2. Download and provision the latest precompiled Slab release directly to your local working directory.
-3. Extract the release and execute the standalone `dist\slab.exe` binary.
-4. Launch the interactive Slab setup assistant to configure your PC.
+2. Download and provision the latest precompiled Ziptie release directly to your local working directory.
+3. Extract the release and execute the standalone `dist\ziptie.exe` binary.
+4. Launch the interactive Ziptie setup assistant to configure your PC.
 
 ---
 
@@ -34,7 +34,7 @@ npm run build
 ```
 
 ### 3. Configuration
-Customize settings in `slab.config.json` at the root of the repository. Open the file in VS Code to get auto-completion, schema validation, and description tooltips defined in `slab-schema.json`.
+Customize settings in `ziptie.config.json` at the root of the repository. Open the file in VS Code to get auto-completion, schema validation, and description tooltips defined in `ziptie-schema.json`.
 
 ### 4. Run Dry-Run (Safe Preview)
 To preview configuration changes without modifying the registry or system state:
@@ -59,14 +59,14 @@ To safely verify configurations without altering your host machine, launch an is
 ```bash
 npm run sandbox
 ```
-This command compiles the CLI, dynamically generates a .wsb mapping configuration at `.tmp/slab-sandbox.wsb` (gitignored), mounts the repository to `C:\slab` inside the guest environment, and runs `test/run-sandbox-tests.ps1` to validate the active configuration state.
+This command compiles the CLI, dynamically generates a .wsb mapping configuration at `.tmp/ziptie-sandbox.wsb` (gitignored), mounts the repository to `C:\ziptie` inside the guest environment, and runs `test/run-sandbox-tests.ps1` to validate the active configuration state.
 
 ### 8. Test the One-Line Bootstrap Installer in a Clean Sandbox
 To verify the one-line bootstrap installer completely from scratch inside an isolated, clean Windows Sandbox with **no local folders mounted** (simulating a pure client machine with internet access):
 ```bash
 npm run sandbox:installer
 ```
-This command dynamically generates a `.wsb` configuration at `.tmp/slab-sandbox-installer.wsb` (gitignored) and launches Windows Sandbox to execute the GitHub one-line command (`irm | iex`) in an elevated guest PowerShell window automatically at logon.
+This command dynamically generates a `.wsb` configuration at `.tmp/ziptie-sandbox-installer.wsb` (gitignored) and launches Windows Sandbox to execute the GitHub one-line command (`irm | iex`) in an elevated guest PowerShell window automatically at logon.
 
 
 ---
@@ -94,15 +94,15 @@ This command automatically:
 2. Prompts you to select the next version increment (e.g., `patch`, `minor`, `major`).
 3. Updates `package.json` and `package-lock.json` and creates a local Git commit and tag.
 4. Triggers the packaging hook:
-   - Compiles the standalone `dist/slab.exe` binary.
-   - Compresses all necessary dependencies (`dist/slab.exe`, `scripts/`, `slab.default.config.json`, `slab-schema.json`, and `setup.bat`) into a single `slab.zip` archive.
-5. Deploys the release to GitHub via the REST API and **attaches `slab.zip` as a release asset** automatically.
+   - Compiles the standalone `dist/ziptie.exe` binary.
+   - Compresses all necessary dependencies (`dist/ziptie.exe`, `scripts/`, `ziptie.default.config.json`, `ziptie-schema.json`, and `setup.bat`) into a single `ziptie.zip` archive.
+5. Deploys the release to GitHub via the REST API and **attaches `ziptie.zip` as a release asset** automatically.
 
 ---
 
 
 ## 🎯 What It Is For & What It Does
-Slab automates the installation, configuration, and lockdown adjustments needed for public, unattended interactives:
+Ziptie automates the installation, configuration, and lockdown adjustments needed for public, unattended interactives:
 * **System Customizations**: Sets the computer name, system timezone, power settings (High Performance, no screensaver/sleep), and schedules daily reboots.
 * **Autologon & Startup**: Configures automatic login for user accounts and schedules startup tasks to run at GUI session logon (`AtLogon`) to avoid Session 0 headless isolation issues.
 * **Offline Software Management**: Automatically uninstalls default Windows bloatware packages (defined in `bloatware-list.json`) and OneDrive. Installs local `.exe` or `.msi` application installers stored in the `./installers/` folder.
@@ -111,7 +111,7 @@ Slab automates the installation, configuration, and lockdown adjustments needed 
 ---
 
 ## ⚙️ How It Works
-1. **Config Engine**: The TypeScript CLI loads and validates `slab.config.json` against the schema. It recursively deep-merges user overrides with fallback defaults using the npm `deepmerge` library, writing a temporary JSON configuration block.
+1. **Config Engine**: The TypeScript CLI loads and validates `ziptie.config.json` against the schema. It recursively deep-merges user overrides with fallback defaults using the npm `deepmerge` library, writing a temporary JSON configuration block.
 2. **Hive Mount Orchestration**: The main orchestrator mounts the Windows Default User Registry Hive (`C:\Users\Default\NTUSER.DAT`) to `HKU:\DefaultUser` inside a robust `try/finally` block. This ensures that any standard or guest accounts created on the machine in the future automatically inherit the lockdown settings out of the box.
 3. **Granular Execution**: Executes standalone, convergent configuration scripts from `scripts/windows/`.
 4. **Architectural Guidelines**:

@@ -8,14 +8,14 @@ $targetPath = [System.IO.Path]::GetFullPath($targetPath)
 # Avoid downloading into protected system/Windows directories or system drive root
 $systemRoot = [Environment]::GetFolderPath([Environment+SpecialFolder]::Windows)
 if ($targetPath -like "$systemRoot*" -or $targetPath -eq "C:\") {
-    $targetPath = Join-Path $HOME "Downloads\slab"
+    $targetPath = Join-Path $HOME "Downloads\ziptie"
 }
 
 # 2. Elevate if not admin
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
-    Write-Host "Slab requires administrative privileges. Elevating..." -ForegroundColor Yellow
-    $argsList = "-ExecutionPolicy Bypass -NoProfile -Command `"& { [scriptblock]::Create((irm https://raw.githubusercontent.com/littlevoid-io/slab/main/scripts/bootstrap.ps1)).Invoke(@('$targetPath')) }`""
+    Write-Host "Ziptie requires administrative privileges. Elevating..." -ForegroundColor Yellow
+    $argsList = "-ExecutionPolicy Bypass -NoProfile -Command `"& { [scriptblock]::Create((irm https://raw.githubusercontent.com/littlevoid-io/ziptie/main/scripts/bootstrap.ps1)).Invoke(@('$targetPath')) }`""
     Start-Process powershell -ArgumentList $argsList -Verb RunAs
     exit
 }
@@ -24,9 +24,9 @@ if (-not $isAdmin) {
 New-Item -ItemType Directory -Path $targetPath -Force | Out-Null
 Set-Location -Path $targetPath
 
-Write-Host "Downloading precompiled Slab release to $targetPath..." -ForegroundColor Cyan
-$zipUrl = "https://github.com/littlevoid-io/slab/releases/latest/download/slab.zip"
-$zipFile = "$env:TEMP\slab-release.zip"
+Write-Host "Downloading precompiled Ziptie release to $targetPath..." -ForegroundColor Cyan
+$zipUrl = "https://github.com/littlevoid-io/ziptie/releases/latest/download/ziptie.zip"
+$zipFile = "$env:TEMP\ziptie-release.zip"
 
 if (Test-Path $zipFile) { Remove-Item $zipFile -Force }
 try {
@@ -40,13 +40,13 @@ Write-Host "Extracting release..." -ForegroundColor Cyan
 Expand-Archive -Path $zipFile -DestinationPath $targetPath -Force
 Remove-Item $zipFile -Force
 
-Write-Host "Launching Slab..." -ForegroundColor Green
-if (Test-Path "slab.exe") {
-    & ".\slab.exe"
-} elseif (Test-Path "dist\slab.exe") {
-    & "dist\slab.exe"
+Write-Host "Launching Ziptie..." -ForegroundColor Green
+if (Test-Path "ziptie.exe") {
+    & ".\ziptie.exe"
+} elseif (Test-Path "dist\ziptie.exe") {
+    & "dist\ziptie.exe"
 } elseif (Test-Path "setup.bat") {
     & ".\setup.bat"
 } else {
-    Write-Error "Could not locate slab.exe or setup.bat in the extracted files at $targetPath."
+    Write-Error "Could not locate ziptie.exe or setup.bat in the extracted files at $targetPath."
 }

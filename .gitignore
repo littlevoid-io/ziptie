@@ -3,6 +3,6 @@ node_modules/
 dist/
 .tmp/
 *.wsb
-slab.config.json
+ziptie.config.json
 *.zip
 .env

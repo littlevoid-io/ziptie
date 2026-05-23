@@ -1,5 +1,5 @@
 {
-  "name": "@littlevoid/slab",
+  "name": "@littlevoid/ziptie",
   "version": "1.0.9",
   "description": "A modern, quirky, zero-dependency, and air-gap friendly Windows 11 kiosk and exhibit bootstrapping utility.",
   "type": "module",
@@ -13,9 +13,9 @@
   "files": [
     "dist/**/*.js",
     "dist/**/*.d.ts",
-    "slab.config.json",
-    "slab.default.config.json",
-    "slab-schema.json",
+    "ziptie.config.json",
+    "ziptie.default.config.json",
+    "ziptie-schema.json",
     "scripts",
     "setup.bat"
   ],
@@ -23,7 +23,7 @@
   "license": "MIT",
   "scripts": {
     "build": "bun build ./src/index.ts --target=node --outfile=dist/index.js",
-    "package": "bun build --compile --target=node ./src/index.ts --outfile=dist/slab.exe",
+    "package": "bun build --compile --target=node ./src/index.ts --outfile=dist/ziptie.exe",
     "sandbox": "npm run package && node test/launch-sandbox.js",
     "sandbox:installer": "node test/launch-sandbox-installer.js",
     "release": "node scripts/release.js"

@@ -9,7 +9,7 @@ Param(
 $tweakEnabled = $Config.autologon.enabled
 $shouldUndo = $Undo -or !$tweakEnabled
 
-. "$PSScriptRoot/../utils/slab-init.ps1"
+. "$PSScriptRoot/../utils/ziptie-init.ps1"
 
 $winlogonPath = "HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Winlogon"
 $passwordlessPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\PasswordLess\Device"
@@ -26,7 +26,7 @@ if ($shouldUndo) {
 } else {
     $username = $Config.autologon.username
     # Securely retrieve the password from environment if available, otherwise default to blank
-    $password = $env:SLAB_AUTOLOGON_PASSWORD
+    $password = $env:ZIPTIE_AUTOLOGON_PASSWORD
     if (!$password) { $password = "" }
     
     Write-Host "Enabling automatic logon for user '$username'..." -ForegroundColor Cyan

@@ -3,15 +3,15 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::InputEncoding = [System.Text.Encoding]::UTF8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
-$slabRoot = Resolve-Path "$PSScriptRoot/.."
+$ziptieRoot = Resolve-Path "$PSScriptRoot/.."
 
 Clear-Host
 Write-Host "==========================================================" -ForegroundColor Green
-Write-Host "         SLAB AUTOMATED SANDBOX INTEGRATION TESTS          " -ForegroundColor Green
+Write-Host "        ZIPTIE AUTOMATED SANDBOX INTEGRATION TESTS         " -ForegroundColor Green
 Write-Host "==========================================================" -ForegroundColor Green
-Write-Host "`nExecuting Slab in active modification mode..." -ForegroundColor Cyan
-& "$slabRoot\dist\slab.exe" -c "$slabRoot\slab.default.config.json" -y
-Write-Host "Slab execution finished. Verifying system state..." -ForegroundColor Cyan
+Write-Host "`nExecuting Ziptie in active modification mode..." -ForegroundColor Cyan
+& "$ziptieRoot\dist\ziptie.exe" -c "$ziptieRoot\ziptie.default.config.json" -y
+Write-Host "Ziptie execution finished. Verifying system state..." -ForegroundColor Cyan
 
 $success = $true
 function Assert-Registry {
@@ -34,7 +34,7 @@ function Assert-ScheduledTask {
     } else { Write-Host " FAILED (Not Found)" -ForegroundColor Red; $global:success = $false }
 }
 
-$config = Get-Content -Raw -Path "$slabRoot\slab.default.config.json" | ConvertFrom-Json
+$config = Get-Content -Raw -Path "$ziptieRoot\ziptie.default.config.json" | ConvertFrom-Json
 Write-Host "`n--- SYSTEM STATE VERIFICATIONS ---" -ForegroundColor Yellow
 
 if ($config.lockdown.disableWindowsWidgets) {
@@ -62,7 +62,7 @@ if ($config.lockdown.configureExplorer) {
 if ($config.lockdown.clearDesktopIcons) {
     Assert-Registry -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideIcons" -ExpectedValue 1
 }
-if ($config.startupTask.enabled) { Assert-ScheduledTask -TaskName "Launch Exhibit" -TaskPath "\Slab\" }
+if ($config.startupTask.enabled) { Assert-ScheduledTask -TaskName "Launch Exhibit" -TaskPath "\Ziptie\" }
 if ($config.system.timezone -eq "auto") {
     Assert-Registry -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location" -Name "Value" -ExpectedValue "Allow"
 }

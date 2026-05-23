@@ -29,7 +29,7 @@ const autoConfirm = hasFlag('--yes', '-y');
 
 async function main() {
   if (process.platform !== 'win32') {
-    console.error(chalk.red('Error: Slab currently only supports Windows.'));
+    console.error(chalk.red('Error: Ziptie currently only supports Windows.'));
     process.exit(1);
   }
 
@@ -37,17 +37,17 @@ async function main() {
   ensureElevated(dryRun);
 
   intro(chalk.bold.cyan('----------------------------'));
-  intro(chalk.bold.cyan(' 🧱 SLAB SYSTEM LOCKDOWN 🧱'));
+  intro(chalk.bold.cyan(' 🧱 ZIPTIE SYSTEM LOCKDOWN 🧱'));
   intro(chalk.bold.cyan('----------------------------'));
 
   // Check if no user config exists and we are run interactively
   const expectedConfigPath = customConfigPath
     ? path.resolve(customConfigPath)
-    : path.resolve(process.cwd(), 'slab.config.json');
+    : path.resolve(process.cwd(), 'ziptie.config.json');
 
   if (!fs.existsSync(expectedConfigPath) && !customConfigPath && !autoConfirm) {
     const rootDir = resolveProjectRoot();
-    const defaultConfigPath = path.join(rootDir, 'slab.default.config.json');
+    const defaultConfigPath = path.join(rootDir, 'ziptie.default.config.json');
     await runSetupWizard(defaultConfigPath, expectedConfigPath);
   }
 
@@ -79,7 +79,7 @@ async function main() {
       title: 'Environment Verification',
       task: () => {
         if (process.platform !== 'win32') {
-          throw new Error('Slab only supports Windows.');
+          throw new Error('Ziptie only supports Windows.');
         }
       }
     },
@@ -117,7 +117,7 @@ async function main() {
       skip: () => dryRun,
       task: async () => {
         await runPowerShellScript(
-          path.join(utilsDir, 'slab-mount-hive.ps1'),
+          path.join(utilsDir, 'ziptie-mount-hive.ps1'),
           resolvedConfigPath,
           undo,
           dryRun,
@@ -143,7 +143,7 @@ async function main() {
       skip: () => dryRun || !hiveMounted,
       task: async () => {
         await runPowerShellScript(
-          path.join(utilsDir, 'slab-unmount-hive.ps1'),
+          path.join(utilsDir, 'ziptie-unmount-hive.ps1'),
           resolvedConfigPath,
           undo,
           dryRun,
@@ -167,7 +167,7 @@ async function main() {
 
   try {
     await tasks.run();
-    outro(chalk.bold.green(' ✅ Slab lockdown done! '));
+    outro(chalk.bold.green(' ✅ Ziptie lockdown done! '));
 
     if (!dryRun && !autoConfirm) {
       console.log('');
@@ -187,12 +187,12 @@ async function main() {
     // Attempt rescue unmounting in case of failure
     if (hiveMounted && !dryRun) {
       try {
-        execSync(`powershell -Command "& '${path.join(utilsDir, 'slab-unmount-hive.ps1')}' -MountName 'HKU\\DefaultUser'"`, { stdio: 'ignore', windowsHide: true });
+        execSync(`powershell -Command "& '${path.join(utilsDir, 'ziptie-unmount-hive.ps1')}' -MountName 'HKU\\DefaultUser'"`, { stdio: 'ignore', windowsHide: true });
       } catch {
         // Suppress secondary failures
       }
     }
-    outro(chalk.bold.red(` ❌ Slab execution encountered errors: ${err.message}`));
+    outro(chalk.bold.red(` ❌ Ziptie execution encountered errors: ${err.message}`));
     process.exit(1);
   }
 }

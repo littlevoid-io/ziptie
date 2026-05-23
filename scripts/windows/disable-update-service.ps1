@@ -4,7 +4,7 @@ Param(
     [Switch]$DryRun, [Switch]$Undo
 )
 
-. "$PSScriptRoot/../utils/slab-init.ps1"
+. "$PSScriptRoot/../utils/ziptie-init.ps1"
 
 $tweakEnabled = $Config.lockdown.disableWindowsUpdate
 $shouldUndo = $Undo -or !$tweakEnabled
@@ -16,8 +16,8 @@ $uxSettings = "HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings"
 if ($shouldUndo) {
     Write-Host "Restoring Windows Update services and settings..." -ForegroundColor Cyan
     
-    & "$PSScriptRoot/../utils/slab-set-service.ps1" -ServiceName "wuauserv" -StartupType "Automatic" -State "Running" -DryRun:$DryRun
-    & "$PSScriptRoot/../utils/slab-set-service.ps1" -ServiceName "UsoSvc" -StartupType "Automatic" -State "Running" -DryRun:$DryRun
+    & "$PSScriptRoot/../utils/ziptie-set-service.ps1" -ServiceName "wuauserv" -StartupType "Automatic" -State "Running" -DryRun:$DryRun
+    & "$PSScriptRoot/../utils/ziptie-set-service.ps1" -ServiceName "UsoSvc" -StartupType "Automatic" -State "Running" -DryRun:$DryRun
     &$registryTweak -Path "HKLM:\SYSTEM\CurrentControlSet\Services\WaaSMedicSvc" -Name "Start" -Value 3 -Type "DWord" # Manual
     
     &$registryTweak -Path $policyAU -Name "NoAutoUpdate" -Remove
@@ -32,8 +32,8 @@ if ($shouldUndo) {
 } else {
     Write-Host "Applying Windows Update pause GPO locks and service stops..." -ForegroundColor Cyan
     
-    & "$PSScriptRoot/../utils/slab-set-service.ps1" -ServiceName "wuauserv" -StartupType "Disabled" -State "Stopped" -DryRun:$DryRun
-    & "$PSScriptRoot/../utils/slab-set-service.ps1" -ServiceName "UsoSvc" -StartupType "Disabled" -State "Stopped" -DryRun:$DryRun
+    & "$PSScriptRoot/../utils/ziptie-set-service.ps1" -ServiceName "wuauserv" -StartupType "Disabled" -State "Stopped" -DryRun:$DryRun
+    & "$PSScriptRoot/../utils/ziptie-set-service.ps1" -ServiceName "UsoSvc" -StartupType "Disabled" -State "Stopped" -DryRun:$DryRun
     
     &$registryTweak -Path "HKLM:\SYSTEM\CurrentControlSet\Services\WaaSMedicSvc" -Name "Start" -Value 4 -Type "DWord"
     

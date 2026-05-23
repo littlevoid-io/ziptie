@@ -26,17 +26,17 @@ export function resolveProjectRoot(): string {
   // Determine starting projectRoot (dist/ is nested in the root, so resolve parent)
   let projectRoot = path.resolve(currentFileDir, '..');
 
-  // If slab.default.config.json isn't found, check relative to compiled standalone binary location
-  if (!fs.existsSync(path.join(projectRoot, 'slab.default.config.json'))) {
+  // If ziptie.default.config.json isn't found, check relative to compiled standalone binary location
+  if (!fs.existsSync(path.join(projectRoot, 'ziptie.default.config.json'))) {
     const exeDir = path.dirname(process.execPath);
     projectRoot = path.resolve(exeDir, '..');
-    if (!fs.existsSync(path.join(projectRoot, 'slab.default.config.json'))) {
+    if (!fs.existsSync(path.join(projectRoot, 'ziptie.default.config.json'))) {
       projectRoot = exeDir;
     }
   }
 
   // Fallback to CWD if still not found
-  if (!fs.existsSync(path.join(projectRoot, 'slab.default.config.json'))) {
+  if (!fs.existsSync(path.join(projectRoot, 'ziptie.default.config.json'))) {
     projectRoot = process.cwd();
   }
 
@@ -52,7 +52,7 @@ export function resolveProjectRoot(): string {
 export function loadAndMergeConfig(customConfigPath: string | null): ConfigContext {
   const projectRoot = resolveProjectRoot();
 
-  const defaultConfigPath = path.join(projectRoot, 'slab.default.config.json');
+  const defaultConfigPath = path.join(projectRoot, 'ziptie.default.config.json');
   if (!fs.existsSync(defaultConfigPath)) {
     console.error(chalk.red(`Error: Missing default configuration at ${defaultConfigPath}`));
     process.exit(1);
@@ -70,7 +70,7 @@ export function loadAndMergeConfig(customConfigPath: string | null): ConfigConte
   // Resolve user config path
   const configFilePath = customConfigPath
     ? path.resolve(customConfigPath)
-    : path.resolve(process.cwd(), 'slab.config.json');
+    : path.resolve(process.cwd(), 'ziptie.config.json');
 
   let userConfig: any = {};
   if (fs.existsSync(configFilePath)) {
@@ -92,7 +92,7 @@ export function loadAndMergeConfig(customConfigPath: string | null): ConfigConte
   }
 
   // Write temporary config file
-  const resolvedConfigPath = path.join(tmpDir, 'slab-temp-config.json');
+  const resolvedConfigPath = path.join(tmpDir, 'ziptie-temp-config.json');
   fs.writeFileSync(resolvedConfigPath, JSON.stringify(mergedConfig, null, 2), 'utf8');
 
   return {

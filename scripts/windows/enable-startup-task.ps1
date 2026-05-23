@@ -10,7 +10,7 @@ $tweakEnabled = $Config.startupTask.enabled
 $shouldUndo = $Undo -or !$tweakEnabled
 
 $taskName = "Launch Exhibit"
-$taskPath = "\Slab\"
+$taskPath = "\Ziptie\"
 
 if ($shouldUndo) {
     if ($DryRun) {

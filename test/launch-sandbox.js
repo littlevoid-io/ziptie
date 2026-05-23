@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 
 // Project root is one level up from "test"
 const projectRoot = path.resolve(__dirname, "..");
-const wsbPath = path.join(projectRoot, ".tmp", "slab-sandbox.wsb");
+const wsbPath = path.join(projectRoot, ".tmp", "ziptie-sandbox.wsb");
 
 // Ensure .tmp exists
 const tmpDir = path.join(projectRoot, ".tmp");
@@ -21,12 +21,12 @@ const wsbContent = `<Configuration>
   <MappedFolders>
     <MappedFolder>
       <HostFolder>${projectRoot}</HostFolder>
-      <SandboxFolder>C:\\slab</SandboxFolder>
+      <SandboxFolder>C:\\ziptie</SandboxFolder>
       <ReadOnly>false</ReadOnly>
     </MappedFolder>
   </MappedFolders>
   <LogonCommand>
-    <Command>powershell.exe -ExecutionPolicy Bypass -NoExit -Command "Start-Process powershell.exe -ArgumentList '-ExecutionPolicy Bypass -NoExit -File C:\\slab\\test\\run-sandbox-tests.ps1' -WorkingDirectory C:\\slab -Verb RunAs"</Command>
+    <Command>powershell.exe -ExecutionPolicy Bypass -NoExit -Command "Start-Process powershell.exe -ArgumentList '-ExecutionPolicy Bypass -NoExit -File C:\\ziptie\\test\\run-sandbox-tests.ps1' -WorkingDirectory C:\\ziptie -Verb RunAs"</Command>
   </LogonCommand>
 </Configuration>
 `;

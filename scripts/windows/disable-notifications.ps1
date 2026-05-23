@@ -4,7 +4,7 @@ Param(
     [Switch]$DryRun, [Switch]$Undo
 )
 
-. "$PSScriptRoot/../utils/slab-init.ps1"
+. "$PSScriptRoot/../utils/ziptie-init.ps1"
 
 $tweakEnabled = $Config.lockdown.disableNotifications
 $shouldUndo = $Undo -or !$tweakEnabled

@@ -1,9 +1,9 @@
 @echo off
 cd /D "%~dp0"
-if exist "slab.exe" (
-    "slab.exe" %*
-) else if exist "dist\slab.exe" (
-    "dist\slab.exe" %*
+if exist "ziptie.exe" (
+    "ziptie.exe" %*
+) else if exist "dist\ziptie.exe" (
+    "dist\ziptie.exe" %*
 ) else (
     node dist/index.js %*
 )
