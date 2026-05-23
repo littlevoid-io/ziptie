@@ -1,4 +1,5 @@
 import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { execSync } from 'node:child_process';
 import { select, text, outro, note, isCancel } from '@clack/prompts';
 import chalk from 'chalk';
@@ -11,6 +12,16 @@ import deepmerge from 'deepmerge';
  * @param userConfigPath Path to write the user-customized config to.
  */
 export async function runSetupWizard(defaultConfigPath: string, userConfigPath: string): Promise<any> {
+  // Ensure the parent directory of userConfigPath exists
+  try {
+    const parentDir = path.dirname(userConfigPath);
+    if (parentDir && !fs.existsSync(parentDir)) {
+      fs.mkdirSync(parentDir, { recursive: true });
+    }
+  } catch {
+    // Fail silently, error will be handled during copyFileSync/writeFileSync
+  }
+
   // Load defaults
   let defaultConfig: any = {};
   try {
