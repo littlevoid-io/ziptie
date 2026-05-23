@@ -34,26 +34,25 @@ foreach ($hive in $hivePaths) {
     if (Test-Path $appsPath) {
         $events = Get-ChildItem -Path $appsPath -Recurse | Where-Object { $_.PSChildName -eq ".Current" }
         foreach ($event in $events) {
-            # $event.Name contains relative path from Schemes (e.g. "Apps\.Default\SystemAsterisk\.Current")
-            $fullCurrentPath = "$schemesPath\$($event.Name)"
-            $fullDefaultPath = $fullCurrentPath -replace "\.Current$", ".Default"
+            $currentPath = $event.PSPath
+            $defaultPath = $currentPath -replace "\.Current$", ".Default"
 
             if ($shouldUndo) {
                 # Restore to the default value defined in the .Default sibling key
-                $defaultValue = (Get-Item -Path $fullDefaultPath -ErrorAction SilentlyContinue).GetValue("")
+                $defaultValue = (Get-Item -Path $defaultPath -ErrorAction SilentlyContinue).GetValue("")
                 if ($defaultValue -eq $null) { $defaultValue = "" }
 
                 if ($DryRun) {
-                    Write-Host "[DRY-RUN] Set-ItemProperty -Path '$fullCurrentPath' -Name '(Default)' -Value '$defaultValue'" -ForegroundColor Yellow
+                    Write-Host "[DRY-RUN] Set-ItemProperty -Path '$currentPath' -Name '(Default)' -Value '$defaultValue'" -ForegroundColor Yellow
                 } else {
-                    Set-ItemProperty -Path $fullCurrentPath -Name "(Default)" -Value $defaultValue -Force -ErrorAction SilentlyContinue
+                    Set-ItemProperty -Path $currentPath -Name "(Default)" -Value $defaultValue -Force -ErrorAction SilentlyContinue
                 }
             } else {
                 # Mute by setting the active sound file value to empty
                 if ($DryRun) {
-                    Write-Host "[DRY-RUN] Set-ItemProperty -Path '$fullCurrentPath' -Name '(Default)' -Value ''" -ForegroundColor Yellow
+                    Write-Host "[DRY-RUN] Set-ItemProperty -Path '$currentPath' -Name '(Default)' -Value ''" -ForegroundColor Yellow
                 } else {
-                    Set-ItemProperty -Path $fullCurrentPath -Name "(Default)" -Value "" -Force -ErrorAction SilentlyContinue
+                    Set-ItemProperty -Path $currentPath -Name "(Default)" -Value "" -Force -ErrorAction SilentlyContinue
                 }
             }
         }
