@@ -8,9 +8,10 @@ $ErrorActionPreference = "Stop"
 $targetPath = if ($InstallDir) { $InstallDir } else { $PWD.Path }
 $targetPath = [System.IO.Path]::GetFullPath($targetPath)
 
-# Avoid downloading into protected system/Windows directories or system drive root
+# Avoid downloading into protected system/Windows directories, system drive root, or active developer workspaces
 $systemRoot = [Environment]::GetFolderPath([Environment+SpecialFolder]::Windows)
-if ($targetPath -like "$systemRoot*" -or $targetPath -eq "C:\") {
+$isDevWorkspace = (Test-Path (Join-Path $targetPath "package.json")) -and (Test-Path (Join-Path $targetPath "tsconfig.json"))
+if ($targetPath -like "$systemRoot*" -or $targetPath -eq "C:\" -or $isDevWorkspace) {
     $targetPath = Join-Path $HOME "Downloads\ziptie"
 }
 
