@@ -2,13 +2,13 @@
 if (-not (Get-Command choco -ErrorAction SilentlyContinue)) { function choco { } }
 if (-not (Get-Command winget -ErrorAction SilentlyContinue)) { function winget { } }
 
-# Pre-define dummy scheduled task functions to bypass real cmdlets and their strict parameter type constraints
-function Register-ScheduledTask { param($TaskName, $TaskPath, $Action, $Trigger, $Settings, [switch]$Force) }
-function Unregister-ScheduledTask { param($TaskName, $TaskPath, [switch]$Confirm) }
-function Get-ScheduledTask { param($TaskName, $TaskPath) }
-function New-ScheduledTaskAction { param($Execute, $Argument, $WorkingDirectory) }
-function New-ScheduledTaskTrigger { param([switch]$AtLogon, [switch]$AtStartup, [switch]$Daily, $At) }
-function New-ScheduledTaskSettingsSet { param([switch]$AllowStartIfOnBatteries, [switch]$DontStopIfGoingOnBatteries) }
+# Pre-define dummy scheduled task functions in global scope to bypass real cmdlets and their strict parameter type constraints
+function global:Register-ScheduledTask { param($TaskName, $TaskPath, $Action, $Trigger, $Settings, [switch]$Force) }
+function global:Unregister-ScheduledTask { param($TaskName, $TaskPath, [switch]$Confirm) }
+function global:Get-ScheduledTask { param($TaskName, $TaskPath) }
+function global:New-ScheduledTaskAction { param($Execute, $Argument, $WorkingDirectory) }
+function global:New-ScheduledTaskTrigger { param([switch]$AtLogon, [switch]$AtStartup, [switch]$Daily, $At) }
+function global:New-ScheduledTaskSettingsSet { param([switch]$AllowStartIfOnBatteries, [switch]$DontStopIfGoingOnBatteries) }
 
 # Pure in-memory system mocks to prevent host environment pollution
 Mock Test-Path { return $false } -ParameterFilter { $Path -like "*DefaultUser*" }
