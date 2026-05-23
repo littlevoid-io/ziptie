@@ -12,6 +12,8 @@ jobs:
   release:
     name: Compile and Publish Standalone Release
     runs-on: windows-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Checkout Repository
