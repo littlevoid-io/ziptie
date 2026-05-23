@@ -114,7 +114,7 @@ Below is the conceptual blueprint for the `ziptie` configuration and execution m
 
 Following strict architectural oversight, the framework has been successfully refactored and finalized under the following parameters:
 
-### 🧩 Structural Mods & Modular Pipeline Units
+### Structural Modifications & Modular Pipeline
 - **Modular TypeScript CLI Architecture**: Decoupled `src/index.ts` into a clean orchestrator alongside highly cohesive sub-modules under `src/utils/` (`config.ts`, `elevation.ts`, `powershell.ts`) and a separate task registry `src/tasks.ts`, ensuring the CLI is fully scalable and easy to maintain.
 - **Robust Schema Blending via `deepmerge`**: Standardized recursive configuration loading and deep merging using the popular npm `deepmerge` library, completely replacing custom spread operators and ensuring automated future schema scalability.
 - **100-Line Absolute Code Cap**: To prevent monolithic sprawl and ensure maintainability, every single PowerShell file (including utilities and individual lockdown scripts) is strictly capped at under **100 lines of code**.
@@ -122,12 +122,12 @@ Following strict architectural oversight, the framework has been successfully re
 - **Convergent Pipeline Execution**: The orchestrator runs all lockdown scripts unconditionally. Tweak scripts read configuration parameters and execute native DryRun or Undo sequences locally. This guarantees that toggling a configuration setting to `false` and re-running Ziptie automatically reverts the tweak on the next run, maintaining state synchronization.
 - **Decoupled Data Configurations**: Volatile structures like UWP package lists have been extracted from logic script bodies into declarative assets like `bloatware-list.json`.
 
-### 🧪 Dynamic Sandbox Test Execution Loop
+### Sandbox Test Loop
 - **Gitignored absolute-path WSB Configs**: Dynamic Sandbox XML mapping is generated on the fly inside `.tmp/ziptie-sandbox.wsb` (which is safely gitignored), mapping the current host directory to `C:\ziptie` in isolation.
 - **Single-command Launch Loop**: Executing `npm run sandbox` automatically compiles the TS CLI, generates the WSB file, and opens an isolated Windows Sandbox environment.
 - **Automated Validation Assertions**: The Sandbox runs `test/run-sandbox-tests.ps1` inside the elevated guest context. It executes Ziptie in active mode, runs automated registry/scheduled task assertions, and pauses to allow developers to perform physical spot-checks. This guarantees 100% safety with zero host configuration drift.
 
-### 🛡️ Core Windows 11 Compatibility Insights & Sandbox Hardening
+### Windows 11 Compatibility & Sandbox Hardening
 - **User Choice Protection Driver (UCPD) Resiliency**: Discovered that modern Windows 11 cumulative updates protect per-user registry values like `TaskbarDa` under `HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced` via the kernel-mode UCPD driver. Standardized absolute `Registry::HKEY_CURRENT_USER\` naming to bypass session drive scoping bugs and wrapped registry helper writes in `try/catch` blocks. Access errors are logged as warnings instead of halting execution, keeping the Ziptie pipeline robust.
 - **PowerShell 5.1 Sandbox Compatibility**: Enforced strict PowerShell 5.1 backward compatibility for test and execution scripts run inside the guest Windows Sandbox environment (e.g., avoiding PowerShell 7+ syntax like ternary operators `$($a ? $b : $c)` in favor of standard `if/else` checks).
 - **Scheduled Task Argument Validation**: Discovered that `New-ScheduledTaskAction` fails when passed an empty string to `-Argument`. Addressed this by conditionally supplying the parameter only when arguments are non-empty.
