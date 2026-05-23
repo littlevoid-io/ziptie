@@ -59,6 +59,14 @@ export function loadAndMergeConfig(
           return Array.isArray(source) ? [...source] : source;
         };
       }
+      if (key === 'apps') {
+        return (target, source) => {
+          if (Array.isArray(source)) {
+            return Array.from(new Set(source)).sort((a, b) => String(a).localeCompare(String(b)));
+          }
+          return source;
+        };
+      }
       return undefined;
     }
   };

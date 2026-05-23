@@ -46,7 +46,8 @@ describe('Config Utility', () => {
     // Call loadAndMergeConfig with custom CLI overrides
     const { config } = loadAndMergeConfig(null, {
       system: { timezone: 'Tokyo Standard Time' },
-      lockdown: { disableScreensaver: false }
+      lockdown: { disableScreensaver: false },
+      packageManager: { apps: ['App4'] }
     });
 
     // Asserts:
@@ -57,8 +58,8 @@ describe('Config Utility', () => {
     // 3. CLI overrides merged over user config and defaults
     expect(config.system.timezone).toBe('Tokyo Standard Time');
     expect(config.lockdown.disableScreensaver).toBe(false);
-    // 4. Arrays are combined uniquely and sorted alphabetically
-    expect(config.packageManager.apps).toEqual(['App1', 'App2', 'App3']);
+    // 4. Apps array is overwritten instead of merged (user config and then CLI override)
+    expect(config.packageManager.apps).toEqual(['App4']);
 
     // Assert that temporary config was written
     expect(fsWriteSpy).toHaveBeenCalled();
@@ -127,6 +128,38 @@ describe('Config Utility', () => {
 
     // Asserts: exact order and content is preserved
     expect(config.startupTask.args).toEqual(['run', 'dev:drawing-room']);
+  });
+
+  test('loadAndMergeConfig overwrites and sorts packageManager.apps array instead of merging/uniting it', () => {
+    const fsExistsSpy = spyOn(fs, 'existsSync').mockImplementation((p: any) => {
+      const target = String(p);
+      if (target.endsWith('ziptie.default.config.json')) return true;
+      if (target.endsWith('ziptie.config.json')) return true;
+      return false;
+    });
+
+    const fsReadSpy = spyOn(fs, 'readFileSync').mockImplementation((p: any) => {
+      const target = String(p);
+      if (target.endsWith('ziptie.default.config.json')) {
+        return JSON.stringify({
+          packageManager: { apps: ['App1', 'App2'] }
+        });
+      }
+      if (target.endsWith('ziptie.config.json')) {
+        return JSON.stringify({
+          packageManager: { apps: ['App3', 'App1'] }
+        });
+      }
+      return '';
+    });
+
+    const fsWriteSpy = spyOn(fs, 'writeFileSync').mockImplementation(() => {});
+    const fsMkdirSpy = spyOn(fs, 'mkdirSync').mockImplementation(() => undefined);
+
+    const { config } = loadAndMergeConfig(null, {});
+
+    // Asserts: Apps from user config completely overwrite defaults, sorted and uniqued
+    expect(config.packageManager.apps).toEqual(['App1', 'App3']);
   });
 
   test('printConfig is order-dependent for startupTask.args', () => {
