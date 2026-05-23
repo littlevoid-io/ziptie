@@ -18,6 +18,13 @@ This script will:
 3. Execute the standalone `dist\ziptie.exe` binary.
 4. Launch the setup assistant to configure the system.
 
+### Passing CLI Arguments to the Cloud Installer
+You can execute the cloud installer with automated confirmation flags, safe dry-runs, or custom configuration overrides by running it as a script block and passing the `-ExtraArgs` parameter:
+
+```powershell
+powershell -ExecutionPolicy Bypass -Command "& { [scriptblock]::Create((irm https://raw.githubusercontent.com/littlevoid-io/ziptie/main/scripts/bootstrap.ps1)) } -ExtraArgs '-y -d --timezone \"Tokyo Standard Time\" --disableScreensaver false'"
+```
+
 ---
 
 ## Quick Start
