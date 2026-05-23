@@ -1,7 +1,7 @@
 import { describe, test, expect, spyOn, mock, afterEach } from 'bun:test';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { loadAndMergeConfig, resolveProjectRoot } from '../../src/utils/config.js';
+import { loadAndMergeConfig, resolveProjectRoot, printConfig, handleAutoConfirmTimeout } from '../../src/utils/config.js';
 
 describe('Config Utility', () => {
   afterEach(() => {
@@ -59,4 +59,56 @@ describe('Config Utility', () => {
     // Assert that temporary config was written
     expect(fsWriteSpy).toHaveBeenCalled();
   });
+
+  test('printConfig prints configuration to console', () => {
+    const consoleSpy = spyOn(console, 'log').mockImplementation(() => {});
+    const sampleConfig = {
+      system: { computerName: 'TEST-PC' },
+      lockdown: { disableScreensaver: true }
+    };
+
+    printConfig(sampleConfig);
+
+    expect(consoleSpy).toHaveBeenCalled();
+    const calls = consoleSpy.mock.calls.map(call => call.join(' '));
+    expect(calls.some(c => c.includes('TEST-PC'))).toBe(true);
+    expect(calls.some(c => c.includes('disableScreensaver'))).toBe(true);
+
+    consoleSpy.mockRestore();
+  });
+
+  test('handleAutoConfirmTimeout runs countdown and resolves', async () => {
+    let callback: (() => void) | null = null;
+    
+    // Mock setInterval to capture the callback
+    const setIntervalSpy = spyOn(global, 'setInterval').mockImplementation((cb: any, ms) => {
+      callback = cb;
+      return 123 as any;
+    });
+    
+    const clearIntervalSpy = spyOn(global, 'clearInterval').mockImplementation(() => {});
+    const writeSpy = spyOn(process.stdout, 'write').mockImplementation(() => true);
+
+    const promise = handleAutoConfirmTimeout(3);
+
+    // Initial print has happened
+    expect(writeSpy).toHaveBeenCalled();
+    expect(callback).not.toBeNull();
+
+    // Trigger the interval callback manually to simulate ticks
+    if (callback) {
+      (callback as () => void)(); // Tick 1 (remaining = 2)
+      (callback as () => void)(); // Tick 2 (remaining = 1)
+      (callback as () => void)(); // Tick 3 (remaining = 0, clears and resolves)
+    }
+
+    await promise;
+
+    expect(clearIntervalSpy).toHaveBeenCalledWith(123 as any);
+    
+    setIntervalSpy.mockRestore();
+    clearIntervalSpy.mockRestore();
+    writeSpy.mockRestore();
+  });
 });
+
