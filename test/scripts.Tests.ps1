@@ -22,22 +22,18 @@ $script:defaultConfigPath = (Resolve-Path $configPath).Path
 
 Describe "Ziptie Lockdown Script Verification" {
     BeforeAll {
-        # Initialize paths in BeforeAll to ensure Pester 5 compatibility
-        if ($null -eq $script:defaultConfigPath) {
-            $configPath = "$PSScriptRoot/../ziptie.default.config.json"
-            if (!(Test-Path $configPath)) { $configPath = "./ziptie.default.config.json" }
-            $script:defaultConfigPath = (Resolve-Path $configPath).Path
-        }
-        if ($null -eq $script:utilsDir) {
-            $utilsPath = "$PSScriptRoot/../scripts/utils"
-            if (!(Test-Path $utilsPath)) { $utilsPath = "./scripts/utils" }
-            $script:utilsDir = (Resolve-Path $utilsPath).Path
-        }
-        if ($null -eq $script:scriptsDir) {
-            $scriptsPath = "$PSScriptRoot/../scripts/windows"
-            if (!(Test-Path $scriptsPath)) { $scriptsPath = "./scripts/windows" }
-            $script:scriptsDir = (Resolve-Path $scriptsPath).Path
-        }
+        # Initialize paths in BeforeAll unconditionally to ensure Pester 5 compatibility
+        $configPath = "$PSScriptRoot/../ziptie.default.config.json"
+        if (!(Test-Path $configPath)) { $configPath = "./ziptie.default.config.json" }
+        $script:defaultConfigPath = (Resolve-Path $configPath).Path
+
+        $utilsPath = "$PSScriptRoot/../scripts/utils"
+        if (!(Test-Path $utilsPath)) { $utilsPath = "./scripts/utils" }
+        $script:utilsDir = (Resolve-Path $utilsPath).Path
+
+        $scriptsPath = "$PSScriptRoot/../scripts/windows"
+        if (!(Test-Path $scriptsPath)) { $scriptsPath = "./scripts/windows" }
+        $script:scriptsDir = (Resolve-Path $scriptsPath).Path
 
         if (!(Test-Path $script:defaultConfigPath)) {
             throw "Error: Production config not found at $script:defaultConfigPath"

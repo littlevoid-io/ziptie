@@ -10,8 +10,10 @@ Describe "Ziptie Canary Mock Verification" {
     }
 
     Context "Canary Mock Execution" {
-        Mock New-Item {
-            Write-Host "[MOCK] Intercepted New-Item call safely in-memory!"
+        BeforeEach {
+            Mock New-Item {
+                Write-Host "[MOCK] Intercepted New-Item call safely in-memory!"
+            }
         }
 
         It "Should mock the New-Item cmdlet and NOT create the physical file on the host" {
