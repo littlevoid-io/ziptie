@@ -30,7 +30,8 @@
     "sandbox:remote": "node test/launch-sandbox-remote.js",
     "release": "node scripts/release.js",
     "test": "bun test/cli.test.ts",
-    "test:pester": "powershell -ExecutionPolicy Bypass -Command \"Invoke-Pester test/bootstrap.Tests.ps1 -EnableExit\""
+    "test:pester": "powershell -ExecutionPolicy Bypass -Command \"Invoke-Pester test/bootstrap.Tests.ps1 -EnableExit\"",
+    "test:unit": "bun test test/unit/*.test.ts"
   },
   "dependencies": {
     "@clack/prompts": "^1.4.0",
