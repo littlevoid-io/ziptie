@@ -10,22 +10,10 @@ import { runPowerShellScript } from './utils/powershell.js';
 import { loadAndMergeConfig, resolveProjectRoot } from './utils/config.js';
 import { runSetupWizard } from './utils/setupWizard.js';
 import { OS_LOCKDOWN_TASKS } from './tasks.js';
+import { parseCLI } from './utils/cli.js';
 
-// Parse command line arguments
-const args = process.argv.slice(2);
-const hasFlag = (flag: string, short: string) => args.includes(flag) || args.includes(short);
-const getArgValue = (flag: string, short: string): string | null => {
-  const idx = args.findIndex(a => a === flag || a === short);
-  if (idx !== -1 && idx + 1 < args.length) {
-    return args[idx + 1];
-  }
-  return null;
-};
-
-const dryRun = hasFlag('--dry-run', '-d');
-const undo = hasFlag('--undo', '-u');
-const customConfigPath = getArgValue('--config', '-c');
-const autoConfirm = hasFlag('--yes', '-y');
+// Parse command line arguments and overrides using yargs
+const { dryRun, undo, customConfigPath, autoConfirm, overrides } = parseCLI();
 
 async function main() {
   if (process.platform !== 'win32') {
@@ -49,8 +37,8 @@ async function main() {
     await runSetupWizard(defaultConfigPath, expectedConfigPath);
   }
 
-  // 2. Load and deep-merge default/user configurations
-  const { projectRoot, resolvedConfigPath, config } = loadAndMergeConfig(customConfigPath);
+  // 2. Load and deep-merge default/user configurations with CLI overrides
+  const { projectRoot, resolvedConfigPath, config } = loadAndMergeConfig(customConfigPath, overrides);
 
   // Verify and confirm
   const actionMessage = undo

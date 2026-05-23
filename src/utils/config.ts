@@ -48,8 +48,12 @@ export function resolveProjectRoot(): string {
  * using the robust deepmerge library, and writes a temporary merged JSON payload.
  *
  * @param customConfigPath Optional path to a user-provided configuration file.
+ * @param cliOverrides Optional CLI configuration overrides.
  */
-export function loadAndMergeConfig(customConfigPath: string | null): ConfigContext {
+export function loadAndMergeConfig(
+  customConfigPath: string | null,
+  cliOverrides?: Record<string, any>
+): ConfigContext {
   const projectRoot = resolveProjectRoot();
 
   const defaultConfigPath = path.join(projectRoot, 'ziptie.default.config.json');
@@ -82,8 +86,13 @@ export function loadAndMergeConfig(customConfigPath: string | null): ConfigConte
     }
   }
 
-  // Perform a clean recursive deep merge using the deepmerge package
-  const mergedConfig = deepmerge(defaultConfig, userConfig);
+  // Perform a clean recursive deep merge of defaults and user configuration
+  let mergedConfig = deepmerge(defaultConfig, userConfig);
+
+  // Apply CLI overrides with highest precedence if provided
+  if (cliOverrides && Object.keys(cliOverrides).length > 0) {
+    mergedConfig = deepmerge(mergedConfig, cliOverrides);
+  }
 
   // Ensure .tmp directory exists in CWD
   const tmpDir = path.resolve(process.cwd(), '.tmp');
