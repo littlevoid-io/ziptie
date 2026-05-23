@@ -22,6 +22,23 @@ $script:defaultConfigPath = (Resolve-Path $configPath).Path
 
 Describe "Ziptie Lockdown Script Verification" {
     BeforeAll {
+        # Initialize paths in BeforeAll to ensure Pester 5 compatibility
+        if ($null -eq $script:defaultConfigPath) {
+            $configPath = "$PSScriptRoot/../ziptie.default.config.json"
+            if (!(Test-Path $configPath)) { $configPath = "./ziptie.default.config.json" }
+            $script:defaultConfigPath = (Resolve-Path $configPath).Path
+        }
+        if ($null -eq $script:utilsDir) {
+            $utilsPath = "$PSScriptRoot/../scripts/utils"
+            if (!(Test-Path $utilsPath)) { $utilsPath = "./scripts/utils" }
+            $script:utilsDir = (Resolve-Path $utilsPath).Path
+        }
+        if ($null -eq $script:scriptsDir) {
+            $scriptsPath = "$PSScriptRoot/../scripts/windows"
+            if (!(Test-Path $scriptsPath)) { $scriptsPath = "./scripts/windows" }
+            $script:scriptsDir = (Resolve-Path $scriptsPath).Path
+        }
+
         if (!(Test-Path $script:defaultConfigPath)) {
             throw "Error: Production config not found at $script:defaultConfigPath"
         }
@@ -253,7 +270,13 @@ Describe "Ziptie Lockdown Script Verification" {
         }
 
         # Bypass Get-ChildItem Mock using pure .NET static Directory methods for un-mockable test discovery
-        $files = [System.IO.Directory]::GetFiles($script:scriptsDir, "*.ps1")
+        $resolvedScriptsDir = $script:scriptsDir
+        if ($null -eq $resolvedScriptsDir) {
+            $scriptsPath = "$PSScriptRoot/../scripts/windows"
+            if (!(Test-Path $scriptsPath)) { $scriptsPath = "./scripts/windows" }
+            $resolvedScriptsDir = (Resolve-Path $scriptsPath).Path
+        }
+        $files = [System.IO.Directory]::GetFiles($resolvedScriptsDir, "*.ps1")
         foreach ($file in $files) {
             $scriptName = Split-Path -Leaf $file
             # Skip helper/installer/test scripts to test in dedicated blocks
