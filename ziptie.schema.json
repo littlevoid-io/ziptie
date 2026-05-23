@@ -26,9 +26,13 @@
           "type": "string",
           "description": "The time of day in HH:MM (24-hour format) when the daily reboot should occur (e.g. '03:00').",
           "pattern": "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$"
+        },
+        "autoRestart": {
+          "type": "boolean",
+          "description": "Automatically reboots the computer at the end of the ziptie run if a change was made, without prompting."
         }
       },
-      "required": ["computerName", "timezone", "enableDailyReboot", "rebootTime"]
+      "required": ["computerName", "timezone", "enableDailyReboot", "rebootTime", "autoRestart"]
     },
     "autologon": {
       "type": "object",

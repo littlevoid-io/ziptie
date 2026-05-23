@@ -4,7 +4,8 @@
     "computerName": "EXHIBIT-PC-01",
     "timezone": "auto",
     "enableDailyReboot": true,
-    "rebootTime": "06:00"
+    "rebootTime": "06:00",
+    "autoRestart": false
   },
   "autologon": {
     "enabled": true,

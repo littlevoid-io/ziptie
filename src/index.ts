@@ -173,19 +173,10 @@ async function main() {
       outro(chalk.bold.green(' ✅ System locked down.'));
     }
 
-    if (!dryRun && !autoConfirm) {
+    if (!dryRun && config.system?.autoRestart) {
       console.log('');
-      const result = await confirm({
-        message: 'Reboot computer now?',
-        initialValue: true
-      });
-
-      if (typeof result === 'boolean' && result) {
-        outro(chalk.bold.green(' 🔄 Rebooting... '));
-        execSync('shutdown /r /t 0 /f', { stdio: 'ignore', windowsHide: true });
-      } else {
-        outro(chalk.yellow('Reboot skipped. Please reboot manually.'));
-      }
+      outro(chalk.bold.green(' 🔄 Rebooting... '));
+      execSync('shutdown /r /t 0 /f', { stdio: 'ignore', windowsHide: true });
     }
   } catch (err: any) {
     // Attempt rescue unmounting in case of failure
