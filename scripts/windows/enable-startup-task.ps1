@@ -41,15 +41,21 @@ if ($shouldUndo) {
         New-Item -ItemType Directory -Path $workingDir -Force | Out-Null
     }
 
-    # Standard command-line string splitting
+    # Determine executable and arguments
     $actionExec = $executable
     $actionArgs = ""
-    if ($executable -match '^"([^"]+)"\s*(.*)$') {
-        $actionExec = $Matches[1]
-        $actionArgs = $Matches[2]
-    } elseif ($executable -match '^([^\s]+)\s*(.*)$') {
-        $actionExec = $Matches[1]
-        $actionArgs = $Matches[2]
+
+    # Check if explicit args are supplied in config
+    if ($null -ne $Config.startupTask.args -and "$($Config.startupTask.args)".Trim() -ne "") {
+        $actionArgs = $Config.startupTask.args
+    } else {
+        if ($executable -match '^"([^"]+)"\s*(.*)$') {
+            $actionExec = $Matches[1]
+            $actionArgs = $Matches[2]
+        } elseif ($executable -match '^([^\s]+)\s*(.*)$') {
+            $actionExec = $Matches[1]
+            $actionArgs = $Matches[2]
+        }
     }
 
     if ($actionArgs) {
