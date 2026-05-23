@@ -117,101 +117,103 @@ Describe "Ziptie Lockdown Script Verification" {
     }
 
     Context "Execution Safety & Mock Framework" {
-        # =================================================================
-        # RECURSION-PROOF IN-MEMORY SYSTEM MOCKS
-        # Overriding cmdlets with pure .NET methods and stubs completely
-        # bypasses command lookup, preventing Pester call depth recursion.
-        # =================================================================
-        
-        Mock Test-Path {
-            param($Path)
-            if ($Path -like "*DefaultUser*") { return $false }
-            if ($Path -like "*AppEvents*") { return $true }
-            if ($Path -like "*StuckRects3*") { return $true }
-            if ($Path -like "*bloatware-list.json") { return $true }
+        BeforeAll {
+            # =================================================================
+            # RECURSION-PROOF IN-MEMORY SYSTEM MOCKS
+            # Overriding cmdlets with pure .NET methods and stubs completely
+            # bypasses command lookup, preventing Pester call depth recursion.
+            # =================================================================
             
-            # Pure .NET file checking: avoids calling Test-Path itself (preventing infinite recursion)
-            if ($Path -and ([System.IO.File]::Exists($Path) -or [System.IO.Directory]::Exists($Path))) {
-                return $true
+            Mock Test-Path {
+                param($Path)
+                if ($Path -like "*DefaultUser*") { return $false }
+                if ($Path -like "*AppEvents*") { return $true }
+                if ($Path -like "*StuckRects3*") { return $true }
+                if ($Path -like "*bloatware-list.json") { return $true }
+                
+                # Pure .NET file checking: avoids calling Test-Path itself (preventing infinite recursion)
+                if ($Path -and ([System.IO.File]::Exists($Path) -or [System.IO.Directory]::Exists($Path))) {
+                    return $true
+                }
+                return $false
             }
-            return $false
-        }
-        
-        Mock Get-ChildItem {
-            param($Path, $Filter, $Recurse)
-            # Safely simulate registry sound schemes to keep disable-system-sounds silent and isolated
-            if ($Path -like "*AppEvents*") {
-                return @(
-                    [PSCustomObject]@{
-                        PSChildName = ".Current"
-                        PSPath = "Microsoft.PowerShell.Core\Registry::HKEY_CURRENT_USER\AppEvents\Schemes\Apps\.Default\.Default\.Current"
-                    },
-                    [PSCustomObject]@{
-                        PSChildName = ".Current"
-                        PSPath = "Microsoft.PowerShell.Core\Registry::HKEY_CURRENT_USER\AppEvents\Schemes\Apps\.Default\AppGPFault\.Current"
-                    }
-                )
+            
+            Mock Get-ChildItem {
+                param($Path, $Filter, $Recurse)
+                # Safely simulate registry sound schemes to keep disable-system-sounds silent and isolated
+                if ($Path -like "*AppEvents*") {
+                    return @(
+                        [PSCustomObject]@{
+                            PSChildName = ".Current"
+                            PSPath = "Microsoft.PowerShell.Core\Registry::HKEY_CURRENT_USER\AppEvents\Schemes\Apps\.Default\.Default\.Current"
+                        },
+                        [PSCustomObject]@{
+                            PSChildName = ".Current"
+                            PSPath = "Microsoft.PowerShell.Core\Registry::HKEY_CURRENT_USER\AppEvents\Schemes\Apps\.Default\AppGPFault\.Current"
+                        }
+                    )
+                }
+                return @()
             }
-            return @()
-        }
-        
-        Mock Get-Item {
-            param($Path)
-            # Return a custom object with a real ScriptMethod to support native .GetValue() method calls
-            $mockKey = [PSCustomObject]@{ }
-            $mockKey | Add-Member -MemberType ScriptMethod -Name GetValue -Value {
-                param($name)
+            
+            Mock Get-Item {
+                param($Path)
+                # Return a custom object with a real ScriptMethod to support native .GetValue() method calls
+                $mockKey = [PSCustomObject]@{ }
+                $mockKey | Add-Member -MemberType ScriptMethod -Name GetValue -Value {
+                    param($name)
+                    return ""
+                } -Force
+                return $mockKey
+            }
+
+            Mock New-Item { return $null }
+            Mock Set-ItemProperty { }
+            Mock Remove-ItemProperty { }
+            Mock Get-ItemProperty { return @{ Value = 0 } }
+            Mock Remove-Item { }
+            
+            # Mock Scheduled Tasks (only modifying commands)
+            Mock Register-ScheduledTask { return [PSCustomObject]@{ } }
+            Mock Unregister-ScheduledTask { }
+            Mock Get-ScheduledTask { return $null }
+            Mock Rename-Computer { }
+            
+            # Mock process launchers & network tools
+            Mock Start-Process { return [PSCustomObject]@{ HasExited = $true } }
+            Mock Set-NetFirewallProfile { }
+            
+            # Mock WMI/Computer info
+            Mock Get-ComputerInfo {
+                return [PSCustomObject]@{
+                    OsName = "Microsoft Windows 11 Pro"
+                }
+            }
+            
+            # Mock powercfg with realistic return formats
+            Mock powercfg {
+                param($a1, $a2, $a3, $a4, $a5)
+                $argString = "$a1 $a2 $a3 $a4 $a5"
+                if ($argString -like "*/list*") {
+                    return "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)"
+                }
+                if ($argString -like "*/getactivescheme*") {
+                    return "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)"
+                }
                 return ""
-            } -Force
-            return $mockKey
-        }
+            }
+            
+            # Mock external tools
+            Mock tzutil { }
+            Mock w32tm { }
+            Mock gpupdate { }
+            Mock winget { }
+            Mock choco { }
 
-        Mock New-Item { return $null }
-        Mock Set-ItemProperty { }
-        Mock Remove-ItemProperty { }
-        Mock Get-ItemProperty { return @{ Value = 0 } }
-        Mock Remove-Item { }
-        
-        # Mock Scheduled Tasks (only modifying commands)
-        Mock Register-ScheduledTask { return [PSCustomObject]@{ } }
-        Mock Unregister-ScheduledTask { }
-        Mock Get-ScheduledTask { return $null }
-        Mock Rename-Computer { }
-        
-        # Mock process launchers & network tools
-        Mock Start-Process { return [PSCustomObject]@{ HasExited = $true } }
-        Mock Set-NetFirewallProfile { }
-        
-        # Mock WMI/Computer info
-        Mock Get-ComputerInfo {
-            return [PSCustomObject]@{
-                OsName = "Microsoft Windows 11 Pro"
-            }
+            # Silence progress/warning console printing to prevent user confusion and clean up stdout
+            Mock Write-Host { }
+            Mock Write-Warning { }
         }
-        
-        # Mock powercfg with realistic return formats
-        Mock powercfg {
-            param($a1, $a2, $a3, $a4, $a5)
-            $argString = "$a1 $a2 $a3 $a4 $a5"
-            if ($argString -like "*/list*") {
-                return "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)"
-            }
-            if ($argString -like "*/getactivescheme*") {
-                return "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)"
-            }
-            return ""
-        }
-        
-        # Mock external tools
-        Mock tzutil { }
-        Mock w32tm { }
-        Mock gpupdate { }
-        Mock winget { }
-        Mock choco { }
-
-        # Silence progress/warning console printing to prevent user confusion and clean up stdout
-        Mock Write-Host { }
-        Mock Write-Warning { }
 
         # Bypass Get-ChildItem Mock using pure .NET static Directory methods for un-mockable test discovery
         $resolvedScriptsDir = $script:scriptsDir
