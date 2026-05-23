@@ -60,6 +60,9 @@ describe('Elevation Checker', () => {
     const originalPlatform = process.platform;
     Object.defineProperty(process, 'platform', { value: 'win32' });
 
+    // Mock console.log to avoid polluting test output
+    spyOn(console, 'log').mockImplementation(() => {});
+
     // Mock non-admin state
     const execSpy = spyOn(child_process, 'execSync').mockImplementation((cmd: any) => {
       if (cmd === 'net session') throw new Error('Not admin');
