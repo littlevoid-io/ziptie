@@ -125,6 +125,10 @@
           "type": "boolean",
           "description": "Disables visual touch circle feedback on modern Windows touchscreen devices."
         },
+        "disableSystemSounds": {
+          "type": "boolean",
+          "description": "Disables all Windows operating system audio feedback and system event sounds (e.g. error pings, volume slider change sounds) globally."
+        },
         "disableWindowsUpdate": {
           "type": "boolean",
           "description": "Writes Local Group Policy registry overrides to pause/stop automatic Windows Updates, preserving stable hardware and software states."
@@ -232,6 +236,7 @@
         "disableAccessibilityShortcuts",
         "disableEdgeSwipes",
         "disableTouchFeedback",
+        "disableSystemSounds",
         "disableWindowsUpdate",
         "disableWindowsWidgets",
         "disableCopilotRecall",

@@ -13,6 +13,7 @@ export const OS_LOCKDOWN_TASKS: LockdownTaskSpec[] = [
   { title: 'Accessibility Shortcuts', file: 'disable-accessibility.ps1' },
   { title: 'Screen Edge Swipes', file: 'disable-edge-swipes.ps1' },
   { title: 'Visual Touch Feedback', file: 'disable-touch-feedback.ps1' },
+  { title: 'Windows System Sounds', file: 'disable-system-sounds.ps1' },
   { title: 'Setup Prompts & OOBE', file: 'disable-win-setup-prompts.ps1' },
   { title: 'Default Desktop Icons', file: 'clear-desktop-shortcuts.ps1', action: 'Clearing', undoAction: 'Restoring' },
   { title: 'Solid Color Background', file: 'set-desktop-background.ps1', action: 'Applying', undoAction: 'Restoring' },

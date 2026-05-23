@@ -33,6 +33,7 @@
     "disableAccessibilityShortcuts": true,
     "disableEdgeSwipes": true,
     "disableTouchFeedback": true,
+    "disableSystemSounds": true,
     "disableWindowsUpdate": true,
     "disableWindowsWidgets": true,
     "disableCopilotRecall": true,
