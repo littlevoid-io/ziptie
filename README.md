@@ -94,10 +94,11 @@ This command automatically:
 2. Prompts you to select the next version increment (e.g., `patch`, `minor`, `major`).
 3. Updates `package.json` and `package-lock.json` and creates a local Git commit and tag.
 4. Triggers the packaging hook:
-   - Compiles the standalone `dist/ziptie.exe` binary.
-   - Compresses all necessary dependencies (`dist/ziptie.exe`, `scripts/`, `ziptie.default.config.json`, `ziptie-schema.json`, and `setup.bat`) into a single `ziptie.zip` archive.
+   - Compiles the standalone `dist\ziptie.exe` binary.
+   - Compresses all necessary dependencies (`dist\ziptie.exe`, `scripts/`, `ziptie.default.config.json`, `ziptie-schema.json`, and `setup.bat`) into a single `ziptie.zip` archive.
 5. Deploys the release to GitHub via the REST API and **attaches `ziptie.zip` as a release asset** automatically.
-
+**Note:** The CI workflow now includes `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true` to avoid the Node 20 deprecation warning.
+The `release-it` tool is no longer required; all packaging and upload steps are handled by GitHub Actions.
 ---
 
 
