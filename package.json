@@ -31,7 +31,7 @@
     "release": "node scripts/release.js",
     "test": "bun test test/cli.test.ts test/unit && bun run test:pester",
     "test:cli": "bun test test/cli.test.ts",
-    "test:pester": "powershell -ExecutionPolicy Bypass -Command \"Invoke-Pester test/bootstrap.Tests.ps1 -EnableExit\"",
+    "test:pester": "powershell -ExecutionPolicy Bypass -Command \"Invoke-Pester test/*.Tests.ps1 -EnableExit\"",
     "test:unit": "bun test test/unit"
   },
   "dependencies": {
