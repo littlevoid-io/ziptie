@@ -52,6 +52,45 @@ function getLeafProperties(obj: any, currentPath: string[] = []): DefaultConfigL
 }
 
 /**
+ * Extracts leaf properties and their types from the JSON schema.
+ */
+function getLeafPropertiesFromSchema(schema: any): DefaultConfigLeaf[] {
+  const leaves: DefaultConfigLeaf[] = [];
+  if (!schema || !schema.properties) return leaves;
+
+  for (const catKey of Object.keys(schema.properties)) {
+    if (catKey === '$schema') continue;
+    const catSchema = schema.properties[catKey];
+    if (catSchema && catSchema.properties) {
+      for (const propKey of Object.keys(catSchema.properties)) {
+        const prop = catSchema.properties[propKey];
+        let type: DefaultConfigLeaf['type'] = 'unknown';
+
+        if (prop.type === 'boolean') type = 'boolean';
+        else if (prop.type === 'number') type = 'number';
+        else if (prop.type === 'string') type = 'string';
+        else if (prop.type === 'array') type = 'array';
+        else if (prop.oneOf || prop.anyOf) {
+          const types = (prop.oneOf || prop.anyOf || []).map((t: any) => t.type).filter(Boolean);
+          if (types.includes('string')) type = 'string';
+          else if (types.includes('boolean')) type = 'boolean';
+          else if (types.includes('number')) type = 'number';
+          else if (types.includes('array')) type = 'array';
+        }
+
+        leaves.push({
+          path: [catKey, propKey],
+          key: propKey,
+          type,
+        });
+      }
+    }
+  }
+
+  return leaves;
+}
+
+/**
  * Casts a raw value to the expected type defined by the default configuration.
  */
 function castValue(value: any, targetType: DefaultConfigLeaf['type']): any {
@@ -167,6 +206,7 @@ export function getArgs(): string[] {
 export function parseCLI(): CLIContext {
   const root = resolveProjectRoot();
   const defaultPath = path.join(root, 'ziptie.default.config.json');
+  const schemaPath = path.join(root, 'ziptie.schema.json');
 
   let defaultConfig: any = {};
   if (fs.existsSync(defaultPath)) {
@@ -177,7 +217,31 @@ export function parseCLI(): CLIContext {
     }
   }
 
-  const leafProps = getLeafProperties(defaultConfig);
+  let schema: any = null;
+  if (fs.existsSync(schemaPath)) {
+    try {
+      schema = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
+    } catch (e: any) {
+      // Fail silently
+    }
+  }
+
+  const schemaLeaves = getLeafPropertiesFromSchema(schema);
+  const defaultLeaves = getLeafProperties(defaultConfig);
+
+  // Combine them, preferring schema properties if duplicates exist, but keeping default config properties for fallback
+  const leavesMap = new Map<string, DefaultConfigLeaf>();
+  for (const leaf of schemaLeaves) {
+    leavesMap.set(leaf.path.join('.'), leaf);
+  }
+  for (const leaf of defaultLeaves) {
+    const key = leaf.path.join('.');
+    if (!leavesMap.has(key)) {
+      leavesMap.set(key, leaf);
+    }
+  }
+
+  const leafProps = Array.from(leavesMap.values());
 
   // Initialize yargs parser with dot-notation enabled (yargs parses dot-notation natively)
   const argvInstance = yargs(getArgs())
@@ -207,7 +271,7 @@ export function parseCLI(): CLIContext {
   const overrides: Record<string, any> = {};
 
   const standardFlags = ['_', '$0', 'dry-run', 'dryRun', 'd', 'undo', 'u', 'config', 'c', 'yes', 'y', 'help', 'h'];
-  const categories = ['system', 'autologon', 'startupTask', 'packageManager', 'lockdown'];
+  const categories = Array.from(new Set(leafProps.map(l => l.path[0])));
 
   for (const argKey of Object.keys(argv)) {
     if (standardFlags.includes(argKey)) continue;

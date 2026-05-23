@@ -55,4 +55,46 @@ describe('CLI Advanced Parser', () => {
     expect(ctx.overrides).toEqual({});
     expect(consoleWarnSpy).toHaveBeenCalled();
   });
+
+  test('parses technically supported CLI args from schema even if they do not exist in the default config', () => {
+    spyOn(fs, 'existsSync').mockImplementation((p: any) => {
+      const target = String(p);
+      return target.endsWith('ziptie.default.config.json') || target.endsWith('ziptie.schema.json');
+    });
+
+    spyOn(fs, 'readFileSync').mockImplementation((p: any) => {
+      const target = String(p);
+      if (target.endsWith('ziptie.default.config.json')) {
+        return JSON.stringify({
+          system: { computerName: 'DEFAULT' }
+        });
+      }
+      if (target.endsWith('ziptie.schema.json')) {
+        return JSON.stringify({
+          type: 'object',
+          properties: {
+            system: {
+              type: 'object',
+              properties: {
+                computerName: { type: 'string' }
+              }
+            },
+            lockdown: {
+              type: 'object',
+              properties: {
+                disableScreensaver: { type: 'boolean' }
+              }
+            }
+          }
+        });
+      }
+      return '';
+    });
+
+    process.argv = ['node', 'index.js', '--disableScreensaver', 'true'];
+
+    const ctx = parseCLI();
+
+    expect(ctx.overrides.lockdown?.disableScreensaver).toBe(true);
+  });
 });
