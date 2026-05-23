@@ -1,6 +1,6 @@
 Describe "Ziptie Canary Mock Verification" {
     BeforeAll {
-        $script:canaryScriptPath = (Resolve-Path "$PSScriptRoot/../scripts/windows/test-canary.ps1").Path
+        $canaryScriptPath = (Resolve-Path "$PSScriptRoot/../scripts/windows/test-canary.ps1").Path
         $canaryFile = "$PSScriptRoot/../.tmp/canary-file.txt"
         
         # Ensure any pre-existing canary file is cleaned up first
@@ -18,13 +18,13 @@ Describe "Ziptie Canary Mock Verification" {
 
         It "Should mock the New-Item cmdlet and NOT create the physical file on the host" {
             # Run the canary script (without -DryRun)
-            . $script:canaryScriptPath
+            . $canaryScriptPath
             
             # Assert Pester intercepted the call
             Assert-MockCalled New-Item -Times 1
             
             # Assert that the file does NOT exist on the host PC
-            $canaryFileExists = Test-Path "$PSScriptRoot/../.tmp/canary-file.txt"
+            $canaryFileExists = Test-Path $canaryFile
             $canaryFileExists | Should Be $false
         }
     }

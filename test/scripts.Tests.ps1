@@ -98,7 +98,10 @@ Describe "Ziptie Lockdown Script Verification" {
             
             foreach ($script in ($scripts + $utils)) {
                 $lines = @(Get-Content -Path $script.FullName)
-                $lines.Count | Should BeLessThan 100
+                $count = $lines.Count
+                if ($count -ge 100) {
+                    throw "Script '$($script.Name)' failed the line cap check: it has $count lines (exceeds 100 limit)! Path: $($script.FullName)"
+                }
             }
         }
 
@@ -109,8 +112,9 @@ Describe "Ziptie Lockdown Script Verification" {
             foreach ($script in ($scripts + $utils)) {
                 $content = Get-Content -Raw -Path $script.FullName
                 if ($null -ne $content -and $content -ne "") {
-                    $content | Should Not Match "password\s*=\s*'[^']+'"
-                    $content | Should Not Match 'password\s*=\s*"[^"]+"'
+                    if ($content -match "password\s*=\s*'[^']+'" -or $content -match 'password\s*=\s*"[^"]+"') {
+                        throw "Script '$($script.Name)' failed the secrets check: it contains a hardcoded password/secret! Path: $($script.FullName)"
+                    }
                 }
             }
         }
