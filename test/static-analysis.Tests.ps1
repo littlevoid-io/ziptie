@@ -1,12 +1,14 @@
-$scriptsPath = "$PSScriptRoot/../scripts/windows"
-if (!(Test-Path $scriptsPath)) { $scriptsPath = "./scripts/windows" }
-$scriptsDir = (Resolve-Path $scriptsPath).Path
-
-$utilsPath = "$PSScriptRoot/../scripts/utils"
-if (!(Test-Path $utilsPath)) { $utilsPath = "./scripts/utils" }
-$utilsDir = (Resolve-Path $utilsPath).Path
-
 Describe "Ziptie Static Analysis" {
+    BeforeAll {
+        $scriptsPath = "$PSScriptRoot/../scripts/windows"
+        if (!(Test-Path $scriptsPath)) { $scriptsPath = "./scripts/windows" }
+        $scriptsDir = (Resolve-Path $scriptsPath).Path
+
+        $utilsPath = "$PSScriptRoot/../scripts/utils"
+        if (!(Test-Path $utilsPath)) { $utilsPath = "./scripts/utils" }
+        $utilsDir = (Resolve-Path $utilsPath).Path
+    }
+
     Context "Static Analysis & Architecture Guidelines" {
         It "Should strictly cap every script under 100 lines of code" {
             $scripts = Get-ChildItem -Path $scriptsDir -Filter "*.ps1" -Recurse

@@ -1,11 +1,3 @@
-$scriptsPath = "$PSScriptRoot/../scripts/windows"
-if (!(Test-Path $scriptsPath)) { $scriptsPath = "./scripts/windows" }
-$resolvedPath = (Resolve-Path "$scriptsPath/enable-startup-task.ps1").Path
-
-$configPath = "$PSScriptRoot/../ziptie.default.config.json"
-if (!(Test-Path $configPath)) { $configPath = "./ziptie.default.config.json" }
-$defaultConfigPath = (Resolve-Path $configPath).Path
-
 # Pre-define dummy scheduled task functions to bypass real cmdlets and their strict parameter type constraints
 function Register-ScheduledTask { param($TaskName, $TaskPath, $Action, $Trigger, $Settings, [switch]$Force) }
 function Unregister-ScheduledTask { param($TaskName, $TaskPath, [switch]$Confirm) }
@@ -16,6 +8,14 @@ function New-ScheduledTaskSettingsSet { param([switch]$AllowStartIfOnBatteries, 
 
 Describe "Ziptie Startup Task Parameter Splitting" {
     BeforeAll {
+        $scriptsPath = "$PSScriptRoot/../scripts/windows"
+        if (!(Test-Path $scriptsPath)) { $scriptsPath = "./scripts/windows" }
+        $resolvedPath = (Resolve-Path "$scriptsPath/enable-startup-task.ps1").Path
+
+        $configPath = "$PSScriptRoot/../ziptie.default.config.json"
+        if (!(Test-Path $configPath)) { $configPath = "./ziptie.default.config.json" }
+        $defaultConfigPath = (Resolve-Path $configPath).Path
+
         Mock Test-Path { return $true }
         Mock New-Item { return $null }
         Mock Write-Host { }
@@ -25,30 +25,18 @@ Describe "Ziptie Startup Task Parameter Splitting" {
         
         Mock New-ScheduledTaskAction {
             param($Execute, $Argument, $WorkingDirectory)
-            return [PSCustomObject]@{
-                Execute = $Execute
-                Arguments = $Argument
-                WorkingDirectory = $WorkingDirectory
-            }
+            return [PSCustomObject]@{ Execute = $Execute; Arguments = $Argument; WorkingDirectory = $WorkingDirectory }
         }
         Mock New-ScheduledTaskTrigger {
             param([switch]$AtLogon, [switch]$AtStartup)
-            return [PSCustomObject]@{
-                AtLogon = $AtLogon
-                AtStartup = $AtStartup
-                Delay = $null
-            }
+            return [PSCustomObject]@{ AtLogon = $AtLogon; AtStartup = $AtStartup; Delay = $null }
         }
-        Mock New-ScheduledTaskSettingsSet {
-            return [PSCustomObject]@{ }
-        }
+        Mock New-ScheduledTaskSettingsSet { return [PSCustomObject]@{ } }
         
         $global:lastExecutedAction = $null
         Mock Register-ScheduledTask {
             param($TaskName, $TaskPath, $Action, $Trigger, $Settings, $Force)
-            if ($TaskName -eq "Launch Exhibit") {
-                $global:lastExecutedAction = $Action
-            }
+            if ($TaskName -eq "Launch Exhibit") { $global:lastExecutedAction = $Action }
             return [PSCustomObject]@{ }
         }
     }
