@@ -1,20 +1,18 @@
 Describe "Ziptie Canary Mock Verification" {
+    $canaryScript = Resolve-Path "$PSScriptRoot/../scripts/windows/test-canary.ps1"
+
     BeforeAll {
-        $canaryScript = Resolve-Path "$PSScriptRoot/../scripts/windows/test-canary.ps1"
-        $canaryFile = Resolve-Path "$PSScriptRoot/../.tmp/canary-file.txt" -ErrorAction SilentlyContinue
+        $canaryFile = "$PSScriptRoot/../.tmp/canary-file.txt"
         
         # Ensure any pre-existing canary file is cleaned up first
-        if ($canaryFile -and (Test-Path $canaryFile)) {
+        if (Test-Path $canaryFile) {
             Remove-Item $canaryFile -Force
         }
     }
 
     Context "Canary Mock Execution" {
-        BeforeEach {
-            # Mock the New-Item cmdlet inside the local test scope
-            Mock New-Item {
-                Write-Host "[MOCK] Intercepted New-Item call safely in-memory!"
-            }
+        Mock New-Item {
+            Write-Host "[MOCK] Intercepted New-Item call safely in-memory!"
         }
 
         It "Should mock the New-Item cmdlet and NOT create the physical file on the host" {
