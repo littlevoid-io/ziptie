@@ -9,11 +9,12 @@ $pesterVersion = if ($pesterModule) { $pesterModule.Version.Major } else { 3 }
 
 Write-Host "Detected Pester Version: $pesterVersion" -ForegroundColor Cyan
 
-$testFiles = @(
-    (Resolve-Path "$PSScriptRoot/canary.Tests.ps1").Path,
-    (Resolve-Path "$PSScriptRoot/bootstrap.Tests.ps1").Path,
-    (Resolve-Path "$PSScriptRoot/scripts.Tests.ps1").Path
-)
+$canaryFile = (Resolve-Path "$PSScriptRoot/canary.Tests.ps1").Path
+$otherFiles = Get-ChildItem -Path $PSScriptRoot -Filter "*.Tests.ps1" | 
+    ForEach-Object { $_.FullName } | 
+    Where-Object { $_ -ne $canaryFile }
+
+$testFiles = @($canaryFile) + $otherFiles
 
 if ($pesterVersion -ge 5) {
     # Modern Pester 5 execution (avoiding legacy parameters and scoping issues)
