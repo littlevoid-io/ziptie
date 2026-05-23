@@ -1,7 +1,8 @@
 param(
     [String]$InstallDir,
     [String]$ExtraArgs,
-    [Switch]$Local
+    [Switch]$Local,
+    [Switch]$SkipElevation
 )
 $ErrorActionPreference = "Stop"
 
@@ -43,7 +44,7 @@ if ($targetPath -like "$systemRoot*" -or $targetPath -eq "C:\" -or $isDevWorkspa
 
 # 2. Elevate if not admin
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-if (-not $isAdmin) {
+if (-not $isAdmin -and -not $SkipElevation) {
     Write-Host "Ziptie requires administrative privileges. Elevating..." -ForegroundColor Yellow
     $escapedExtraArgs = if ($ExtraArgs) { $ExtraArgs.Replace("'", "''") } else { "" }
     

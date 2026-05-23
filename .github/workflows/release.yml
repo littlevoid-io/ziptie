@@ -28,6 +28,9 @@ jobs:
       - name: Run CLI Override Parser Unit Tests
         run: bun run test
 
+      - name: Run PowerShell Bootstrap Pester Tests
+        run: bun run test:pester
+
       - name: Compile Standalone Windows Executable
         run: bun run package
 
