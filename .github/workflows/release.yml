@@ -25,14 +25,8 @@ jobs:
       - name: Install Project Dependencies
         run: bun install
 
-      - name: Run CLI Override Parser Unit Tests
+      - name: Run All Project Test Suites
         run: bun run test
-
-      - name: Run PowerShell Bootstrap Pester Tests
-        run: bun run test:pester
-
-      - name: Run Core Module Unit Tests
-        run: bun run test:unit
 
       - name: Compile Standalone Windows Executable
         run: bun run package

@@ -20,7 +20,7 @@ describe('Setup Wizard', () => {
     const selectSpy = spyOn(prompts, 'select').mockResolvedValue('defaults' as any);
     const noteSpy = spyOn(prompts, 'note').mockImplementation(() => {});
 
-    const result = await runSetupWizard('defaultConfig.json', 'userConfig.json');
+    const result = await runSetupWizard('defaultConfig.json', '.tmp/userConfig.json');
 
     expect(selectSpy).toHaveBeenCalled();
     expect(result).toEqual(mockDefaultConfig);
@@ -47,7 +47,7 @@ describe('Setup Wizard', () => {
       .mockResolvedValueOnce('exhibit.exe')         // executable
       .mockResolvedValueOnce('C:\\ExhibitPath');     // workingDir
 
-    const result = await runSetupWizard('defaultConfig.json', 'userConfig.json');
+    const result = await runSetupWizard('defaultConfig.json', '.tmp/userConfig.json');
 
     expect(selectSpy).toHaveBeenCalled();
     expect(textSpy).toHaveBeenCalledTimes(5);
@@ -83,7 +83,7 @@ describe('Setup Wizard', () => {
     // Mock the exit call to prevent termination
     spyOn(process, 'exit').mockImplementation(() => undefined as never);
 
-    await runSetupWizard('defaultConfig.json', 'userConfig.json');
+    await runSetupWizard('defaultConfig.json', '.tmp/userConfig.json');
 
     expect(validator).toBeTypeOf('function');
     
