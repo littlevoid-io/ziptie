@@ -31,7 +31,7 @@ jobs:
       - name: Package Release ZIP Archive
         shell: pwsh
         run: |
-          Compress-Archive -Path dist/ziptie.exe, scripts, ziptie.default.config.json, ziptie-schema.json, setup.bat -DestinationPath ziptie.zip -Force
+          Compress-Archive -Path dist/ziptie.exe, scripts, ziptie.default.config.json, ziptie.schema.json, setup.bat -DestinationPath ziptie.zip -Force
 
       - name: Publish Release via GitHub CLI
         env:

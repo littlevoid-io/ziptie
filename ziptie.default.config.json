@@ -1,5 +1,5 @@
 {
-  "$schema": "./ziptie-schema.json",
+  "$schema": "https://raw.githubusercontent.com/littlevoid-io/ziptie/main/ziptie.schema.json",
   "system": {
     "computerName": "EXHIBIT-PC-01",
     "timezone": "auto",

@@ -34,7 +34,7 @@ npm run build
 ```
 
 ### 3. Configuration
-Customize settings in `ziptie.config.json` at the root of the repository. Open the file in VS Code to get auto-completion, schema validation, and description tooltips defined in `ziptie-schema.json`.
+Customize settings in `ziptie.config.json` at the root of the repository. Open the file in VS Code to get auto-completion, schema validation, and description tooltips defined in `ziptie.schema.json`.
 
 ### 4. Run Dry-Run (Safe Preview)
 To preview configuration changes without modifying the registry or system state:

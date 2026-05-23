@@ -15,7 +15,7 @@
     "dist/**/*.d.ts",
     "ziptie.config.json",
     "ziptie.default.config.json",
-    "ziptie-schema.json",
+    "ziptie.schema.json",
     "scripts",
     "setup.bat"
   ],
