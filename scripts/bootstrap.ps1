@@ -5,8 +5,8 @@ param(
 )
 $ErrorActionPreference = "Stop"
 
-# 1. Resolve and default the installation directory to CWD if not provided
-$targetPath = if ($InstallDir) { $InstallDir } else { $PWD.Path }
+# 1. Resolve target path, defaulting to a "ziptie" subfolder in CWD if not provided
+$targetPath = if ($InstallDir) { $InstallDir } else { Join-Path $PWD.Path "ziptie" }
 $targetPath = [System.IO.Path]::GetFullPath($targetPath)
 
 # Detect if running from a local repository copy
@@ -36,7 +36,7 @@ if ($Local -or $isLocalScript) {
 
 # Avoid downloading into protected system/Windows directories, system drive root, or active developer workspaces
 $systemRoot = [Environment]::GetFolderPath([Environment+SpecialFolder]::Windows)
-$isDevWorkspace = (Test-Path (Join-Path $targetPath "package.json")) -and (Test-Path (Join-Path $targetPath "tsconfig.json"))
+$isDevWorkspace = (Test-Path (Join-Path $PWD.Path "package.json")) -and (Test-Path (Join-Path $PWD.Path "tsconfig.json"))
 if ($targetPath -like "$systemRoot*" -or $targetPath -eq "C:\" -or $isDevWorkspace) {
     $targetPath = Join-Path $HOME "Downloads\ziptie"
 }
