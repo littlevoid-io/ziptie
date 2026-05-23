@@ -1,6 +1,6 @@
 # @littlevoid/ziptie
 
-A modern, zero-dependency, and offline-first Windows 11 system bootstrapping and kiosk lockdown framework. It configures and locks down Windows installations to run interactive museum exhibits, gallery installations, and unattended digital signage.
+A zero-dependency Windows 11 system bootstrapping and kiosk lockdown framework. It configures and locks down Windows installations to run interactive media installations and unattended digital signage.
 
 ---
 
@@ -39,19 +39,19 @@ Customize settings in `ziptie.config.json` at the root of the repository. Open t
 ### 4. Run Dry-Run (Safe Preview)
 To preview configuration changes without modifying the registry or system state:
 ```bash
-node dist/index.js --dry-run
+npm start -- --dry-run
 ```
 
 ### 5. Apply Configuration
 Apply the configuration (requires UAC elevation):
 ```bash
-node dist/index.js
+npm start
 ```
 
 ### 6. Revert Configuration
 To revert the applied lockdowns and restore default OS settings:
 ```bash
-node dist/index.js --undo
+npm start -- --undo
 ```
 
 ### 7. Run Isolated Sandbox Tests
