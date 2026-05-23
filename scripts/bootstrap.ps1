@@ -1,12 +1,38 @@
 param(
     [String]$InstallDir,
-    [String]$ExtraArgs
+    [String]$ExtraArgs,
+    [Switch]$Local
 )
 $ErrorActionPreference = "Stop"
 
 # 1. Resolve and default the installation directory to CWD if not provided
 $targetPath = if ($InstallDir) { $InstallDir } else { $PWD.Path }
 $targetPath = [System.IO.Path]::GetFullPath($targetPath)
+
+# Detect if running from a local repository copy
+$isLocalScript = $false
+$repoRoot = $null
+if ($PSScriptRoot) {
+    $possibleRepoRoot = Split-Path -Parent $PSScriptRoot
+    if (Test-Path (Join-Path $possibleRepoRoot "ziptie.schema.json")) {
+        $isLocalScript = $true
+        $repoRoot = $possibleRepoRoot
+    }
+}
+
+if ($Local -or $isLocalScript) {
+    $Local = $true
+    if (-not $repoRoot -and $PSScriptRoot) {
+        $repoRoot = Split-Path -Parent $PSScriptRoot
+    }
+    if ($Local -and -not $repoRoot) {
+        if (Test-Path "ziptie.schema.json") {
+            $repoRoot = $PWD.Path
+        } elseif (Test-Path "..\ziptie.schema.json") {
+            $repoRoot = (Get-Item "..").FullName
+        }
+    }
+}
 
 # Avoid downloading into protected system/Windows directories, system drive root, or active developer workspaces
 $systemRoot = [Environment]::GetFolderPath([Environment+SpecialFolder]::Windows)
@@ -20,30 +46,51 @@ $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIden
 if (-not $isAdmin) {
     Write-Host "Ziptie requires administrative privileges. Elevating..." -ForegroundColor Yellow
     $escapedExtraArgs = if ($ExtraArgs) { $ExtraArgs.Replace("'", "''") } else { "" }
-    $argsList = "-ExecutionPolicy Bypass -NoProfile -Command `"& { [scriptblock]::Create((irm https://raw.githubusercontent.com/littlevoid-io/ziptie/main/scripts/bootstrap.ps1)).Invoke('$targetPath', '$escapedExtraArgs') }`""
+    
+    if ($Local) {
+        $scriptPath = if ($PSCommandPath) { $PSCommandPath } else { $MyInvocation.MyCommand.Path }
+        $argsList = "-ExecutionPolicy Bypass -NoProfile -File `"$scriptPath`""
+        if ($InstallDir) { $argsList += " -InstallDir `"$InstallDir`"" }
+        if ($ExtraArgs) { $argsList += " -ExtraArgs `"$escapedExtraArgs`"" }
+        $argsList += " -Local"
+    } else {
+        $argsList = "-ExecutionPolicy Bypass -NoProfile -Command `"& { [scriptblock]::Create((irm https://raw.githubusercontent.com/littlevoid-io/ziptie/main/scripts/bootstrap.ps1)).Invoke('$targetPath', '$escapedExtraArgs') }`""
+    }
+    
     Start-Process powershell -ArgumentList $argsList -Verb RunAs
     exit
 }
 
-# 3. Download precompiled release
+# 3. Obtain release files
 New-Item -ItemType Directory -Path $targetPath -Force | Out-Null
 Set-Location -Path $targetPath
 
-Write-Host "Downloading precompiled Ziptie release to $targetPath..." -ForegroundColor Cyan
-$zipUrl = "https://github.com/littlevoid-io/ziptie/releases/latest/download/ziptie.zip"
-$zipFile = "$env:TEMP\ziptie-release.zip"
+if ($Local) {
+    Write-Host "[Local Simulation] Copying Ziptie release files from local repo at $repoRoot to $targetPath..." -ForegroundColor Cyan
+    $itemsToCopy = @("dist", "scripts", "ziptie.default.config.json", "ziptie.schema.json", "setup.bat")
+    foreach ($item in $itemsToCopy) {
+        $srcPath = Join-Path $repoRoot $item
+        if (Test-Path $srcPath) {
+            Copy-Item -Path $srcPath -Destination $targetPath -Recurse -Force
+        }
+    }
+} else {
+    Write-Host "Downloading precompiled Ziptie release to $targetPath..." -ForegroundColor Cyan
+    $zipUrl = "https://github.com/littlevoid-io/ziptie/releases/latest/download/ziptie.zip"
+    $zipFile = "$env:TEMP\ziptie-release.zip"
 
-if (Test-Path $zipFile) { Remove-Item $zipFile -Force }
-try {
-    Invoke-WebRequest -Uri $zipUrl -OutFile $zipFile
-} catch {
-    Write-Error "Failed to download precompiled release from GitHub. Please ensure a release has been published or check network connectivity."
-    exit
+    if (Test-Path $zipFile) { Remove-Item $zipFile -Force }
+    try {
+        Invoke-WebRequest -Uri $zipUrl -OutFile $zipFile
+    } catch {
+        Write-Error "Failed to download precompiled release from GitHub. Please ensure a release has been published or check network connectivity."
+        exit
+    }
+
+    Write-Host "Extracting release..." -ForegroundColor Cyan
+    Expand-Archive -Path $zipFile -DestinationPath $targetPath -Force
+    Remove-Item $zipFile -Force
 }
-
-Write-Host "Extracting release..." -ForegroundColor Cyan
-Expand-Archive -Path $zipFile -DestinationPath $targetPath -Force
-Remove-Item $zipFile -Force
 
 Write-Host "Launching Ziptie..." -ForegroundColor Green
 $argArray = if ($ExtraArgs) { [regex]::Matches($ExtraArgs, '("[^"]*"|\S+)') | ForEach-Object { $_.Value.Trim('"') } } else { @() }
