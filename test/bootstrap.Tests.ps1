@@ -19,6 +19,7 @@ Describe "Ziptie Bootstrap Loader" {
             }
             Mock New-Item { }
             Mock Set-Location { }
+            Mock Copy-Item { }
             Mock Invoke-WebRequest { }
             Mock Expand-Archive { }
             Mock Remove-Item { }
@@ -127,6 +128,7 @@ Describe "Ziptie Bootstrap Loader" {
             }
             Mock New-Item { }
             Mock Set-Location { } -Verifiable
+            Mock Copy-Item { }
             Mock Invoke-WebRequest { }
             Mock Expand-Archive { }
             Mock Remove-Item { }
