@@ -3,13 +3,10 @@ import * as path from 'node:path';
 import chalk from 'chalk';
 import { ListrRenderer } from 'listr2';
 import { resolveProjectRoot } from './project.js';
-import { VERSION } from '../assets.js';
+import { VERSION, EMBEDDED_ASSETS } from '../assets.js';
 
 export interface AnimationConfig {
-  metadata: {
-    speedMs?: number;
-    width?: number;
-  };
+  metadata: { speedMs?: number; width?: number };
   frames: string[][];
 }
 const defaultAnimation: AnimationConfig = {
@@ -24,8 +21,15 @@ export function loadVersion(): string {
   return VERSION;
 }
 export function loadConfig(root: string): AnimationConfig {
-  try { return JSON.parse(fs.readFileSync(path.join(root, 'ziptie.animation.json'), 'utf8')); }
-  catch { return defaultAnimation; }
+  const filePath = path.join(root, 'ziptie.animation.json');
+  try {
+    if (fs.existsSync(filePath)) return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  } catch {}
+  try {
+    const raw = EMBEDDED_ASSETS?.['ziptie.animation.json'];
+    if (raw) return JSON.parse(Buffer.from(raw, 'base64').toString('utf8'));
+  } catch {}
+  return defaultAnimation;
 }
 
 export class ColumnRenderer implements ListrRenderer {

@@ -55,7 +55,7 @@ Describe "Ziptie Bootstrap Loader" {
             . $bootstrapScript -Local -InstallDir "C:\mock-ziptie-install" -SkipElevation
 
             # Assert that Copy-Item was invoked to copy the package assets to custom InstallDir
-            Assert-MockCalled Copy-Item -Times 5 -ParameterFilter {
+            Assert-MockCalled Copy-Item -Times 6 -ParameterFilter {
                 $Destination -eq "C:\mock-ziptie-install"
             }
         }
