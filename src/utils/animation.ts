@@ -2,8 +2,8 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import chalk from 'chalk';
 import { ListrRenderer } from 'listr2';
-import { resolveProjectRoot } from './project.js';
-import { VERSION, EMBEDDED_ASSETS } from '../assets.js';
+import { resolveProjectRoot, EMBEDDED_ASSETS } from './project.js';
+import { VERSION } from '../version.js';
 
 export interface AnimationConfig {
   metadata: { speedMs?: number; width?: number };

@@ -1,5 +1,5 @@
 import { execSync } from 'child_process';
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { select, outro, intro, spinner, isCancel } from '@clack/prompts';
 import chalk from 'chalk';
 
@@ -85,10 +85,11 @@ async function main() {
     // 2. Bump the package version in package.json and package-lock.json
     s.message('Bumping package versions...');
     runCmd(`npm version ${nextVersion} --no-git-tag-version`);
+    writeFileSync('src/version.ts', `export const VERSION = '${nextVersion}';\n`, 'utf8');
 
     // 3. Commit version bumps
     s.message('Committing version bump...');
-    runCmd('git add package.json package-lock.json');
+    runCmd('git add package.json package-lock.json src/version.ts');
     runCmd(`git commit -m "chore(release): v${nextVersion}"`);
 
     // 4. Merge release branch into main

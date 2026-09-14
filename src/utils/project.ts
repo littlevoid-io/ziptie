@@ -2,7 +2,8 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { EMBEDDED_ASSETS } from '../assets.js';
+import EMBEDDED_ASSETS from '../../dist/assets.json';
+export { EMBEDDED_ASSETS };
 
 /**
  * Extracts all embedded assets to the target directory.

@@ -203,7 +203,7 @@ describe('Config Utility', () => {
     printConfig(sampleConfig);
 
     const calls = consoleSpy.mock.calls.map(call => call.join(' '));
-    expect(calls.some(c => c.includes('Startup Task:'))).toBe(true);
+    expect(calls.some(c => c.replace(/\u001b\[[0-9;]*m/g, '').includes('Startup Task:'))).toBe(true);
 
     consoleSpy.mockRestore();
     fsExistsSpy.mockRestore();

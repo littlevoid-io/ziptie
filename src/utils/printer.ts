@@ -52,7 +52,7 @@ function formatSettingLine(
 }
 
 function printCategory(title: string, configCat: any, defaultCat: any): void {
-  console.log(`\n${chalk.bold(title)}:`);
+  console.log(`\n${chalk.bold(`${title}:`)}`);
   const keys = Object.keys(configCat);
   if (keys.length === 0) return;
   const customs = keys.filter((k) => !isEqual(configCat[k], defaultCat[k], k));
