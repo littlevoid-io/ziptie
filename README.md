@@ -89,7 +89,7 @@ powershell -ExecutionPolicy Bypass -Command "& ([scriptblock]::Create((irm https
   },
   "autologon": {
     "enabled": true,
-    "username": "exhibit",
+    "username": "auto",
     "disablePasswordlessHello": true
   },
   "startupTask": {
@@ -123,7 +123,7 @@ All sections are optional and merge over defaults in `ziptie.default.config.json
 | `system.rebootTime`                     | string  | Time of reboot (e.g. `06:00`).                              |
 | `system.rebootOnFinish`                 | boolean | Reboots machine when execution finishes.                    |
 | `autologon.enabled`                     | boolean | Enables autologon (requires dot-notation).                  |
-| `autologon.username`                    | string  | User account targeted for auto-login.                       |
+| `autologon.username`                    | string  | User account targeted for auto-login (or `auto`).           |
 | `autologon.disablePasswordlessHello`    | boolean | Disables Windows Hello passwordless requirement.            |
 | `startupTask.enabled`                   | boolean | Creates scheduled startup task (requires dot-notation).     |
 | `startupTask.workingDir`                | string  | Working directory for executable.                           |

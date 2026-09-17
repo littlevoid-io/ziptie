@@ -25,6 +25,15 @@ if ($shouldUndo) {
     }
 } else {
     $username = $Config.autologon.username
+    if (!$username -or $username -eq "auto") {
+        try {
+            $username = ((Get-CimInstance Win32_ComputerSystem).UserName -split '\\')[-1]
+        } catch {
+            $username = $null
+        }
+        if (!$username) { $username = $env:USERNAME }
+        if (!$username) { $username = "exhibit" }
+    }
     # Securely retrieve the password from environment if available, otherwise default to blank
     $password = $env:ZIPTIE_AUTOLOGON_PASSWORD
     if (!$password) { $password = "" }

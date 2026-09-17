@@ -35,6 +35,7 @@ describe('Init Command', () => {
 
     const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
     expect(config.system.computerName).toBe('exhibit-pc-01');
+    expect(config.autologon.username).toBe('auto');
   });
 
   test('derives computer name from package.json and configures npm mode', async () => {

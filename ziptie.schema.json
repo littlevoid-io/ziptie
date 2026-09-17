@@ -44,14 +44,15 @@
         },
         "username": {
           "type": "string",
-          "description": "The local Windows account name that should automatically log in on boot (e.g. 'exhibit')."
+          "default": "auto",
+          "description": "The local Windows account name that should automatically log in on boot (e.g. 'exhibit'). Set to 'auto' or leave empty/undefined to use the currently logged-in user at runtime."
         },
         "disablePasswordlessHello": {
           "type": "boolean",
           "description": "Required on Windows 11 to disable Windows Hello passwordless credential requirements so standard Autologon works properly."
         }
       },
-      "required": ["enabled", "username", "disablePasswordlessHello"]
+      "required": ["enabled", "disablePasswordlessHello"]
     },
     "startupTask": {
       "type": "object",

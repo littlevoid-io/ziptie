@@ -9,7 +9,7 @@
   },
   "autologon": {
     "enabled": true,
-    "username": "exhibit",
+    "username": "auto",
     "disablePasswordlessHello": true
   },
   "startupTask": {

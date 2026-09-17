@@ -42,7 +42,7 @@ export function getConfigTemplate(computerName?: string): string {
         },
         autologon: {
           enabled: true,
-          username: 'exhibit',
+          username: 'auto',
           disablePasswordlessHello: true,
         },
         startupTask: {
