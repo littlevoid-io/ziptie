@@ -10,7 +10,8 @@
       "properties": {
         "computerName": {
           "type": "string",
-          "description": "The target name of the computer. Leaving this empty or unchanged will skip renaming.",
+          "default": "auto",
+          "description": "The target name of the computer. Set to 'auto', empty, or unchanged to preserve the current hostname without renaming.",
           "minLength": 1
         },
         "timezone": {
@@ -64,7 +65,8 @@
         },
         "workingDir": {
           "type": "string",
-          "description": "The working directory from which the executable should be launched."
+          "default": "auto",
+          "description": "The working directory from which the executable should be launched. Set to 'auto' or '.' to dynamically resolve to the directory containing ziptie.config.json at runtime."
         },
         "executable": {
           "type": "string",

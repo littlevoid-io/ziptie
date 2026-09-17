@@ -11,10 +11,13 @@ if ($Undo) {
     return
 }
 
-$computername = $Config.system.computerName
-if (!$computername) { return }
-
 $currentHostname = hostname
+$computername = $Config.system.computerName
+if (!$computername -or $computername -eq "auto") {
+    Write-Host "Computer name set to 'auto'; preserving current hostname '$currentHostname'." -ForegroundColor Green
+    return
+}
+
 if ($currentHostname -eq $computername) {
     Write-Host "Computer name already set to '$computername'" -ForegroundColor Green
     return

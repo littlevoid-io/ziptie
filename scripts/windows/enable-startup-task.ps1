@@ -25,6 +25,9 @@ if ($shouldUndo) {
     }
 } else {
     $workingDir = $Config.startupTask.workingDir
+    if (!$workingDir -or $workingDir -eq "auto" -or $workingDir -eq ".") {
+        $workingDir = (Get-Location).Path
+    }
     $executable = $Config.startupTask.executable
     $triggerType = $Config.startupTask.trigger # AtLogon or AtStartup
     $delay = $Config.startupTask.delay # e.g. PT1M

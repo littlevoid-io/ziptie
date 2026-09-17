@@ -131,7 +131,9 @@ async function main() {
                 skip: () => {
                   if (undo) return false;
                   const val = config.system?.computerName;
-                  if (!val || val === 'none' || val === 'false') return 'Disabled in configuration';
+                  if (!val || val === 'none' || val === 'false' || val === 'auto') {
+                    return 'Preserving existing hostname (auto)';
+                  }
                   return false;
                 },
                 task: () =>

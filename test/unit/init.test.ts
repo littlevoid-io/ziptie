@@ -1,7 +1,8 @@
-import { describe, test, expect, beforeEach, afterEach, spyOn } from 'bun:test';
+import { describe, test, expect, beforeEach, afterEach, spyOn, mock } from 'bun:test';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
+import * as prompts from '@clack/prompts';
 import { runInit } from '../../src/commands/init.js';
 import * as downloadModule from '../../src/utils/download.js';
 
@@ -13,6 +14,7 @@ describe('Init Command', () => {
   });
 
   afterEach(() => {
+    mock.restore();
     try {
       fs.rmSync(tempDir, { recursive: true, force: true });
     } catch {
@@ -20,8 +22,8 @@ describe('Init Command', () => {
     }
   });
 
-  test('scaffolds online mode with bootstrap script and default config', async () => {
-    const code = await runInit({ projectRoot: tempDir, mode: 'online' });
+  test('scaffolds online mode with auto defaults in non-interactive mode', async () => {
+    const code = await runInit({ projectRoot: tempDir, mode: 'online', autoConfirm: true });
     expect(code).toBe(0);
 
     const configPath = path.join(tempDir, 'ziptie.config.json');
@@ -34,25 +36,53 @@ describe('Init Command', () => {
     expect(batchContent).toContain('bootstrap.ps1');
 
     const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-    expect(config.system.computerName).toBe('exhibit-pc-01');
+    expect(config.system.computerName).toBe('auto');
     expect(config.autologon.username).toBe('auto');
+    expect(config.startupTask.workingDir).toBe('auto');
+    expect(config.startupTask.executable).toBe('launch.bat');
   });
 
-  test('derives computer name from package.json and configures npm mode', async () => {
+  test('updates package.json in npm mode', async () => {
     const pkgPath = path.join(tempDir, 'package.json');
     fs.writeFileSync(pkgPath, JSON.stringify({ name: '@my-scope/kiosk-display' }), 'utf8');
 
-    const code = await runInit({ projectRoot: tempDir, mode: 'npm' });
+    const code = await runInit({ projectRoot: tempDir, mode: 'npm', autoConfirm: true });
     expect(code).toBe(0);
-
-    const config = JSON.parse(fs.readFileSync(path.join(tempDir, 'ziptie.config.json'), 'utf8'));
-    expect(config.system.computerName).toBe('kiosk-display-01');
 
     const batchContent = fs.readFileSync(path.join(tempDir, 'ziptie-setup.bat'), 'utf8');
     expect(batchContent).toContain('npx @littlevoid/ziptie');
 
     const updatedPkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
     expect(updatedPkg.devDependencies['@littlevoid/ziptie']).toBeDefined();
+  });
+
+  test('configures startup task interactively and generates launch.bat', async () => {
+    const pkgPath = path.join(tempDir, 'package.json');
+    fs.writeFileSync(
+      pkgPath,
+      JSON.stringify({ name: 'river-display', scripts: { start: 'eggshell start' } }),
+      'utf8'
+    );
+
+    spyOn(prompts, 'text')
+      .mockResolvedValueOnce('exhibit-01') // computerName
+      .mockResolvedValueOnce('launch.bat') // executable
+      .mockResolvedValueOnce('') // args
+      .mockResolvedValueOnce('auto'); // workingDir
+    spyOn(prompts, 'confirm').mockResolvedValueOnce(true); // create launch.bat
+
+    const code = await runInit({ projectRoot: tempDir, mode: 'online' });
+    expect(code).toBe(0);
+
+    const config = JSON.parse(fs.readFileSync(path.join(tempDir, 'ziptie.config.json'), 'utf8'));
+    expect(config.system.computerName).toBe('exhibit-01');
+    expect(config.startupTask.executable).toBe('launch.bat');
+    expect(config.startupTask.workingDir).toBe('auto');
+
+    const launchPath = path.join(tempDir, 'launch.bat');
+    expect(fs.existsSync(launchPath)).toBe(true);
+    const launchContent = fs.readFileSync(launchPath, 'utf8');
+    expect(launchContent).toContain('npm start');
   });
 
   test('does not overwrite existing files without force flag', async () => {
@@ -62,12 +92,12 @@ describe('Init Command', () => {
     fs.writeFileSync(configPath, '{"custom": true}', 'utf8');
     fs.writeFileSync(batchPath, 'REM CUSTOM BATCH', 'utf8');
 
-    await runInit({ projectRoot: tempDir, mode: 'online' });
+    await runInit({ projectRoot: tempDir, mode: 'online', autoConfirm: true });
 
     expect(fs.readFileSync(configPath, 'utf8')).toBe('{"custom": true}');
     expect(fs.readFileSync(batchPath, 'utf8')).toBe('REM CUSTOM BATCH');
 
-    await runInit({ projectRoot: tempDir, mode: 'online', force: true });
+    await runInit({ projectRoot: tempDir, mode: 'online', force: true, autoConfirm: true });
 
     expect(fs.readFileSync(configPath, 'utf8')).not.toBe('{"custom": true}');
     expect(fs.readFileSync(batchPath, 'utf8')).not.toBe('REM CUSTOM BATCH');
@@ -80,7 +110,7 @@ describe('Init Command', () => {
       }
     );
 
-    const code = await runInit({ projectRoot: tempDir, mode: 'offline' });
+    const code = await runInit({ projectRoot: tempDir, mode: 'offline', autoConfirm: true });
     expect(code).toBe(0);
     expect(downloadSpy).toHaveBeenCalled();
 

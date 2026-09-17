@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/littlevoid-io/ziptie/main/ziptie.schema.json",
   "system": {
-    "computerName": "exhibit-pc-01",
+    "computerName": "auto",
     "timezone": "auto",
     "dailyReboot": true,
     "rebootTime": "06:00",
@@ -14,7 +14,7 @@
   },
   "startupTask": {
     "enabled": true,
-    "workingDir": "C:\\Exhibit",
+    "workingDir": "auto",
     "executable": "launch.bat",
     "args": [],
     "trigger": "AtLogon",

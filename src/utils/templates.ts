@@ -1,3 +1,8 @@
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import deepmerge from 'deepmerge';
+import { resolveProjectRoot } from './project.js';
+
 export type SetupMode = 'offline' | 'online' | 'npm';
 
 export function getBatchTemplate(mode: SetupMode): string {
@@ -27,70 +32,52 @@ export function getBatchTemplate(mode: SetupMode): string {
   ].join('\r\n');
 }
 
-export function getConfigTemplate(computerName?: string): string {
-  const name = computerName || 'exhibit-pc-01';
-  return (
-    JSON.stringify(
-      {
-        $schema: 'https://raw.githubusercontent.com/littlevoid-io/ziptie/main/ziptie.schema.json',
-        system: {
-          computerName: name,
-          timezone: 'auto',
-          dailyReboot: true,
-          rebootTime: '06:00',
-          rebootOnFinish: false,
-        },
-        autologon: {
-          enabled: true,
-          username: 'auto',
-          disablePasswordlessHello: true,
-        },
-        startupTask: {
-          enabled: true,
-          workingDir: 'C:\\Exhibit',
-          executable: 'launch.bat',
-          args: [],
-          trigger: 'AtLogon',
-          delay: 'PT1M',
-        },
-        packageManager: {
-          provider: 'winget',
-          allowOfflineFallback: true,
-          localInstallersPath: '.\\installers',
-          apps: ['CoreyButler.NVMforWindows', 'Microsoft.VisualStudioCode', 'Git.Git'],
-        },
-        windows: {
-          disableScreensaver: true,
-          disableAccessibilityShortcuts: true,
-          disableEdgeSwipes: true,
-          disableTouchFeedback: true,
-          disableSystemSounds: true,
-          disableWindowsUpdate: true,
-          disableWindowsWidgets: true,
-          disableCopilotRecall: true,
-          disableOOBEPrompts: true,
-          clearDesktopIcons: true,
-          solidColorBackground: '#333333',
-          enableDarkMode: true,
-          configureExplorer: true,
-          disableAppInstalls: true,
-          disableAppRestore: true,
-          disableErrorReporting: true,
-          disableFirewall: false,
-          disableMaxPathLength: true,
-          disableNewNetworkWindow: true,
-          disableNotifications: true,
-          disableTouchGestures: true,
-          enableScriptExecution: true,
-          resetTextScale: true,
-          uninstallBloatware: true,
-          uninstallOneDrive: true,
-          unpinStartMenuApps: true,
-          setPowerSettings: true,
-        },
-      },
-      null,
-      2
-    ) + '\n'
-  );
+function loadDefaultConfig(): any {
+  const root = resolveProjectRoot();
+  const defaultPath = path.join(root, 'ziptie.default.config.json');
+  if (fs.existsSync(defaultPath)) {
+    try {
+      return JSON.parse(fs.readFileSync(defaultPath, 'utf8'));
+    } catch {
+      // Fall back to empty object
+    }
+  }
+  return {};
+}
+
+export function getConfigTemplate(overrides?: string | Record<string, any>): string {
+  const baseConfig = loadDefaultConfig();
+  let customOverrides: Record<string, any> = {};
+  if (typeof overrides === 'string') {
+    customOverrides = { system: { computerName: overrides } };
+  } else if (overrides && typeof overrides === 'object') {
+    customOverrides = overrides;
+  }
+
+  const merged = deepmerge(baseConfig, customOverrides, {
+    arrayMerge: (_dest, source) => source,
+  });
+
+  return JSON.stringify(merged, null, 2) + '\n';
+}
+
+export function getLaunchBatchTemplate(targetDirectory: string): string {
+  const eggshellPath = path.join(targetDirectory, 'eggshell.config.ts');
+  if (fs.existsSync(eggshellPath)) {
+    return ['@echo off', 'cd /D "%~dp0"', 'call npx eggshell start', ''].join('\r\n');
+  }
+
+  const packagePath = path.join(targetDirectory, 'package.json');
+  if (fs.existsSync(packagePath)) {
+    try {
+      const pkg = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
+      if (pkg.scripts?.start) {
+        return ['@echo off', 'cd /D "%~dp0"', 'call npm start', ''].join('\r\n');
+      }
+    } catch {
+      // Fall through to default
+    }
+  }
+
+  return ['@echo off', 'cd /D "%~dp0"', 'echo Launching exhibit...', ''].join('\r\n');
 }

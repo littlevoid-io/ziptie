@@ -250,4 +250,38 @@ describe('Config Utility', () => {
     clearIntervalSpy.mockRestore();
     writeSpy.mockRestore();
   });
+
+  test('loadAndMergeConfig dynamically resolves workingDir auto or dot to config directory', () => {
+    const customConfigDir = path.resolve('/mock/exhibit/project');
+    const customConfigFile = path.join(customConfigDir, 'ziptie.config.json');
+
+    const fsExistsSpy = spyOn(fs, 'existsSync').mockImplementation((p: any) => {
+      const target = String(p);
+      if (target.endsWith('ziptie.default.config.json')) return true;
+      if (target === customConfigFile) return true;
+      return false;
+    });
+
+    const fsReadSpy = spyOn(fs, 'readFileSync').mockImplementation((p: any) => {
+      const target = String(p);
+      if (target.endsWith('ziptie.default.config.json')) {
+        return JSON.stringify({ startupTask: { workingDir: 'auto' } });
+      }
+      if (target === customConfigFile) {
+        return JSON.stringify({ startupTask: { workingDir: 'auto' } });
+      }
+      return '';
+    });
+
+    const fsWriteSpy = spyOn(fs, 'writeFileSync').mockImplementation(() => {});
+    const fsMkdirSpy = spyOn(fs, 'mkdirSync').mockImplementation(() => undefined);
+
+    const { config } = loadAndMergeConfig(customConfigFile);
+    expect(config.startupTask.workingDir).toBe(customConfigDir);
+
+    fsExistsSpy.mockRestore();
+    fsReadSpy.mockRestore();
+    fsWriteSpy.mockRestore();
+    fsMkdirSpy.mockRestore();
+  });
 });

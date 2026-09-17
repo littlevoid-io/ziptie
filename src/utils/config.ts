@@ -104,11 +104,11 @@ export function loadAndMergeConfig(
   }
 
   if (mergedConfig.startupTask && typeof mergedConfig.startupTask.workingDir === 'string') {
-    if (!path.isAbsolute(mergedConfig.startupTask.workingDir)) {
-      mergedConfig.startupTask.workingDir = path.resolve(
-        configDir,
-        mergedConfig.startupTask.workingDir
-      );
+    const rawWorkingDir = mergedConfig.startupTask.workingDir.trim();
+    if (!rawWorkingDir || rawWorkingDir === 'auto' || rawWorkingDir === '.') {
+      mergedConfig.startupTask.workingDir = configDir;
+    } else if (!path.isAbsolute(rawWorkingDir)) {
+      mergedConfig.startupTask.workingDir = path.resolve(configDir, rawWorkingDir);
     }
   }
 
