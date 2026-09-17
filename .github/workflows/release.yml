@@ -43,12 +43,6 @@ jobs:
       - name: Compile Standalone Windows Executable
         run: bun run package
 
-      - name: Pack Distribution Tarball
-        shell: pwsh
-        run: |
-          $tarball = npm pack
-          echo "TARBALL=$tarball" >> $env:GITHUB_ENV
-
       - name: Publish GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -60,7 +54,6 @@ jobs:
             gh release create "v$version" --title "ziptie v$version" --generate-notes
           }
           gh release upload "v$version" dist/ziptie.zip --clobber
-          gh release upload "v$version" $env:TARBALL --clobber
 
       - name: Stage Publish to npm via OIDC
         run: npm stage publish
