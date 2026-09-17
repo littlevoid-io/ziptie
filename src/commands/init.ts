@@ -3,15 +3,18 @@ import * as path from 'node:path';
 import { intro, outro, select, isCancel, note } from '@clack/prompts';
 import chalk from 'chalk';
 import { SetupMode } from '../utils/templates.js';
-import { detectStartupDetails, DetectedStartup } from '../utils/initDetection.js';
+import {
+  detectStartupDetails,
+  loadExistingConfig,
+  DetectedStartup,
+} from '../utils/initDetection.js';
 import {
   promptComputerName,
-  promptExecutable,
-  promptArgs,
-  promptWorkingDir,
   promptConfirmLaunchBatch,
+  promptConfirmConfigUpdate,
+  promptStartupTask,
 } from '../utils/promptHelpers.js';
-import { writeScaffoldFiles, handleModeSetup } from './scaffold.js';
+import { writeScaffoldFiles, handleModeSetup, createInitNote } from './scaffold.js';
 
 export interface InitOptions {
   projectRoot?: string;
@@ -43,24 +46,35 @@ async function resolveSetupMode(options: InitOptions): Promise<SetupMode | null>
   return isCancel(selected) ? null : (selected as SetupMode);
 }
 
+function getInitialConfig(existingConfig: any | null, startup: DetectedStartup) {
+  return {
+    system: { computerName: existingConfig?.system?.computerName || 'auto' },
+    startupTask: {
+      executable: existingConfig?.startupTask?.executable || startup.executable,
+      args: existingConfig?.startupTask?.args || startup.args,
+      workingDir: existingConfig?.startupTask?.workingDir || 'auto',
+    },
+  };
+}
+
 async function promptInitAnswers(
   targetDir: string,
-  startup: DetectedStartup
+  startup: DetectedStartup,
+  existingConfig: any | null
 ): Promise<{ config: any; createLaunchBatch: boolean } | null> {
-  const computerName = await promptComputerName('auto');
+  const defaultComputer = existingConfig?.system?.computerName || 'auto';
+  const computerName = await promptComputerName(defaultComputer);
   if (computerName === null) return null;
 
-  const executable = await promptExecutable(startup.executable);
-  if (executable === null) return null;
-
-  const args = await promptArgs(startup.args.join(' '));
-  if (args === null) return null;
-
-  const workingDir = await promptWorkingDir('auto');
-  if (workingDir === null) return null;
+  const task = await promptStartupTask({
+    executable: existingConfig?.startupTask?.executable || startup.executable,
+    args: existingConfig?.startupTask?.args || startup.args,
+    workingDir: existingConfig?.startupTask?.workingDir || 'auto',
+  });
+  if (!task) return null;
 
   let createLaunchBatch = false;
-  if (startup.offerBatch && executable === 'launch.bat') {
+  if (startup.offerBatch && task.executable === 'launch.bat') {
     const existing = fs.existsSync(path.join(targetDir, 'launch.bat'));
     if (!existing) {
       const confirmed = await promptConfirmLaunchBatch('launch.bat');
@@ -70,24 +84,33 @@ async function promptInitAnswers(
   }
 
   return {
-    config: {
-      system: { computerName },
-      startupTask: { executable, args, workingDir },
-    },
+    config: { system: { computerName }, startupTask: task },
     createLaunchBatch,
   };
 }
 
-function createInitNote(
-  mode: SetupMode,
-  res: { configCreated: boolean; batchCreated: boolean; launchCreated: boolean }
-): string {
-  return (
-    `Mode: ${mode}\n` +
-    `Config: ${res.configCreated ? 'created ziptie.config.json' : 'skipped (already exists)'}\n` +
-    `Batch:  ${res.batchCreated ? 'created ziptie-setup.bat' : 'skipped (already exists)'}` +
-    (res.launchCreated ? '\nLaunch: created launch.bat' : '')
-  );
+async function resolveInitConfig(
+  targetDir: string,
+  options: InitOptions,
+  existingConfig: any | null
+): Promise<{ config: any; createLaunchBatch: boolean; updateExisting: boolean } | null> {
+  const startup = detectStartupDetails(targetDir);
+  const isInteractive = !options.autoConfirm && options.interactive !== false;
+  let updateExisting = Boolean(options.force);
+  if (!isInteractive) {
+    return {
+      config: getInitialConfig(existingConfig, startup),
+      createLaunchBatch: false,
+      updateExisting,
+    };
+  }
+  if (existingConfig && !options.force) {
+    const confirmUpdate = await promptConfirmConfigUpdate();
+    if (confirmUpdate === null) return null;
+    updateExisting = confirmUpdate;
+  }
+  const answers = await promptInitAnswers(targetDir, startup, existingConfig);
+  return answers ? { ...answers, updateExisting } : null;
 }
 
 export async function runInit(options: InitOptions = {}): Promise<number> {
@@ -101,33 +124,21 @@ export async function runInit(options: InitOptions = {}): Promise<number> {
     return 0;
   }
 
-  const startup = detectStartupDetails(targetDir);
-  let initAnswers = {
-    config: {
-      system: { computerName: 'auto' },
-      startupTask: { executable: startup.executable, args: startup.args, workingDir: 'auto' },
-    },
-    createLaunchBatch: false,
-  };
-
-  const isInteractive = !options.autoConfirm && options.interactive !== false;
-  if (isInteractive) {
-    const answers = await promptInitAnswers(targetDir, startup);
-    if (!answers) {
-      outro(chalk.yellow('Initialization cancelled.'));
-      return 0;
-    }
-    initAnswers = answers;
+  const existingConfig = loadExistingConfig(targetDir);
+  const resolved = await resolveInitConfig(targetDir, options, existingConfig);
+  if (!resolved) {
+    outro(chalk.yellow('Initialization cancelled.'));
+    return 0;
   }
 
   const result = writeScaffoldFiles(
     targetDir,
     mode,
-    initAnswers.config,
-    initAnswers.createLaunchBatch,
-    Boolean(options.force)
+    resolved.config,
+    resolved.createLaunchBatch,
+    Boolean(options.force),
+    resolved.updateExisting
   );
-
   await handleModeSetup(targetDir, mode, options.force);
   note(createInitNote(mode, result), 'Scaffold Summary');
   outro(chalk.bold.green(' ✅ Project initialized for Ziptie.'));

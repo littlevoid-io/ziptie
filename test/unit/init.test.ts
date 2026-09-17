@@ -120,4 +120,28 @@ describe('Init Command', () => {
     const batchContent = fs.readFileSync(path.join(tempDir, 'ziptie-setup.bat'), 'utf8');
     expect(batchContent).toContain('ziptie.exe');
   });
+
+  test('merges updated answers into existing config when confirmed', async () => {
+    const configPath = path.join(tempDir, 'ziptie.config.json');
+    const existing = {
+      packageManager: { apps: ['Custom.Package'] },
+      startupTask: { workingDir: 'C:\\OldDir', executable: 'old.exe' },
+    };
+    fs.writeFileSync(configPath, JSON.stringify(existing, null, 2), 'utf8');
+
+    spyOn(prompts, 'confirm').mockResolvedValue(true as any);
+    spyOn(prompts, 'text')
+      .mockResolvedValueOnce('custom-pc')
+      .mockResolvedValueOnce('launch.bat')
+      .mockResolvedValueOnce('')
+      .mockResolvedValueOnce('auto');
+
+    const code = await runInit({ projectRoot: tempDir, mode: 'online' });
+    expect(code).toBe(0);
+
+    const merged = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    expect(merged.packageManager.apps).toEqual(['Custom.Package']);
+    expect(merged.startupTask.workingDir).toBe('auto');
+    expect(merged.startupTask.executable).toBe('launch.bat');
+  });
 });

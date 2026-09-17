@@ -23,6 +23,18 @@ export function detectProjectName(targetDirectory: string): string {
   return baseName && baseName !== '.' ? baseName : 'exhibit';
 }
 
+export function loadExistingConfig(targetDirectory: string): any | null {
+  const configPath = path.join(targetDirectory, 'ziptie.config.json');
+  if (fs.existsSync(configPath)) {
+    try {
+      return JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
 function checkBatchFiles(targetDirectory: string): string | null {
   const candidateBatchFiles = ['launch.bat', 'start.bat', 'run.bat'];
   for (const file of candidateBatchFiles) {

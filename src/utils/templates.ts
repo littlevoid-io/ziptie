@@ -45,6 +45,13 @@ function loadDefaultConfig(): any {
   return {};
 }
 
+export function mergeConfig(existingConfig: any, overrides: any): string {
+  const merged = deepmerge(existingConfig, overrides, {
+    arrayMerge: (_dest, source) => source,
+  });
+  return JSON.stringify(merged, null, 2) + '\n';
+}
+
 export function getConfigTemplate(overrides?: string | Record<string, any>): string {
   const baseConfig = loadDefaultConfig();
   let customOverrides: Record<string, any> = {};
@@ -54,11 +61,7 @@ export function getConfigTemplate(overrides?: string | Record<string, any>): str
     customOverrides = overrides;
   }
 
-  const merged = deepmerge(baseConfig, customOverrides, {
-    arrayMerge: (_dest, source) => source,
-  });
-
-  return JSON.stringify(merged, null, 2) + '\n';
+  return mergeConfig(baseConfig, customOverrides);
 }
 
 export function getLaunchBatchTemplate(targetDirectory: string): string {

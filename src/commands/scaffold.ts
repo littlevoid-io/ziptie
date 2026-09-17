@@ -7,14 +7,31 @@ import {
   getBatchTemplate,
   getConfigTemplate,
   getLaunchBatchTemplate,
+  mergeConfig,
 } from '../utils/templates.js';
 import { downloadBinary } from '../utils/download.js';
+import { loadExistingConfig } from '../utils/initDetection.js';
 import { VERSION } from '../version.js';
 
 export interface ScaffoldResult {
-  configCreated: boolean;
+  configStatus: 'created' | 'updated' | 'skipped';
   batchCreated: boolean;
   launchCreated: boolean;
+}
+
+export function createInitNote(mode: SetupMode, res: ScaffoldResult): string {
+  const configText =
+    res.configStatus === 'created'
+      ? 'created ziptie.config.json'
+      : res.configStatus === 'updated'
+        ? 'updated ziptie.config.json'
+        : 'skipped (already exists)';
+  return (
+    `Mode: ${mode}\n` +
+    `Config: ${configText}\n` +
+    `Batch:  ${res.batchCreated ? 'created ziptie-setup.bat' : 'skipped (already exists)'}` +
+    (res.launchCreated ? '\nLaunch: created launch.bat' : '')
+  );
 }
 
 export function updatePackageManifest(targetDirectory: string): void {
@@ -35,17 +52,26 @@ export function writeScaffoldFiles(
   mode: SetupMode,
   configOverrides: any,
   writeLaunchBatch: boolean,
-  force: boolean
+  force: boolean,
+  updateExisting = false
 ): ScaffoldResult {
   const configPath = path.join(targetDir, 'ziptie.config.json');
   const batchPath = path.join(targetDir, 'ziptie-setup.bat');
   const launchPath = path.join(targetDir, 'launch.bat');
 
-  let configCreated = false;
-  if (!fs.existsSync(configPath) || force) {
+  let configStatus: 'created' | 'updated' | 'skipped' = 'skipped';
+  if (!fs.existsSync(configPath)) {
     fs.writeFileSync(configPath, getConfigTemplate(configOverrides), 'utf8');
-    configCreated = true;
+    configStatus = 'created';
+  } else if (force) {
+    fs.writeFileSync(configPath, getConfigTemplate(configOverrides), 'utf8');
+    configStatus = 'updated';
+  } else if (updateExisting) {
+    const existing = loadExistingConfig(targetDir) || {};
+    fs.writeFileSync(configPath, mergeConfig(existing, configOverrides), 'utf8');
+    configStatus = 'updated';
   }
+
   let batchCreated = false;
   if (!fs.existsSync(batchPath) || force) {
     fs.writeFileSync(batchPath, getBatchTemplate(mode), 'utf8');
@@ -56,7 +82,7 @@ export function writeScaffoldFiles(
     fs.writeFileSync(launchPath, getLaunchBatchTemplate(targetDir), 'utf8');
     launchCreated = true;
   }
-  return { configCreated, batchCreated, launchCreated };
+  return { configStatus, batchCreated, launchCreated };
 }
 
 export async function handleModeSetup(

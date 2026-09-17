@@ -89,3 +89,31 @@ export async function promptConfirmLaunchBatch(fileName: string): Promise<boolea
   });
   return isCancel(result) ? null : Boolean(result);
 }
+
+export async function promptConfirmConfigUpdate(): Promise<boolean | null> {
+  const result = await confirm({
+    message: 'Existing ziptie.config.json found. Update configuration?',
+    initialValue: true,
+  });
+  return isCancel(result) ? null : Boolean(result);
+}
+
+export interface StartupTaskInputs {
+  executable: string;
+  args: string[];
+  workingDir: string;
+}
+
+export async function promptStartupTask(defaults: {
+  executable?: string;
+  args?: string[];
+  workingDir?: string;
+}): Promise<StartupTaskInputs | null> {
+  const executable = await promptExecutable(defaults.executable || 'launch.bat');
+  if (executable === null) return null;
+  const args = await promptArgs((defaults.args || []).join(' '));
+  if (args === null) return null;
+  const workingDir = await promptWorkingDir(defaults.workingDir || 'auto');
+  if (workingDir === null) return null;
+  return { executable, args, workingDir };
+}
