@@ -1,6 +1,6 @@
 {
   "name": "@littlevoid/ziptie",
-  "version": "1.2.3",
+  "version": "1.3.0",
   "description": "Windows 11 kiosk and exhibit PC bootstrap utility.",
   "repository": {
     "type": "git",
