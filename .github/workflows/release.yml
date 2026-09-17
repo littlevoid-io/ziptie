@@ -1,4 +1,4 @@
-name: Automated Ziptie Release
+name: Automated Release
 
 on:
   push:
@@ -7,10 +7,11 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
   release:
-    name: Compile and Publish Standalone Release
+    name: Build, Package, Release, and Stage Publish
     runs-on: windows-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -24,6 +25,15 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Update npm to Support Staged Publishing
+        run: npm install -g npm@latest
+
       - name: Install Project Dependencies
         run: bun install
 
@@ -33,7 +43,13 @@ jobs:
       - name: Compile Standalone Windows Executable
         run: bun run package
 
-      - name: Publish Release via GitHub CLI
+      - name: Pack Distribution Tarball
+        shell: pwsh
+        run: |
+          $tarball = npm pack
+          echo "TARBALL=$tarball" >> $env:GITHUB_ENV
+
+      - name: Publish GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: pwsh
@@ -41,6 +57,10 @@ jobs:
           $version = node -p "require('./package.json').version"
           gh release view "v$version" > $null 2>&1
           if ($LASTEXITCODE -ne 0) {
-            gh release create "v$version" --title "Ziptie Release v$version" --notes "Automated precompiled system foundation release."
+            gh release create "v$version" --title "ziptie v$version" --generate-notes
           }
           gh release upload "v$version" dist/ziptie.zip --clobber
+          gh release upload "v$version" $env:TARBALL --clobber
+
+      - name: Stage Publish to npm via OIDC
+        run: npm stage publish

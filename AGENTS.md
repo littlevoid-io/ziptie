@@ -161,3 +161,11 @@ To align with Ziptie's design as an air-gapped, secure, and locally controlled f
 
 - MANDATORY: Use simple native commands, don't prefix or wrap commands with PowerShell, cd or git -c to circumvent this
 - MANDATORY: Do not attempt to use PowerShell commands directly without invoking PowerShell (Get-ChildItem). Use native comands like `find` and `ls` instead.
+
+## 7. Release instructions
+
+- Release from `develop` branch with a clean working tree: `npm run release`.
+- The CLI prompts for a SemVer bump, creates the release branch, bumps versions, merges to `main`, tags, merges back to `develop`, and pushes to GitHub.
+- GitHub Actions (`.github/workflows/release.yml`) builds the package, creates the GitHub Release with the tarball and standalone executable zip, and runs `npm stage publish` via npm Trusted Publisher (OIDC).
+- Approve the staged release on [npmjs.com](https://www.npmjs.com) or via `npm stage approve <stage-id>`.
+

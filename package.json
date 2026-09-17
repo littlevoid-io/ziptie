@@ -1,8 +1,20 @@
 {
   "name": "@littlevoid/ziptie",
   "version": "1.2.3",
-  "description": "A modern, quirky, zero-dependency, and air-gap friendly Windows 11 kiosk and exhibit bootstrapping utility.",
+  "description": "Windows 11 kiosk and exhibit PC bootstrap utility.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/littlevoid-io/ziptie.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "ziptie": "dist/index.js"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -13,12 +25,15 @@
   "files": [
     "dist/**/*.js",
     "dist/**/*.d.ts",
+    "dist/assets.json",
     "ziptie.config.json",
     "ziptie.default.config.json",
     "ziptie.schema.json",
     "ziptie.animation.json",
     "scripts",
-    "setup.bat"
+    "setup.bat",
+    "LICENSE",
+    "README.md"
   ],
   "author": "littlevoid",
   "license": "MIT",
@@ -31,6 +46,9 @@
     "sandbox:local": "npm run package && node test/launch-sandbox.js --run-tests",
     "sandbox:remote": "node test/launch-sandbox-remote.js",
     "release": "node scripts/release.js",
+    "prepublishOnly": "npm run build",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "node scripts/build-assets.js && bun test test/cli.test.ts test/unit && bun run test:pester",
     "test:cli": "node scripts/build-assets.js && bun test test/cli.test.ts",
     "test:pester": "powershell -ExecutionPolicy Bypass -File test/run-tests.ps1",
@@ -48,6 +66,7 @@
     "@types/node": "^20.0.0",
     "@types/yargs": "^17.0.35",
     "esbuild": "^0.28.0",
+    "prettier": "^3.9.7",
     "typescript": "^5.0.0"
   }
 }
