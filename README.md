@@ -20,10 +20,10 @@ Initialize in your exhibit project root:
 npx @littlevoid/ziptie init
 ```
 
-Prompts for target mode (`online`, `offline`, `npm`), scaffolding `ziptie.config.json` and `ziptie.bat`. Run on target exhibit machines with:
+Prompts for target mode (`online`, `offline`, `npm`), scaffolding `ziptie.config.json` and `ziptie-setup.bat`. Run on target exhibit machines with:
 
 ```cmd
-.\ziptie.bat
+.\ziptie-setup.bat
 ```
 
 ## Commands
@@ -42,28 +42,28 @@ When developing from checkout, run `npm start -- <flags>`.
 
 ### Init command
 
-| Command                             | Description                                       |
-| ----------------------------------- | ------------------------------------------------- |
-| `ziptie init`                       | Scaffolds `ziptie.config.json` and `ziptie.bat`   |
-| `ziptie init --mode <mode>` (`-m`)  | Set execution mode: `online`, `offline`, or `npm` |
-| `ziptie init --force` (`-f`)        | Overwrite existing configuration and batch files  |
-| `ziptie init --project-root <path>` | Target directory for scaffolding (default: cwd)   |
+| Command                             | Description                                           |
+| ----------------------------------- | ----------------------------------------------------- |
+| `ziptie init`                       | Scaffolds `ziptie.config.json` and `ziptie-setup.bat` |
+| `ziptie init --mode <mode>` (`-m`)  | Set execution mode: `online`, `offline`, or `npm`     |
+| `ziptie init --force` (`-f`)        | Overwrite existing configuration and batch files      |
+| `ziptie init --project-root <path>` | Target directory for scaffolding (default: cwd)       |
 
 ### Passing flags & overrides
 
-#### In an exhibit repository (`ziptie.bat` / CLI)
+#### In an exhibit repository (`ziptie-setup.bat` / CLI)
 
 Pass standard flags, flat parameter shortcuts, or dot-notation overrides:
 
 ```powershell
 # Safe preview with auto-confirm
-.\ziptie.bat -y -d
+.\ziptie-setup.bat -y -d
 
 # Flat shortcuts for unique keys
-.\ziptie.bat --timezone "Tokyo Standard Time" --disableScreensaver false --apps "Node.js,Git.Git"
+.\ziptie-setup.bat --timezone "Tokyo Standard Time" --disableScreensaver false --apps "Node.js,Git.Git"
 
 # Dot-notation for nested categories
-.\ziptie.bat --windows.disableScreensaver=false --system.computerName="EXHIBIT-99"
+.\ziptie-setup.bat --windows.disableScreensaver=false --system.computerName="EXHIBIT-99"
 ```
 
 #### Via one-line online install (`bootstrap.ps1`)

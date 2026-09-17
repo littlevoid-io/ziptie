@@ -54,7 +54,7 @@ function printSchemaOverrides(schema: any, defaultConfig: any): void {
 function printCommandHelp(): void {
   console.log(`\n ${chalk.bold.yellow('Commands:')}`);
   console.log(
-    `   init                   ${chalk.dim('Initialize ziptie.config.json and ziptie.bat')}`
+    `   init                   ${chalk.dim('Initialize ziptie.config.json and ziptie-setup.bat')}`
   );
   console.log(
     `     -m, --mode <mode>    ${chalk.dim('Setup mode: online, offline, npm (default: prompt)')}`

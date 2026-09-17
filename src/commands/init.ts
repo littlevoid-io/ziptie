@@ -74,7 +74,7 @@ function writeScaffoldFiles(
   force: boolean
 ): { configCreated: boolean; batchCreated: boolean } {
   const configPath = path.join(targetDir, 'ziptie.config.json');
-  const batchPath = path.join(targetDir, 'ziptie.bat');
+  const batchPath = path.join(targetDir, 'ziptie-setup.bat');
   let configCreated = false;
   if (!fs.existsSync(configPath) || force) {
     fs.writeFileSync(configPath, getConfigTemplate(detectComputerName(targetDir)), 'utf8');
@@ -126,7 +126,7 @@ export async function runInit(options: InitOptions = {}): Promise<number> {
   note(
     `Mode: ${mode}\n` +
       `Config: ${configCreated ? 'created ziptie.config.json' : 'skipped (already exists)'}\n` +
-      `Batch:  ${batchCreated ? 'created ziptie.bat' : 'skipped (already exists)'}`,
+      `Batch:  ${batchCreated ? 'created ziptie-setup.bat' : 'skipped (already exists)'}`,
     'Scaffold Summary'
   );
   outro(chalk.bold.green(' ✅ Project initialized for Ziptie.'));

@@ -25,7 +25,7 @@ describe('Init Command', () => {
     expect(code).toBe(0);
 
     const configPath = path.join(tempDir, 'ziptie.config.json');
-    const batchPath = path.join(tempDir, 'ziptie.bat');
+    const batchPath = path.join(tempDir, 'ziptie-setup.bat');
 
     expect(fs.existsSync(configPath)).toBe(true);
     expect(fs.existsSync(batchPath)).toBe(true);
@@ -48,7 +48,7 @@ describe('Init Command', () => {
     const config = JSON.parse(fs.readFileSync(path.join(tempDir, 'ziptie.config.json'), 'utf8'));
     expect(config.system.computerName).toBe('kiosk-display-01');
 
-    const batchContent = fs.readFileSync(path.join(tempDir, 'ziptie.bat'), 'utf8');
+    const batchContent = fs.readFileSync(path.join(tempDir, 'ziptie-setup.bat'), 'utf8');
     expect(batchContent).toContain('npx @littlevoid/ziptie');
 
     const updatedPkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
@@ -57,7 +57,7 @@ describe('Init Command', () => {
 
   test('does not overwrite existing files without force flag', async () => {
     const configPath = path.join(tempDir, 'ziptie.config.json');
-    const batchPath = path.join(tempDir, 'ziptie.bat');
+    const batchPath = path.join(tempDir, 'ziptie-setup.bat');
 
     fs.writeFileSync(configPath, '{"custom": true}', 'utf8');
     fs.writeFileSync(batchPath, 'REM CUSTOM BATCH', 'utf8');
@@ -87,7 +87,7 @@ describe('Init Command', () => {
     const exePath = path.join(tempDir, 'ziptie.exe');
     expect(fs.existsSync(exePath)).toBe(true);
 
-    const batchContent = fs.readFileSync(path.join(tempDir, 'ziptie.bat'), 'utf8');
+    const batchContent = fs.readFileSync(path.join(tempDir, 'ziptie-setup.bat'), 'utf8');
     expect(batchContent).toContain('ziptie.exe');
   });
 });
