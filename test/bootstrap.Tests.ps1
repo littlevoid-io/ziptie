@@ -14,7 +14,7 @@ Describe "Ziptie Bootstrap Loader" {
                 # Mock package.json / tsconfig.json dev check to return true to trigger safeguard fallback
                 if ($Path -like "*package.json" -or $Path -like "*tsconfig.json") { return $true }
                 if ($Path -like "$global:repoRoot*") { return $true }
-                if ($Path -like "*ziptie.exe" -or $Path -like "*dist\ziptie.exe" -or $Path -like "*setup.bat") { return $false }
+                if ($Path -like "*ziptie.exe" -or $Path -like "*dist\ziptie.exe" -or $Path -like "*ziptie.bat" -or $Path -like "*setup.bat") { return $false }
                 return $false
             }
             Mock New-Item { }
@@ -42,7 +42,7 @@ Describe "Ziptie Bootstrap Loader" {
                 # Fail dev workspace check to preserve custom InstallDir
                 if ($Path -like "*package.json" -or $Path -like "*tsconfig.json") { return $false }
                 if ($Path -like "$global:repoRoot*") { return $true }
-                if ($Path -like "*ziptie.exe" -or $Path -like "*dist\ziptie.exe" -or $Path -like "*setup.bat") { return $false }
+                if ($Path -like "*ziptie.exe" -or $Path -like "*dist\ziptie.exe" -or $Path -like "*ziptie.bat" -or $Path -like "*setup.bat") { return $false }
                 return $true
             }
             Mock New-Item { }
@@ -68,7 +68,7 @@ Describe "Ziptie Bootstrap Loader" {
                 # Force local repository checks to fail to trigger remote download flow
                 if ($Path -like "*ziptie.schema.json" -or $Path -like "*package.json" -or $Path -like "*tsconfig.json") { return $false }
                 if ($Path -like "$global:repoRoot*") { return $true }
-                if ($Path -like "*ziptie.exe" -or $Path -like "*dist\ziptie.exe" -or $Path -like "*setup.bat") { return $false }
+                if ($Path -like "*ziptie.exe" -or $Path -like "*dist\ziptie.exe" -or $Path -like "*ziptie.bat" -or $Path -like "*setup.bat") { return $false }
                 return $true
             }
             Mock New-Item { }
@@ -98,7 +98,7 @@ Describe "Ziptie Bootstrap Loader" {
                 param($Path)
                 if ($Path -like "*ziptie.config.json") { return $true }
                 if ($Path -like "$global:repoRoot*") { return $true }
-                if ($Path -like "*ziptie.exe" -or $Path -like "*dist\ziptie.exe" -or $Path -like "*setup.bat") { return $false }
+                if ($Path -like "*ziptie.exe" -or $Path -like "*dist\ziptie.exe" -or $Path -like "*ziptie.bat" -or $Path -like "*setup.bat") { return $false }
                 return $false
             }
             Mock New-Item { }
@@ -123,7 +123,7 @@ Describe "Ziptie Bootstrap Loader" {
                 param($Path)
                 if ($Path -like "*package.json" -or $Path -like "*tsconfig.json") { return $false }
                 if ($Path -like "$global:repoRoot*") { return $true }
-                if ($Path -like "*ziptie.exe" -or $Path -like "*dist\ziptie.exe" -or $Path -like "*setup.bat") { return $false }
+                if ($Path -like "*ziptie.exe" -or $Path -like "*dist\ziptie.exe" -or $Path -like "*ziptie.bat" -or $Path -like "*setup.bat") { return $false }
                 return $false
             }
             Mock New-Item { }

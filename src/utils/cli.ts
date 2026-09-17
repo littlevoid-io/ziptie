@@ -1,11 +1,22 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import yargs from 'yargs';
-import { hideBin } from 'yargs/helpers';
 import chalk from 'chalk';
-import { resolveProjectRoot } from './config.js';
+import { resolveProjectRoot } from './project.js';
+import { showHelp } from './help.js';
+import {
+  DefaultConfigLeaf,
+  getLeafProperties,
+  getLeafPropertiesFromSchema,
+  castValue,
+} from './schemaLeaves.js';
+import { SetupMode } from './templates.js';
 
 export interface CLIContext {
+  command?: string;
+  mode?: SetupMode;
+  projectRoot?: string;
+  force: boolean;
   dryRun: boolean;
   undo: boolean;
   customConfigPath: string | null;
@@ -13,313 +24,164 @@ export interface CLIContext {
   overrides: Record<string, any>;
 }
 
-interface DefaultConfigLeaf {
-  path: string[];
-  key: string;
-  type: 'string' | 'boolean' | 'number' | 'array' | 'unknown';
-}
-
-/**
- * Recursively traverses the default configuration to find all leaf properties and their types.
- */
-function getLeafProperties(obj: any, currentPath: string[] = []): DefaultConfigLeaf[] {
-  let leaves: DefaultConfigLeaf[] = [];
-
-  for (const key of Object.keys(obj)) {
-    if (key === '$schema') continue;
-
-    const val = obj[key];
-    const newPath = [...currentPath, key];
-
-    if (val !== null && typeof val === 'object' && !Array.isArray(val)) {
-      leaves = leaves.concat(getLeafProperties(val, newPath));
-    } else {
-      let type: DefaultConfigLeaf['type'] = 'unknown';
-      if (typeof val === 'boolean') type = 'boolean';
-      else if (typeof val === 'number') type = 'number';
-      else if (typeof val === 'string') type = 'string';
-      else if (Array.isArray(val)) type = 'array';
-
-      leaves.push({
-        path: newPath,
-        key,
-        type,
-      });
-    }
-  }
-
-  return leaves;
-}
-
-/**
- * Extracts leaf properties and their types from the JSON schema.
- */
-function getLeafPropertiesFromSchema(schema: any): DefaultConfigLeaf[] {
-  const leaves: DefaultConfigLeaf[] = [];
-  if (!schema || !schema.properties) return leaves;
-
-  for (const catKey of Object.keys(schema.properties)) {
-    if (catKey === '$schema') continue;
-    const catSchema = schema.properties[catKey];
-    if (catSchema && catSchema.properties) {
-      for (const propKey of Object.keys(catSchema.properties)) {
-        const prop = catSchema.properties[propKey];
-        let type: DefaultConfigLeaf['type'] = 'unknown';
-
-        if (prop.type === 'boolean') type = 'boolean';
-        else if (prop.type === 'number') type = 'number';
-        else if (prop.type === 'string') type = 'string';
-        else if (prop.type === 'array') type = 'array';
-        else if (prop.oneOf || prop.anyOf) {
-          const types = (prop.oneOf || prop.anyOf || []).map((t: any) => t.type).filter(Boolean);
-          if (types.includes('string')) type = 'string';
-          else if (types.includes('boolean')) type = 'boolean';
-          else if (types.includes('number')) type = 'number';
-          else if (types.includes('array')) type = 'array';
-        }
-
-        leaves.push({
-          path: [catKey, propKey],
-          key: propKey,
-          type,
-        });
-      }
-    }
-  }
-
-  return leaves;
-}
-
-/**
- * Casts a raw value to the expected type defined by the default configuration.
- */
-function castValue(value: any, targetType: DefaultConfigLeaf['type']): any {
-  if (targetType === 'boolean') {
-    if (value === 'true' || value === '1' || value === true || value === '') return true;
-    if (value === 'false' || value === '0' || value === false) return false;
-    return Boolean(value);
-  }
-  if (targetType === 'number') {
-    const num = Number(value);
-    return isNaN(num) ? value : num;
-  }
-  if (targetType === 'array') {
-    if (Array.isArray(value)) return value;
-    if (typeof value === 'string') {
-      return value.split(',').map(s => s.trim()).filter(Boolean);
-    }
-    return [value];
-  }
-  if (targetType === 'string') {
-    return String(value);
-  }
-  return value;
-}
-
-/**
- * Generates an elegant, dynamic CLI help documentation block using Chalk and the JSON schema.
- */
-export function showHelp(): void {
-  const root = resolveProjectRoot();
-  const schemaPath = path.join(root, 'ziptie.schema.json');
-  const defaultPath = path.join(root, 'ziptie.default.config.json');
-
-  let schema: any = null;
-  let defaultConfig: any = null;
-
-  try {
-    if (fs.existsSync(schemaPath)) schema = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
-    if (fs.existsSync(defaultPath)) defaultConfig = JSON.parse(fs.readFileSync(defaultPath, 'utf8'));
-  } catch {
-    // Fallback if files aren't found/readable
-  }
-
-  console.log(chalk.bold.cyan('\n 🪢 Ziptie System Setup CLI'));
-  console.log(`\n ${chalk.bold('Usage:')} ziptie [options] [overrides]`);
-
-  console.log(`\n ${chalk.bold.yellow('Options:')}`);
-  console.log(`   -c, --config <path>    ${chalk.dim('Path to custom config file')}`);
-  console.log(`   -d, --dry-run          ${chalk.dim('Safe dry-run mode (no changes are made)')}`);
-  console.log(`   -u, --undo             ${chalk.dim('Reverts all changes and restores defaults')}`);
-  console.log(`   -y, --yes              ${chalk.dim('Auto-confirm all prompts (silent mode)')}`);
-  console.log(`   -h, --help             ${chalk.dim('Show help menu')}`);
-
-  if (schema && schema.properties && defaultConfig) {
-    console.log(`\n ${chalk.bold.yellow('Settings Overrides:')}`);
-    console.log(`   ${chalk.dim('Override config settings directly from the command line.')}`);
-    console.log(`   ${chalk.dim('Format: --<setting> <value> (e.g. --computerName EXHIBIT-01)')}\n`);
-
-    const categories = Object.keys(schema.properties);
-    for (const cat of categories) {
-      if (cat === '$schema') continue;
-      const catSchema = schema.properties[cat];
-      const catTitle = catSchema.description || cat;
-      console.log(`   ${chalk.bold.green(`[${catTitle}]`)} ${chalk.dim(`(--${cat}.*)`)}`);
-
-      if (catSchema.properties) {
-        for (const key of Object.keys(catSchema.properties)) {
-          const prop = catSchema.properties[key];
-          const desc = prop.description || '';
-          const defVal = defaultConfig[cat] ? defaultConfig[cat][key] : undefined;
-          
-          let formattedDefault = '';
-          if (defVal !== undefined) {
-            formattedDefault = chalk.dim(`(Default: ${JSON.stringify(defVal)})`);
-          }
-
-          // Format description wrapping to align beautifully
-          const prefix = `     --${key}`;
-          const spaceCount = Math.max(1, 26 - prefix.length);
-          const spaces = ' '.repeat(spaceCount);
-          console.log(`${chalk.cyan(prefix)}${spaces}${desc} ${formattedDefault}`);
-        }
-      }
-      console.log('');
-    }
-  } else {
-    console.log(`\n ${chalk.bold.yellow('Dynamic Configuration Overrides:')}`);
-    console.log(`   Refer to the ziptie.schema.json or ziptie.default.config.json files for list of available parameters.`);
-  }
-
-  process.exit(0);
-}
-
-/**
- * Safely extracts CLI arguments depending on the runtime context (standard node/bun vs standalone compiled binary).
- */
 export function getArgs(): string[] {
   const args = process.argv;
   if (!args || args.length === 0) return [];
-  
   const isJS = args[1] && (args[1].endsWith('.js') || args[1].endsWith('.ts'));
-  const isBinary = args[0] && (args[0].endsWith('.exe') || (!args[0].includes('node') && !args[0].includes('bun')));
-  
-  if (isBinary && !isJS) {
-    return args.slice(1);
-  }
+  const isBinary =
+    args[0] &&
+    (args[0].endsWith('.exe') || (!args[0].includes('node') && !args[0].includes('bun')));
+  if (isBinary && !isJS) return args.slice(1);
   return args.slice(2);
 }
 
-/**
- * Main parser entry point. Parses yargs command line parameters and maps flat/nested overrides dynamically.
- */
-export function parseCLI(): CLIContext {
+function loadConfigLeaves(): DefaultConfigLeaf[] {
   const root = resolveProjectRoot();
   const defaultPath = path.join(root, 'ziptie.default.config.json');
   const schemaPath = path.join(root, 'ziptie.schema.json');
-
   let defaultConfig: any = {};
-  if (fs.existsSync(defaultPath)) {
-    try {
-      defaultConfig = JSON.parse(fs.readFileSync(defaultPath, 'utf8'));
-    } catch (e: any) {
-      console.error(chalk.red(`Error parsing default config in CLI parser: ${e.message}`));
-    }
-  }
-
   let schema: any = null;
-  if (fs.existsSync(schemaPath)) {
-    try {
-      schema = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
-    } catch (e: any) {
-      // Fail silently
-    }
+  try {
+    if (fs.existsSync(defaultPath))
+      defaultConfig = JSON.parse(fs.readFileSync(defaultPath, 'utf8'));
+    if (fs.existsSync(schemaPath)) schema = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
+  } catch {
+    // Suppress config load errors
   }
-
   const schemaLeaves = getLeafPropertiesFromSchema(schema);
   const defaultLeaves = getLeafProperties(defaultConfig);
-
-  // Combine them, preferring schema properties if duplicates exist, but keeping default config properties for fallback
   const leavesMap = new Map<string, DefaultConfigLeaf>();
-  for (const leaf of schemaLeaves) {
-    leavesMap.set(leaf.path.join('.'), leaf);
-  }
+  for (const leaf of schemaLeaves) leavesMap.set(leaf.path.join('.'), leaf);
   for (const leaf of defaultLeaves) {
-    const key = leaf.path.join('.');
-    if (!leavesMap.has(key)) {
-      leavesMap.set(key, leaf);
+    if (!leavesMap.has(leaf.path.join('.'))) leavesMap.set(leaf.path.join('.'), leaf);
+  }
+  return Array.from(leavesMap.values());
+}
+
+function applyCategorizedOverride(
+  overrides: Record<string, any>,
+  category: string,
+  nested: Record<string, any>,
+  leaves: DefaultConfigLeaf[]
+): void {
+  for (const nestedKey of Object.keys(nested)) {
+    const leaf = leaves.find(l => l.path[0] === category && l.path[1] === nestedKey);
+    if (leaf) {
+      if (!overrides[category]) overrides[category] = {};
+      overrides[category][nestedKey] = castValue(nested[nestedKey], leaf.type);
+    } else {
+      console.warn(
+        chalk.yellow(`Warning: Unknown property '${nestedKey}' in category '${category}'.`)
+      );
     }
   }
+}
 
-  const leafProps = Array.from(leavesMap.values());
+function applyFlatOverride(
+  overrides: Record<string, any>,
+  argKey: string,
+  value: any,
+  leaves: DefaultConfigLeaf[]
+): void {
+  const matches = leaves.filter(l => l.key === argKey);
+  if (matches.length === 1) {
+    const [cat, prop] = matches[0].path;
+    if (!overrides[cat]) overrides[cat] = {};
+    overrides[cat][prop] = castValue(value, matches[0].type);
+  } else if (matches.length > 1) {
+    console.warn(chalk.red(`Error: Ambiguous parameter '--${argKey}'. Use dot-notation instead.`));
+  } else {
+    console.warn(chalk.yellow(`Warning: Unknown CLI configuration parameter '--${argKey}'.`));
+  }
+}
 
-  // Initialize yargs parser with dot-notation enabled (yargs parses dot-notation natively)
+function extractOverrides(
+  argv: Record<string, any>,
+  leafProps: DefaultConfigLeaf[]
+): Record<string, any> {
+  const overrides: Record<string, any> = {};
+  const standardFlags = [
+    '_',
+    '$0',
+    'dry-run',
+    'dryRun',
+    'd',
+    'undo',
+    'u',
+    'config',
+    'c',
+    'yes',
+    'y',
+    'mode',
+    'm',
+    'force',
+    'f',
+    'project-root',
+    'projectRoot',
+    'help',
+    'h',
+  ];
+  const categories = Array.from(new Set(leafProps.map(l => l.path[0])));
+  for (const argKey of Object.keys(argv)) {
+    if (standardFlags.includes(argKey)) continue;
+    const val = argv[argKey];
+    if (categories.includes(argKey) && typeof val === 'object' && val !== null) {
+      applyCategorizedOverride(overrides, argKey, val, leafProps);
+    } else {
+      applyFlatOverride(overrides, argKey, val, leafProps);
+    }
+  }
+  return overrides;
+}
+
+export function parseCLI(): CLIContext {
+  const leafProps = loadConfigLeaves();
   const argvInstance = yargs(getArgs())
-    .parserConfiguration({
-      'dot-notation': true,
-      'boolean-negation': true,
-    })
-    .help(false) // Handle help output manually for custom styling
+    .parserConfiguration({ 'dot-notation': true, 'boolean-negation': true })
+    .help(false)
     .alias('h', 'help')
     .alias('d', 'dry-run')
     .alias('u', 'undo')
     .alias('c', 'config')
-    .alias('y', 'yes');
+    .alias('y', 'yes')
+    .alias('m', 'mode')
+    .alias('f', 'force');
 
   const argv = argvInstance.parseSync() as Record<string, any>;
+  if (argv.help) showHelp();
 
-  if (argv.help) {
-    showHelp();
-  }
+  const command = typeof argv._[0] === 'string' ? argv._[0] : undefined;
+  const isInit = command === 'init';
 
-  const dryRun = Boolean(argv['dry-run'] || argv.d);
-  const undo = Boolean(argv.undo || argv.u);
-  const autoConfirm = Boolean(argv.yes || argv.y);
-  const customConfigPath = typeof argv.config === 'string' ? argv.config : null;
-
-  // Process dynamic configuration overrides
-  const overrides: Record<string, any> = {};
-
-  const standardFlags = ['_', '$0', 'dry-run', 'dryRun', 'd', 'undo', 'u', 'config', 'c', 'yes', 'y', 'help', 'h'];
-  const categories = Array.from(new Set(leafProps.map(l => l.path[0])));
-
-  for (const argKey of Object.keys(argv)) {
-    if (standardFlags.includes(argKey)) continue;
-
-    const value = argv[argKey];
-
-    // Case A: Nested/Categorized override (e.g. --windows.disableScreensaver=false)
-    if (categories.includes(argKey) && typeof value === 'object' && value !== null) {
-      for (const nestedKey of Object.keys(value)) {
-        const nestedPath = [argKey, nestedKey];
-        const leaf = leafProps.find(l => l.path[0] === argKey && l.path[1] === nestedKey);
-        
-        if (leaf) {
-          const casted = castValue(value[nestedKey], leaf.type);
-          if (!overrides[argKey]) overrides[argKey] = {};
-          overrides[argKey][nestedKey] = casted;
-        } else {
-          console.warn(chalk.yellow(`Warning: Unknown property '${nestedKey}' in category '${argKey}'.`));
-        }
-      }
+  if (!isInit) {
+    if (argv.mode || argv.m) {
+      console.warn(chalk.yellow("Warning: '--mode' is only valid with the 'init' command."));
     }
-    // Case B: Flat key override (e.g. --disableScreensaver=false)
-    else {
-      // Find all leaf properties with a matching key
-      const matches = leafProps.filter(l => l.key === argKey);
-
-      if (matches.length === 1) {
-        const leaf = matches[0];
-        const [cat, prop] = leaf.path;
-        const casted = castValue(value, leaf.type);
-
-        if (!overrides[cat]) overrides[cat] = {};
-        overrides[cat][prop] = casted;
-      } else if (matches.length > 1) {
-        console.warn(
-          chalk.red(`Error: Ambiguous parameter '--${argKey}'. Matches multiple paths: ${matches.map(m => m.path.join('.')).join(', ')}. Use direct dot-notation instead (e.g. --${matches[0].path.join('.')}).`)
-        );
-      } else {
-        console.warn(chalk.yellow(`Warning: Unknown CLI configuration parameter '--${argKey}'.`));
-      }
+    if (argv.force || argv.f) {
+      console.warn(chalk.yellow("Warning: '--force' is only valid with the 'init' command."));
     }
   }
+
+  const rawMode =
+    isInit &&
+    (typeof argv.mode === 'string' ? argv.mode : typeof argv.m === 'string' ? argv.m : undefined);
+  const mode = ['offline', 'online', 'npm'].includes(rawMode as any)
+    ? (rawMode as SetupMode)
+    : undefined;
+  const projectRoot =
+    isInit && typeof argv['project-root'] === 'string' ? argv['project-root'] : undefined;
 
   return {
-    dryRun,
-    undo,
-    customConfigPath,
-    autoConfirm,
-    overrides,
+    command,
+    mode,
+    projectRoot,
+    force: isInit && Boolean(argv.force || argv.f),
+    dryRun: Boolean(argv['dry-run'] || argv.d),
+    undo: Boolean(argv.undo || argv.u),
+    autoConfirm: Boolean(argv.yes || argv.y),
+    customConfigPath: typeof argv.config === 'string' ? argv.config : null,
+    overrides: extractOverrides(argv, leafProps),
   };
 }
+
+export { showHelp } from './help.js';

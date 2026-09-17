@@ -13,9 +13,11 @@ describe('CLI Advanced Parser', () => {
   test('handles negated boolean flags dynamically', () => {
     // Mock default config to allow schema traversal
     spyOn(fs, 'existsSync').mockImplementation(() => true);
-    spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify({
-      windows: { disableScreensaver: true }
-    }));
+    spyOn(fs, 'readFileSync').mockImplementation(() =>
+      JSON.stringify({
+        windows: { disableScreensaver: true },
+      })
+    );
 
     // Mock CLI argument inputs (yargs dot-notation negation)
     process.argv = ['node', 'index.js', '--no-windows.disableScreensaver', '--no-dry-run'];
@@ -28,9 +30,11 @@ describe('CLI Advanced Parser', () => {
 
   test('parses comma-separated app lists to clean arrays', () => {
     spyOn(fs, 'existsSync').mockImplementation(() => true);
-    spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify({
-      packageManager: { apps: [] }
-    }));
+    spyOn(fs, 'readFileSync').mockImplementation(() =>
+      JSON.stringify({
+        packageManager: { apps: [] },
+      })
+    );
 
     process.argv = ['node', 'index.js', '--apps', 'Node.js, Git.Git, VSCode,,'];
 
@@ -41,9 +45,11 @@ describe('CLI Advanced Parser', () => {
 
   test('gracefully ignores unknown config parameters and flags', () => {
     spyOn(fs, 'existsSync').mockImplementation(() => true);
-    spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify({
-      system: { computerName: 'DEFAULT' }
-    }));
+    spyOn(fs, 'readFileSync').mockImplementation(() =>
+      JSON.stringify({
+        system: { computerName: 'DEFAULT' },
+      })
+    );
 
     const consoleWarnSpy = spyOn(console, 'warn').mockImplementation(() => {});
 
@@ -66,7 +72,7 @@ describe('CLI Advanced Parser', () => {
       const target = String(p);
       if (target.endsWith('ziptie.default.config.json')) {
         return JSON.stringify({
-          system: { computerName: 'DEFAULT' }
+          system: { computerName: 'DEFAULT' },
         });
       }
       if (target.endsWith('ziptie.schema.json')) {
@@ -76,16 +82,16 @@ describe('CLI Advanced Parser', () => {
             system: {
               type: 'object',
               properties: {
-                computerName: { type: 'string' }
-              }
+                computerName: { type: 'string' },
+              },
             },
             windows: {
               type: 'object',
               properties: {
-                disableScreensaver: { type: 'boolean' }
-              }
-            }
-          }
+                disableScreensaver: { type: 'boolean' },
+              },
+            },
+          },
         });
       }
       return '';

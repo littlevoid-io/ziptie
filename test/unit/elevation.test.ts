@@ -9,9 +9,9 @@ describe('Elevation Checker', () => {
 
   test('isAdmin returns true when net session succeeds', () => {
     const execSpy = spyOn(child_process, 'execSync').mockImplementation(() => Buffer.from(''));
-    
+
     const result = isAdmin();
-    
+
     expect(result).toBe(true);
     expect(execSpy).toHaveBeenCalledWith('net session', { stdio: 'ignore', windowsHide: true });
   });
@@ -20,9 +20,9 @@ describe('Elevation Checker', () => {
     spyOn(child_process, 'execSync').mockImplementation(() => {
       throw new Error('Access is denied.');
     });
-    
+
     const result = isAdmin();
-    
+
     expect(result).toBe(false);
   });
 
@@ -45,12 +45,12 @@ describe('Elevation Checker', () => {
     const execSpy = spyOn(child_process, 'execSync').mockImplementation(() => {
       throw new Error('Access is denied.');
     });
-    
+
     const exitSpy = spyOn(process, 'exit').mockImplementation(() => undefined as never);
 
     // Should return immediately without UAC spawning or exit since dry-run is safe
     ensureElevated(true);
-    
+
     // Net session is called to check isAdmin, but UAC is not spawned and exit is not called
     expect(execSpy).toHaveBeenCalledWith('net session', { stdio: 'ignore', windowsHide: true });
     expect(exitSpy).not.toHaveBeenCalled();
@@ -76,7 +76,7 @@ describe('Elevation Checker', () => {
 
       // Verify that execSync was called to spawn elevated process
       expect(execSpy).toHaveBeenCalled();
-      
+
       const lastCallCmd = execSpy.mock.calls[execSpy.mock.calls.length - 1][0] as string;
       expect(lastCallCmd).toContain('Start-Process');
       expect(lastCallCmd).toContain('-Verb RunAs');

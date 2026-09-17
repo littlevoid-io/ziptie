@@ -27,7 +27,7 @@ function formatValue(value: any): string {
   if (typeof value === 'boolean') return String(value);
   if (typeof value === 'number') return String(value);
   if (Array.isArray(value)) {
-    const formatted = value.map((v) => (typeof v === 'string' ? `"${v}"` : String(v)));
+    const formatted = value.map(v => (typeof v === 'string' ? `"${v}"` : String(v)));
     return `[${formatted.join(', ')}]`;
   }
   if (value === undefined || value === null) return 'undefined';
@@ -39,7 +39,7 @@ function formatSettingLine(
   val: any,
   defaultVal: any,
   isCustom: boolean,
-  padding: string,
+  padding: string
 ): string {
   const label = toUserFriendlyLabel(key);
   const formattedVal = formatValue(val);
@@ -55,10 +55,10 @@ function printCategory(title: string, configCat: any, defaultCat: any): void {
   console.log(`\n${chalk.bold(`${title}:`)}`);
   const keys = Object.keys(configCat);
   if (keys.length === 0) return;
-  const customs = keys.filter((k) => !isEqual(configCat[k], defaultCat[k], k));
+  const customs = keys.filter(k => !isEqual(configCat[k], defaultCat[k], k));
   const defaults = keys.length - customs.length;
   if (customs.length > 0) {
-    const maxLen = Math.max(...customs.map((k) => toUserFriendlyLabel(k).length));
+    const maxLen = Math.max(...customs.map(k => toUserFriendlyLabel(k).length));
     for (const k of customs) {
       const pad = ' '.repeat(maxLen - toUserFriendlyLabel(k).length);
       console.log(formatSettingLine(k, configCat[k], defaultCat[k], true, pad));
@@ -86,7 +86,11 @@ function resolveDefaultConfigPaths(defaultConfig: any, customConfigPath: string 
     : path.resolve(process.cwd(), 'ziptie.config.json');
   const configDir = path.dirname(configFilePath);
   const pm = defaultConfig.packageManager;
-  if (pm && typeof pm.localInstallersPath === 'string' && !path.isAbsolute(pm.localInstallersPath)) {
+  if (
+    pm &&
+    typeof pm.localInstallersPath === 'string' &&
+    !path.isAbsolute(pm.localInstallersPath)
+  ) {
     pm.localInstallersPath = path.resolve(configDir, pm.localInstallersPath);
   }
   const st = defaultConfig.startupTask;

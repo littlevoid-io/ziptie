@@ -11,7 +11,10 @@ import deepmerge from 'deepmerge';
  * @param defaultConfigPath Path to the default ziptie configuration JSON file.
  * @param userConfigPath Path to write the user-customized config to.
  */
-export async function runSetupWizard(defaultConfigPath: string, userConfigPath: string): Promise<any> {
+export async function runSetupWizard(
+  defaultConfigPath: string,
+  userConfigPath: string
+): Promise<any> {
   // Ensure the parent directory of userConfigPath exists
   try {
     const parentDir = path.dirname(userConfigPath);
@@ -31,18 +34,27 @@ export async function runSetupWizard(defaultConfigPath: string, userConfigPath: 
     process.exit(1);
   }
 
-  note(
-    chalk.yellow(`No configuration found at:\n${userConfigPath}`),
-    '🪢 Ziptie Setup'
-  );
+  note(chalk.yellow(`No configuration found at:\n${userConfigPath}`), '🪢 Ziptie Setup');
 
   const action = await select({
     message: 'How would you like to configure Ziptie?',
     options: [
-      { value: 'defaults', label: 'Use default settings', hint: 'Apply standard pre-configured settings' },
-      { value: 'cli', label: 'Configure interactively', hint: 'Set computer name, timezone, user, and startup task' },
-      { value: 'file', label: 'Create config file', hint: 'Generate ziptie.config.json and open in editor' }
-    ]
+      {
+        value: 'defaults',
+        label: 'Use default settings',
+        hint: 'Apply standard pre-configured settings',
+      },
+      {
+        value: 'cli',
+        label: 'Configure interactively',
+        hint: 'Set computer name, timezone, user, and startup task',
+      },
+      {
+        value: 'file',
+        label: 'Create config file',
+        hint: 'Generate ziptie.config.json and open in editor',
+      },
+    ],
   });
 
   if (isCancel(action)) {
@@ -58,19 +70,19 @@ export async function runSetupWizard(defaultConfigPath: string, userConfigPath: 
     try {
       fs.copyFileSync(defaultConfigPath, userConfigPath);
       outro(chalk.green(`Created configuration file at: ${userConfigPath}`));
-      
+
       note(
         'Opening config file in your default editor...\nPlease customize your settings and run Ziptie again.',
         'File Created Successfully'
       );
-      
+
       // Open in default editor using Windows 'start' command
       try {
         execSync(`start "" "${userConfigPath}"`, { shell: 'cmd.exe', stdio: 'ignore' });
       } catch {
         // Fallback or ignore if open fails
       }
-      
+
       process.exit(0);
     } catch (e: any) {
       console.error(chalk.red(`Error creating configuration file: ${e.message}`));
@@ -85,8 +97,9 @@ export async function runSetupWizard(defaultConfigPath: string, userConfigPath: 
       initialValue: defaultConfig.system.computerName,
       validate(value) {
         if (value?.trim().length === 0) return 'Computer name cannot be empty.';
-        if (/[^a-zA-Z0-9-]/.test(value ?? '')) return 'Computer name can only contain alphanumeric characters and hyphens.';
-      }
+        if (/[^a-zA-Z0-9-]/.test(value ?? ''))
+          return 'Computer name can only contain alphanumeric characters and hyphens.';
+      },
     });
 
     if (isCancel(computerName)) {
@@ -100,7 +113,7 @@ export async function runSetupWizard(defaultConfigPath: string, userConfigPath: 
       initialValue: defaultConfig.system.timezone,
       validate(value) {
         if (value?.trim().length === 0) return 'Timezone cannot be empty.';
-      }
+      },
     });
 
     if (isCancel(timezone)) {
@@ -114,7 +127,7 @@ export async function runSetupWizard(defaultConfigPath: string, userConfigPath: 
       initialValue: defaultConfig.autologon.username,
       validate(value) {
         if (value?.trim().length === 0) return 'Username cannot be empty.';
-      }
+      },
     });
 
     if (isCancel(username)) {
@@ -128,7 +141,7 @@ export async function runSetupWizard(defaultConfigPath: string, userConfigPath: 
       initialValue: defaultConfig.startupTask.executable,
       validate(value) {
         if (value?.trim().length === 0) return 'Executable name cannot be empty.';
-      }
+      },
     });
 
     if (isCancel(executable)) {
@@ -142,7 +155,7 @@ export async function runSetupWizard(defaultConfigPath: string, userConfigPath: 
       initialValue: defaultConfig.startupTask.workingDir,
       validate(value) {
         if (value?.trim().length === 0) return 'Working directory cannot be empty.';
-      }
+      },
     });
 
     if (isCancel(workingDir)) {
@@ -162,17 +175,14 @@ export async function runSetupWizard(defaultConfigPath: string, userConfigPath: 
       startupTask: {
         executable,
         workingDir,
-      }
+      },
     };
 
     const finalConfig = deepmerge(defaultConfig, customConfig);
 
     try {
       fs.writeFileSync(userConfigPath, JSON.stringify(finalConfig, null, 2), 'utf8');
-      note(
-        `Successfully saved settings to:\n${userConfigPath}`,
-        '🪢 Configuration Saved'
-      );
+      note(`Successfully saved settings to:\n${userConfigPath}`, '🪢 Configuration Saved');
       return finalConfig;
     } catch (e: any) {
       console.error(chalk.red(`Error writing user configuration: ${e.message}`));

@@ -80,7 +80,7 @@ Set-Location -Path $targetPath
 
 if ($Local) {
     Write-Host "[Local Simulation] Copying Ziptie release files from local repo at $repoRoot to $targetPath..." -ForegroundColor Cyan
-    $itemsToCopy = @("dist", "scripts", "ziptie.default.config.json", "ziptie.schema.json", "ziptie.animation.json", "setup.bat")
+    $itemsToCopy = @("dist", "scripts", "ziptie.default.config.json", "ziptie.schema.json", "ziptie.animation.json", "ziptie.bat", "setup.bat")
     foreach ($item in $itemsToCopy) {
         $destItem = Join-Path $targetPath $item
         if (Test-Path $destItem) {
@@ -106,7 +106,7 @@ if ($Local) {
 
     Write-Host "Extracting release..." -ForegroundColor Cyan
     # Clean up old local folders explicitly to prevent stale file caching or partial extraction blocks
-    $itemsToClean = @("dist", "scripts", "ziptie.default.config.json", "ziptie.schema.json", "ziptie.animation.json", "setup.bat")
+    $itemsToClean = @("dist", "scripts", "ziptie.default.config.json", "ziptie.schema.json", "ziptie.animation.json", "ziptie.bat", "setup.bat")
     foreach ($item in $itemsToClean) {
         $destItem = Join-Path $targetPath $item
         if (Test-Path $destItem) {
@@ -137,14 +137,17 @@ if ($hasCallerConfig -and -not $hasConfigArg) {
 
 $exePath = Join-Path $targetPath "ziptie.exe"
 $distExePath = Join-Path $targetPath "dist\ziptie.exe"
+$ziptieBatPath = Join-Path $targetPath "ziptie.bat"
 $setupBatPath = Join-Path $targetPath "setup.bat"
 
 if (Test-Path $exePath) {
     & $exePath $argArray
 } elseif (Test-Path $distExePath) {
     & $distExePath $argArray
+} elseif (Test-Path $ziptieBatPath) {
+    & $ziptieBatPath $argArray
 } elseif (Test-Path $setupBatPath) {
     & $setupBatPath $argArray
 } else {
-    Write-Error "Could not locate ziptie.exe or setup.bat in the extracted files at $targetPath."
+    Write-Error "Could not locate ziptie.exe, ziptie.bat, or setup.bat in the extracted files at $targetPath."
 }

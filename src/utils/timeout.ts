@@ -4,7 +4,7 @@ import chalk from 'chalk';
  * Initiates a non-blocking console countdown timeout before automatically proceeding.
  */
 export async function handleAutoConfirmTimeout(seconds: number = 10): Promise<void> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     let remaining = seconds;
 
     const interval = setInterval(() => {

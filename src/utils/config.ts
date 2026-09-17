@@ -53,7 +53,7 @@ export function loadAndMergeConfig(
   };
   const mergeOptions: deepmerge.Options = {
     arrayMerge: uniqueSortedMerge,
-    customMerge: (key) => {
+    customMerge: key => {
       if (key === 'args') {
         return (target, source) => {
           return Array.isArray(source) ? [...source] : source;
@@ -68,12 +68,14 @@ export function loadAndMergeConfig(
         };
       }
       return undefined;
-    }
+    },
   };
   // Translate legacy 'lockdown' key to 'windows' for backward compatibility
   if (userConfig.lockdown && !userConfig.windows) {
     console.warn(
-      chalk.yellow('\n ⚠️  Warning: The "lockdown" config key is deprecated. Please rename it to "windows" in your config file.')
+      chalk.yellow(
+        '\n ⚠️  Warning: The "lockdown" config key is deprecated. Please rename it to "windows" in your config file.'
+      )
     );
     userConfig.windows = userConfig.lockdown;
     delete userConfig.lockdown;
@@ -89,7 +91,10 @@ export function loadAndMergeConfig(
   }
 
   const configDir = path.dirname(configFilePath);
-  if (mergedConfig.packageManager && typeof mergedConfig.packageManager.localInstallersPath === 'string') {
+  if (
+    mergedConfig.packageManager &&
+    typeof mergedConfig.packageManager.localInstallersPath === 'string'
+  ) {
     if (!path.isAbsolute(mergedConfig.packageManager.localInstallersPath)) {
       mergedConfig.packageManager.localInstallersPath = path.resolve(
         configDir,

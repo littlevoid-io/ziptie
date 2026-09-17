@@ -39,30 +39,26 @@ export const runPowerShellScript = (
       scriptCmd += ' ' + extraArgs.join(' ');
     }
 
-    const args = [
-      '-ExecutionPolicy', 'Bypass',
-      '-NoProfile',
-      '-Command', scriptCmd
-    ];
+    const args = ['-ExecutionPolicy', 'Bypass', '-NoProfile', '-Command', scriptCmd];
 
     const child = spawn('powershell.exe', args, {
       shell: false,
       windowsHide: true,
-      stdio: 'pipe'
+      stdio: 'pipe',
     });
 
     let stdout = '';
     let stderr = '';
 
-    child.stdout.on('data', (data) => {
+    child.stdout.on('data', data => {
       stdout += data.toString();
     });
-    
-    child.stderr.on('data', (data) => {
+
+    child.stderr.on('data', data => {
       stderr += data.toString();
     });
 
-    child.on('close', (code) => {
+    child.on('close', code => {
       if (code === 0) {
         resolve();
       } else {

@@ -14,7 +14,7 @@ describe('PowerShell Executor', () => {
         stderr: { on: (event: string, cb: Function) => cb(Buffer.from('')) },
         on: (event: string, cb: Function) => {
           if (event === 'close') cb(0);
-        }
+        },
       };
       return mockProcess;
     });
@@ -33,12 +33,12 @@ describe('PowerShell Executor', () => {
     // Confirm that the Command argument block was compiled properly
     const cmdIndex = spawnedArgs.indexOf('-Command');
     expect(cmdIndex).toBeGreaterThan(-1);
-    
+
     const commandContent = spawnedArgs[cmdIndex + 1];
-    
+
     // Quotes must be escaped to double single-quotes for PowerShell strings
     expect(commandContent).toContain("with''quotes");
-    
+
     // Standard parameters must be propagated
     expect(commandContent).toContain('-Config $config');
     expect(commandContent).toContain('-DryRun');
@@ -53,11 +53,13 @@ describe('PowerShell Executor', () => {
         stderr: { on: (event: string, cb: Function) => cb(Buffer.from('Access is denied.')) },
         on: (event: string, cb: Function) => {
           if (event === 'close') cb(1); // Exited with error code
-        }
+        },
       };
       return mockProcess;
     });
 
-    expect(runPowerShellScript('script.ps1', 'config.json', false, false)).rejects.toThrow('Access is denied.');
+    expect(runPowerShellScript('script.ps1', 'config.json', false, false)).rejects.toThrow(
+      'Access is denied.'
+    );
   });
 });

@@ -12,11 +12,11 @@ function extractAssets(targetDir: string): void {
   for (const [relPath, base64Content] of Object.entries(EMBEDDED_ASSETS)) {
     const fullPath = path.join(targetDir, relPath);
     const parentDir = path.dirname(fullPath);
-    
+
     if (!fs.existsSync(parentDir)) {
       fs.mkdirSync(parentDir, { recursive: true });
     }
-    
+
     const buffer = Buffer.from(base64Content, 'base64');
     fs.writeFileSync(fullPath, buffer);
   }
@@ -38,10 +38,10 @@ export function resolveProjectRoot(): string {
   const exeDir = path.dirname(process.execPath);
   const potentialRoots = [
     path.resolve(currentFileDir, '..', '..'), // repo root relative to dist/utils or src/utils
-    path.resolve(currentFileDir, '..'),       // repo root relative to dist or src
-    exeDir,                                    // next to executable
-    path.resolve(exeDir, '..'),                // parent of executable dir
-    process.cwd()                              // current working directory
+    path.resolve(currentFileDir, '..'), // repo root relative to dist or src
+    exeDir, // next to executable
+    path.resolve(exeDir, '..'), // parent of executable dir
+    process.cwd(), // current working directory
   ];
 
   // Try to find a local project root that has both the scripts folder and ziptie.default.config.json
@@ -58,7 +58,7 @@ export function resolveProjectRoot(): string {
 
   // If no local project root is found (standalone mode), extract embedded assets to temp dir
   const tempExtractDir = path.join(os.tmpdir(), 'ziptie-extracted');
-  
+
   // Extract all assets
   extractAssets(tempExtractDir);
 

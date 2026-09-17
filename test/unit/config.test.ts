@@ -1,7 +1,12 @@
 import { describe, test, expect, spyOn, mock, afterEach } from 'bun:test';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { loadAndMergeConfig, resolveProjectRoot, printConfig, handleAutoConfirmTimeout } from '../../src/utils/config.js';
+import {
+  loadAndMergeConfig,
+  resolveProjectRoot,
+  printConfig,
+  handleAutoConfirmTimeout,
+} from '../../src/utils/config.js';
 
 describe('Config Utility', () => {
   afterEach(() => {
@@ -47,13 +52,13 @@ describe('Config Utility', () => {
         return JSON.stringify({
           system: { computerName: 'DEFAULT-EXHIBIT', timezone: 'UTC' },
           packageManager: { apps: ['App1', 'App2'] },
-          windows: { disableScreensaver: true, disableWidgets: true }
+          windows: { disableScreensaver: true, disableWidgets: true },
         });
       }
       if (target.endsWith('ziptie.config.json')) {
         return JSON.stringify({
           system: { computerName: 'USER-CUSTOM' },
-          packageManager: { apps: ['App3', 'App1'] }
+          packageManager: { apps: ['App3', 'App1'] },
         });
       }
       return '';
@@ -66,7 +71,7 @@ describe('Config Utility', () => {
     const { config } = loadAndMergeConfig(null, {
       system: { timezone: 'Tokyo Standard Time' },
       windows: { disableScreensaver: false },
-      packageManager: { apps: ['App4'] }
+      packageManager: { apps: ['App4'] },
     });
 
     // Asserts:
@@ -88,7 +93,7 @@ describe('Config Utility', () => {
     const consoleSpy = spyOn(console, 'log').mockImplementation(() => {});
     const sampleConfig = {
       system: { computerName: 'TEST-PC' },
-      windows: { disableFirewall: true }
+      windows: { disableFirewall: true },
     };
 
     printConfig(sampleConfig);
@@ -105,8 +110,8 @@ describe('Config Utility', () => {
     const consoleSpy = spyOn(console, 'log').mockImplementation(() => {});
     const sampleConfig = {
       packageManager: {
-        apps: ["Git.Git", "CoreyButler.NVMforWindows", "Microsoft.VisualStudioCode"]
-      }
+        apps: ['Git.Git', 'CoreyButler.NVMforWindows', 'Microsoft.VisualStudioCode'],
+      },
     };
 
     printConfig(sampleConfig);
@@ -129,12 +134,12 @@ describe('Config Utility', () => {
       const target = String(p);
       if (target.endsWith('ziptie.default.config.json')) {
         return JSON.stringify({
-          startupTask: { args: [] }
+          startupTask: { args: [] },
         });
       }
       if (target.endsWith('ziptie.config.json')) {
         return JSON.stringify({
-          startupTask: { args: ['run', 'dev:drawing-room'] }
+          startupTask: { args: ['run', 'dev:drawing-room'] },
         });
       }
       return '';
@@ -161,12 +166,12 @@ describe('Config Utility', () => {
       const target = String(p);
       if (target.endsWith('ziptie.default.config.json')) {
         return JSON.stringify({
-          packageManager: { apps: ['App1', 'App2'] }
+          packageManager: { apps: ['App1', 'App2'] },
         });
       }
       if (target.endsWith('ziptie.config.json')) {
         return JSON.stringify({
-          packageManager: { apps: ['App3', 'App1'] }
+          packageManager: { apps: ['App3', 'App1'] },
         });
       }
       return '';
@@ -185,8 +190,8 @@ describe('Config Utility', () => {
     const consoleSpy = spyOn(console, 'log').mockImplementation(() => {});
     const sampleConfig = {
       startupTask: {
-        args: ["run", "dev:drawing-room"]
-      }
+        args: ['run', 'dev:drawing-room'],
+      },
     };
 
     const fsExistsSpy = spyOn(fs, 'existsSync').mockImplementation((p: any) => {
@@ -195,15 +200,17 @@ describe('Config Utility', () => {
     const fsReadSpy = spyOn(fs, 'readFileSync').mockImplementation((p: any) => {
       return JSON.stringify({
         startupTask: {
-          args: ["dev:drawing-room", "run"]
-        }
+          args: ['dev:drawing-room', 'run'],
+        },
       });
     });
 
     printConfig(sampleConfig);
 
     const calls = consoleSpy.mock.calls.map(call => call.join(' '));
-    expect(calls.some(c => c.replace(/\u001b\[[0-9;]*m/g, '').includes('Startup Task:'))).toBe(true);
+    expect(calls.some(c => c.replace(/\u001b\[[0-9;]*m/g, '').includes('Startup Task:'))).toBe(
+      true
+    );
 
     consoleSpy.mockRestore();
     fsExistsSpy.mockRestore();
@@ -212,13 +219,13 @@ describe('Config Utility', () => {
 
   test('handleAutoConfirmTimeout runs countdown and resolves', async () => {
     let callback: (() => void) | null = null;
-    
+
     // Mock setInterval to capture the callback
     const setIntervalSpy = spyOn(global, 'setInterval').mockImplementation((cb: any, ms) => {
       callback = cb;
       return 123 as any;
     });
-    
+
     const clearIntervalSpy = spyOn(global, 'clearInterval').mockImplementation(() => {});
     const writeSpy = spyOn(process.stdout, 'write').mockImplementation(() => true);
 
@@ -238,10 +245,9 @@ describe('Config Utility', () => {
     await promise;
 
     expect(clearIntervalSpy).toHaveBeenCalledWith(123 as any);
-    
+
     setIntervalSpy.mockRestore();
     clearIntervalSpy.mockRestore();
     writeSpy.mockRestore();
   });
 });
-

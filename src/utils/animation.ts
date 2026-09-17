@@ -12,10 +12,10 @@ export interface AnimationConfig {
 const defaultAnimation: AnimationConfig = {
   metadata: { speedMs: 150, width: 25 },
   frames: [
-    ["   (====)   ", "  ((====))  ", "   ziptie   ", "   v{{VERSION}}  "],
-    ["  ((====))  ", " (((====))) ", "   ziptie   ", "   v{{VERSION}}  "],
-    [" (((====))) ", "((((====))))", "   ziptie   ", "   v{{VERSION}}  "]
-  ]
+    ['   (====)   ', '  ((====))  ', '   ziptie   ', '   v{{VERSION}}  '],
+    ['  ((====))  ', ' (((====))) ', '   ziptie   ', '   v{{VERSION}}  '],
+    [' (((====))) ', '((((====))))', '   ziptie   ', '   v{{VERSION}}  '],
+  ],
 };
 export function loadVersion(): string {
   return VERSION;
@@ -44,7 +44,10 @@ export class ColumnRenderer implements ListrRenderer {
   private version = VERSION;
   private animationConfig: AnimationConfig;
 
-  constructor(private tasks: any[], private options: any) {
+  constructor(
+    private tasks: any[],
+    private options: any
+  ) {
     const root = resolveProjectRoot();
     this.animationConfig = loadConfig(root);
   }
@@ -79,7 +82,8 @@ export class ColumnRenderer implements ListrRenderer {
     const width = this.animationConfig.metadata.width || 25;
     const rightColumn = this.animationConfig.frames[this.currentFrameIndex].map(l => {
       if (!l.includes('{{VERSION}}')) return l;
-      const txt = `ziptie v${this.version}`, pad = width - txt.length;
+      const txt = `ziptie v${this.version}`,
+        pad = width - txt.length;
       const L = Math.floor(pad / 2);
       return ' '.repeat(L) + txt + ' '.repeat(pad - L);
     });
@@ -96,23 +100,33 @@ export class ColumnRenderer implements ListrRenderer {
     return task.isPending() ? chalk.cyan('>') : '.';
   }
 
-  private getSubtaskRange(subtasks: any[], remaining: number): { start: number; end: number; showTop: boolean; showBottom: boolean } {
+  private getSubtaskRange(
+    subtasks: any[],
+    remaining: number
+  ): { start: number; end: number; showTop: boolean; showBottom: boolean } {
     const N = subtasks.length;
     if (N <= remaining) return { start: 0, end: N - 1, showTop: false, showBottom: false };
     let activeIndex = subtasks.findIndex((s: any) => s.isPending());
-    if (activeIndex === -1) activeIndex = subtasks.findIndex((s: any) => !s.isCompleted() && !s.isSkipped());
+    if (activeIndex === -1)
+      activeIndex = subtasks.findIndex((s: any) => !s.isCompleted() && !s.isSkipped());
     activeIndex = Math.max(0, activeIndex === -1 ? N - 1 : activeIndex);
-    let start = Math.max(0, activeIndex - 1), end = start + remaining - 1;
+    let start = Math.max(0, activeIndex - 1),
+      end = start + remaining - 1;
     if (start === 0) end = remaining - 2;
-    else if (N - start + 1 <= remaining) { end = N - 1; start = N - remaining + 1; }
-    else end = start + remaining - 3;
-    if (end >= N - 1) { end = N - 1; start = N - remaining + 1; }
+    else if (N - start + 1 <= remaining) {
+      end = N - 1;
+      start = N - remaining + 1;
+    } else end = start + remaining - 3;
+    if (end >= N - 1) {
+      end = N - 1;
+      start = N - remaining + 1;
+    }
     return { start, end, showTop: start > 0, showBottom: end < N - 1 };
   }
 
   private formatTask(task: any, lines: string[], depth = 0): void {
     lines.push(`${' '.repeat(depth * 2)}${this.getIcon(task)} ${task.title || 'Untitled'}`);
-    const active = depth === 0 ? (task.isPending() || task.hasFailed()) : !task.isCompleted();
+    const active = depth === 0 ? task.isPending() || task.hasFailed() : !task.isCompleted();
     if (!task.hasSubtasks() || !active) return;
     const subtasks = task.subtasks;
     if (depth === 0) {
@@ -129,17 +143,19 @@ export class ColumnRenderer implements ListrRenderer {
   }
 
   private mergeColumns(left: string[], right: string[]): string[] {
-    const FIXED_HEIGHT = 15, leftLines = [...left];
+    const FIXED_HEIGHT = 15,
+      leftLines = [...left];
     while (leftLines.length < FIXED_HEIGHT) leftLines.push('');
-    const sliced = leftLines.slice(-FIXED_HEIGHT), result: string[] = [];
-    const tIdx = right.findIndex((l) => l.includes('ziptie v') || l.includes('v' + this.version));
+    const sliced = leftLines.slice(-FIXED_HEIGHT),
+      result: string[] = [];
+    const tIdx = right.findIndex(l => l.includes('ziptie v') || l.includes('v' + this.version));
     const title = tIdx !== -1 ? right[tIdx] : '';
     const frame = right.filter((_, idx) => idx !== tIdx);
     const startRow = FIXED_HEIGHT - frame.length;
     for (let i = 0; i < FIXED_HEIGHT; i++) {
       const pad = Math.max(50 - sliced[i].replace(/\u001b\[[0-9;]*m/g, '').length, 0);
       const spacer = ' '.repeat(pad) + chalk.cyan('│') + ' ';
-      const rightLine = i === 0 ? title : (i >= startRow ? frame[i - startRow] : '');
+      const rightLine = i === 0 ? title : i >= startRow ? frame[i - startRow] : '';
       result.push(sliced[i] + spacer + chalk.bold.magenta(rightLine));
     }
     return result;

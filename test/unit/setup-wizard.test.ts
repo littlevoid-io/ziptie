@@ -12,7 +12,7 @@ describe('Setup Wizard', () => {
   test('returns default configuration if user chooses defaults', async () => {
     // Mock fs functions
     const mockDefaultConfig = {
-      system: { computerName: 'DEFAULT-PC', timezone: 'UTC' }
+      system: { computerName: 'DEFAULT-PC', timezone: 'UTC' },
     };
     spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(mockDefaultConfig));
 
@@ -30,7 +30,7 @@ describe('Setup Wizard', () => {
     const mockDefaultConfig = {
       system: { computerName: 'DEFAULT-PC', timezone: 'UTC' },
       autologon: { username: 'exhibit' },
-      startupTask: { executable: 'launch.bat', workingDir: 'C:\\Exhibit' }
+      startupTask: { executable: 'launch.bat', workingDir: 'C:\\Exhibit' },
     };
     spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(mockDefaultConfig));
     const writeSpy = spyOn(fs, 'writeFileSync').mockImplementation(() => {});
@@ -38,14 +38,14 @@ describe('Setup Wizard', () => {
     // Mock prompt functions
     const selectSpy = spyOn(prompts, 'select').mockResolvedValue('cli' as any);
     const noteSpy = spyOn(prompts, 'note').mockImplementation(() => {});
-    
+
     // Simulate user answering CLI questions
     const textSpy = spyOn(prompts, 'text')
       .mockResolvedValueOnce('CUSTOM-EXHIBIT-PC') // computerName
       .mockResolvedValueOnce('Tokyo Standard Time') // timezone
-      .mockResolvedValueOnce('kiosk-user')          // username
-      .mockResolvedValueOnce('exhibit.exe')         // executable
-      .mockResolvedValueOnce('C:\\ExhibitPath');     // workingDir
+      .mockResolvedValueOnce('kiosk-user') // username
+      .mockResolvedValueOnce('exhibit.exe') // executable
+      .mockResolvedValueOnce('C:\\ExhibitPath'); // workingDir
 
     const result = await runSetupWizard('defaultConfig.json', '.tmp/userConfig.json');
 
@@ -66,7 +66,7 @@ describe('Setup Wizard', () => {
     const mockDefaultConfig = {
       system: { computerName: 'DEFAULT-PC', timezone: 'UTC' },
       autologon: { username: 'exhibit' },
-      startupTask: { executable: 'launch.bat', workingDir: 'C:\\Exhibit' }
+      startupTask: { executable: 'launch.bat', workingDir: 'C:\\Exhibit' },
     };
     spyOn(fs, 'readFileSync').mockImplementation(() => JSON.stringify(mockDefaultConfig));
 
@@ -86,11 +86,13 @@ describe('Setup Wizard', () => {
     await runSetupWizard('defaultConfig.json', '.tmp/userConfig.json');
 
     expect(validator).toBeTypeOf('function');
-    
+
     // Verify validator assertions
     expect(validator('')).toBe('Computer name cannot be empty.');
     expect(validator(' ')).toBe('Computer name cannot be empty.');
-    expect(validator('INVALID NAME!')).toBe('Computer name can only contain alphanumeric characters and hyphens.');
+    expect(validator('INVALID NAME!')).toBe(
+      'Computer name can only contain alphanumeric characters and hyphens.'
+    );
     expect(validator('VALID-PC-01')).toBeUndefined();
   });
 });

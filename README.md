@@ -1,180 +1,199 @@
-# ZipTie
+# ziptie
 
-Zero-dependency Windows 11 system bootstrapping framework for public exhibits, gallery installations, and unattended digital signage.
+Windows 11 system setup and bootstrapping CLI for museum exhibits, gallery installations, and unattended digital signage. Hardens and configures Windows settings offline from a declarative configuration file.
 
-## What it Does
+## Quick start
 
-* **System Settings**: Configures hostname, timezone, high-performance power plan, and daily reboot schedules.
-* **Windows Customization**: Disables updates, edge swipes, touch feedback, OOBE prompts, screensavers, and notifications.
-* **Package Management**: Installs apps like NVM, git, VS Code, uninstalls bloatware like OneDrive
-* **Autologon & Startup**: Configures automatic login and startup tasks.
+### One-line online install (requires internet)
 
-## One-Line Install
-
-Run from CMD or PowerShell to bootstrap a fresh system:
+Run from PowerShell on a fresh machine to bootstrap directly from GitHub:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/littlevoid-io/ziptie/main/scripts/bootstrap.ps1 | iex"
 ```
 
-To pass parameters to the installer:
+### Add to existing repository (can be configured for offline deployment, requires npm installed)
+
+Initialize in your exhibit project root:
+
+```sh
+npx @littlevoid/ziptie init
+```
+
+Prompts for target mode (`online`, `offline`, `npm`), scaffolding `ziptie.config.json` and `ziptie.bat`. Run on target exhibit machines with:
+
+```cmd
+.\ziptie.bat
+```
+
+## Commands
+
+### Setup commands
+
+| Command                         | Description                                                 |
+| ------------------------------- | ----------------------------------------------------------- |
+| `ziptie`                        | Apply configuration (prompts for elevation if not elevated) |
+| `ziptie --dry-run` (`-d`)       | Preview changes without modifying system state              |
+| `ziptie --undo` (`-u`)          | Revert applied configuration                                |
+| `ziptie --yes` (`-y`)           | Auto-confirm prompt with a 10s countdown                    |
+| `ziptie --config <path>` (`-c`) | Specify a custom configuration file path                    |
+
+When developing from checkout, run `npm start -- <flags>`.
+
+### Init command
+
+| Command                             | Description                                       |
+| ----------------------------------- | ------------------------------------------------- |
+| `ziptie init`                       | Scaffolds `ziptie.config.json` and `ziptie.bat`   |
+| `ziptie init --mode <mode>` (`-m`)  | Set execution mode: `online`, `offline`, or `npm` |
+| `ziptie init --force` (`-f`)        | Overwrite existing configuration and batch files  |
+| `ziptie init --project-root <path>` | Target directory for scaffolding (default: cwd)   |
+
+### Passing flags & overrides
+
+#### In an exhibit repository (`ziptie.bat` / CLI)
+
+Pass standard flags, flat parameter shortcuts, or dot-notation overrides:
+
+```powershell
+# Safe preview with auto-confirm
+.\ziptie.bat -y -d
+
+# Flat shortcuts for unique keys
+.\ziptie.bat --timezone "Tokyo Standard Time" --disableScreensaver false --apps "Node.js,Git.Git"
+
+# Dot-notation for nested categories
+.\ziptie.bat --windows.disableScreensaver=false --system.computerName="EXHIBIT-99"
+```
+
+#### Via one-line online install (`bootstrap.ps1`)
+
+Pass parameters to the remote runner using `-ExtraArgs`:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -Command "& ([scriptblock]::Create((irm https://raw.githubusercontent.com/littlevoid-io/ziptie/main/scripts/bootstrap.ps1))) -ExtraArgs '-y -d --timezone \"Tokyo Standard Time\" --disableScreensaver false'"
 ```
 
-## Quick Start
+## Configuration
 
-### 1. Install & Build
+`ziptie.config.json` is validated against `ziptie.schema.json` and merged over defaults in `ziptie.default.config.json`:
 
-```powershell
-npm install; npm run build
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/littlevoid-io/ziptie/main/ziptie.schema.json",
+  "system": {
+    "computerName": "exhibit-pc-01",
+    "timezone": "auto",
+    "dailyReboot": true,
+    "rebootTime": "06:00"
+  },
+  "autologon": {
+    "enabled": true,
+    "username": "exhibit",
+    "disablePasswordlessHello": true
+  },
+  "startupTask": {
+    "enabled": true,
+    "workingDir": "C:\\Exhibit",
+    "executable": "launch.bat"
+  }
+}
 ```
 
-### 2. Execution Commands
+### Config sections
 
-| Command | Action |
-| :--- | :--- |
-| `npm start` | Apply configuration (requires elevation) |
-| `npm start -- --dry-run` | Preview changes without modifying system state |
-| `npm start -- --undo` | Revert applied configuration |
-| `npm start -- <overrides>` | Apply with parameter overrides |
+All sections are optional and merge over defaults in `ziptie.default.config.json`:
 
-Configure settings in `ziptie.config.json`. Schema validation is provided via `ziptie.schema.json`.
-
-## CLI Overrides
-
-Override configuration parameters using command-line arguments:
-
-* **Dot-Notation**: Target nested keys explicitly.
-  ```powershell
-  npm start -- --windows.disableScreensaver=false --system.computerName="EXHIBIT-99"
-  ```
-* **Flat Shortcuts**: Omit categories for unique keys. The engine auto-casts values.
-  ```powershell
-  npm start -- --timezone "Tokyo Standard Time" --disableScreensaver true --apps "Node.js,Git.Git"
-  ```
-* **Combined Flags**:
-  ```powershell
-  npm start -- -y -d --computerName "EXHIBIT-02" --windows.disableEdgeSwipes=false
-  ```
-
-#### Parameters
+| Section          | Default | Purpose                                                                           |
+| ---------------- | ------- | --------------------------------------------------------------------------------- |
+| `system`         | on      | Hostname, timezone, daily reboot task, reboot on finish                           |
+| `autologon`      | on      | Auto-login credentials and Windows Hello bypass                                   |
+| `startupTask`    | on      | Scheduled task registered to trigger `AtLogon` in the GUI session                 |
+| `packageManager` | on      | Winget/Chocolatey installs and offline `./installers` scanning                    |
+| `windows`        | on      | System tweaks: telemetry, updates, widgets, touch gestures, power plan, bloatware |
 
 <details>
-<summary>View all available configuration parameters</summary>
+<summary>View all parameters</summary>
 
-| Key | Type | Description |
-| :--- | :--- | :--- |
-| `system.computerName` | string | Hostname of the system. |
-| `system.timezone` | string | System timezone registry value or `auto`. |
-| `system.dailyReboot` | boolean | Configures daily reboot task. |
-| `system.rebootTime` | string | Time of reboot (e.g., `06:00`). |
-| `system.rebootOnFinish` | boolean | Reboots machine when Ziptie finishes applying. |
-| `autologon.enabled` | boolean | Enforces passwordless auto-login for user. (Requires dot-notation) |
-| `autologon.username` | string | OS user account targeted for auto-login. |
-| `autologon.disablePasswordlessHello` | boolean | Disables Windows Hello passwordless enforcement. |
-| `startupTask.enabled` | boolean | Creates a scheduled task running at GUI logon. (Requires dot-notation) |
-| `startupTask.workingDir` | string | Directory from which target executable starts. |
-| `startupTask.executable` | string | Executable path/name to launch. |
-| `startupTask.args` | array | Command line arguments. |
-| `startupTask.trigger` | string | Trigger constraint (default: `AtLogon`). |
-| `startupTask.delay` | string | Delay before launch (e.g., `PT1M`). |
-| `packageManager.provider` | string | Package manager CLI tool (`winget` or `choco`). |
-| `packageManager.allowOfflineFallback` | boolean | Searches `.\installers` for silent installers if offline. |
-| `packageManager.localInstallersPath` | string | Folder path for local offline installer files. |
-| `packageManager.apps` | array | App package IDs or Chocolatey names to install. |
-| `windows.disableScreensaver` | boolean | Disables lockscreen, sleep, and screensavers. |
-| `windows.disableAccessibilityShortcuts` | boolean | Blocks Shift-key accessibility triggers. |
-| `windows.disableEdgeSwipes` | boolean | Disables touch swipes from monitor edges. |
-| `windows.disableTouchFeedback` | boolean | Disables visual touch pointer indicators. |
-| `windows.disableSystemSounds` | boolean | Disables standard system-event audio alerts. |
-| `windows.disableWindowsUpdate` | boolean | Disables Windows Update services and tasks. |
-| `windows.disableWindowsWidgets` | boolean | Disables widgets and news feeds from taskbar. |
-| `windows.disableCopilotRecall` | boolean | Disables Windows Copilot and Recall tracking. |
-| `windows.disableOOBEPrompts` | boolean | Blocks post-update configuration prompt displays. |
-| `windows.clearDesktopIcons` | boolean | Removes all default shortcuts from public desktop. |
-| `windows.solidColorBackground` | string | Sets desktop to a hex-coded solid color (e.g., `#333333`). |
-| `windows.enableDarkMode` | boolean | Forces dark theme across Windows UI. |
-| `windows.configureExplorer` | boolean | Displays file extensions, hidden files, and simplifies layout. |
-| `windows.disableAppInstalls` | boolean | Blocks Microsoft Store background app provisioning. |
-| `windows.disableAppRestore` | boolean | Blocks automatic AppX restoration behavior. |
-| `windows.disableErrorReporting` | boolean | Disables Windows error popup reporting. |
-| `windows.disableFirewall` | boolean | Disables Windows Defender Firewall rules. |
-| `windows.disableMaxPathLength` | boolean | Extends NTFS 260 character directory limits. |
-| `windows.disableNewNetworkWindow` | boolean | Disables new overlay network panel flyouts. |
-| `windows.disableNotifications` | boolean | Disables standard Windows Action Center toast notifications. |
-| `windows.disableTouchGestures` | boolean | Disables multi-finger touch controls. |
-| `windows.enableScriptExecution` | boolean | Unlocks local PowerShell execution restrictions. |
-| `windows.resetTextScale` | boolean | Forces text size settings back to 100%. |
-| `windows.uninstallBloatware` | boolean | Automatically uninstalls bundled bloatware packages. |
-| `windows.uninstallOneDrive` | boolean | Completely uninstalls and disables OneDrive. |
-| `windows.unpinStartMenuApps` | boolean | Removes pinned default apps from the Start menu. |
-| `windows.setPowerSettings` | boolean | Forces system to the Ultimate/High Performance power plan. |
+| Key                                     | Type    | Description                                                 |
+| :-------------------------------------- | :------ | :---------------------------------------------------------- |
+| `system.computerName`                   | string  | Hostname of the system.                                     |
+| `system.timezone`                       | string  | System timezone registry value or `auto`.                   |
+| `system.dailyReboot`                    | boolean | Configures daily reboot task.                               |
+| `system.rebootTime`                     | string  | Time of reboot (e.g. `06:00`).                              |
+| `system.rebootOnFinish`                 | boolean | Reboots machine when execution finishes.                    |
+| `autologon.enabled`                     | boolean | Enables autologon (requires dot-notation).                  |
+| `autologon.username`                    | string  | User account targeted for auto-login.                       |
+| `autologon.disablePasswordlessHello`    | boolean | Disables Windows Hello passwordless requirement.            |
+| `startupTask.enabled`                   | boolean | Creates scheduled startup task (requires dot-notation).     |
+| `startupTask.workingDir`                | string  | Working directory for executable.                           |
+| `startupTask.executable`                | string  | Executable path to launch.                                  |
+| `startupTask.args`                      | array   | Command-line arguments.                                     |
+| `startupTask.trigger`                   | string  | Trigger constraint (default: `AtLogon`).                    |
+| `startupTask.delay`                     | string  | Delay before launch (e.g. `PT1M`).                          |
+| `packageManager.provider`               | string  | Package manager CLI (`winget` or `choco`).                  |
+| `packageManager.allowOfflineFallback`   | boolean | Scans `.\installers` for offline installers.                |
+| `packageManager.localInstallersPath`    | string  | Folder path for offline installers.                         |
+| `packageManager.apps`                   | array   | Package IDs or Chocolatey package names.                    |
+| `windows.disableScreensaver`            | boolean | Disables lockscreen, sleep, and screensavers.               |
+| `windows.disableAccessibilityShortcuts` | boolean | Blocks Shift-key accessibility triggers.                    |
+| `windows.disableEdgeSwipes`             | boolean | Disables touch swipes from monitor edges.                   |
+| `windows.disableTouchFeedback`          | boolean | Disables visual touch pointer indicators.                   |
+| `windows.disableSystemSounds`           | boolean | Disables system-event audio alerts.                         |
+| `windows.disableWindowsUpdate`          | boolean | Disables Windows Update service and tasks.                  |
+| `windows.disableWindowsWidgets`         | boolean | Disables widgets and news feeds from taskbar.               |
+| `windows.disableCopilotRecall`          | boolean | Disables Windows Copilot and Recall tracking.               |
+| `windows.disableOOBEPrompts`            | boolean | Blocks post-update setup prompts.                           |
+| `windows.clearDesktopIcons`             | boolean | Removes default shortcuts from public desktop.              |
+| `windows.solidColorBackground`          | string  | Sets desktop solid background hex color (e.g. `#333333`).   |
+| `windows.enableDarkMode`                | boolean | Forces dark theme across Windows UI.                        |
+| `windows.configureExplorer`             | boolean | Shows file extensions, hidden files, and simplifies layout. |
+| `windows.disableAppInstalls`            | boolean | Blocks Store background app installs.                       |
+| `windows.disableAppRestore`             | boolean | Blocks automatic AppX restoration.                          |
+| `windows.disableErrorReporting`         | boolean | Disables Windows error popup reporting.                     |
+| `windows.disableFirewall`               | boolean | Disables Windows Defender Firewall rules.                   |
+| `windows.disableMaxPathLength`          | boolean | Extends NTFS 260 character path limit.                      |
+| `windows.disableNewNetworkWindow`       | boolean | Disables overlay network panel flyouts.                     |
+| `windows.disableNotifications`          | boolean | Disables Action Center notifications.                       |
+| `windows.disableTouchGestures`          | boolean | Disables multi-finger touch controls.                       |
+| `windows.enableScriptExecution`         | boolean | Sets PowerShell execution policy to RemoteSigned.           |
+| `windows.resetTextScale`                | boolean | Resets display text scaling to 100%.                        |
+| `windows.uninstallBloatware`            | boolean | Uninstalls bundled UWP consumer bloatware.                  |
+| `windows.uninstallOneDrive`             | boolean | Uninstalls and removes OneDrive.                            |
+| `windows.unpinStartMenuApps`            | boolean | Clears pinned default apps from Start menu.                 |
+| `windows.setPowerSettings`              | boolean | Sets power plan to High Performance.                        |
 
 </details>
 
-## Development & Testing
+## Execution pipeline
 
-### Local Simulation
+| Stage                    | Action                                                                                           |
+| :----------------------- | :----------------------------------------------------------------------------------------------- |
+| **1. Config resolution** | Parses `ziptie.config.json` against `ziptie.schema.json` and deep-merges over defaults           |
+| **2. Hive mount**        | Mounts `C:\Users\Default\NTUSER.DAT` to `HKU:\DefaultUser` to propagate settings to new accounts |
+| **3. App provisioning**  | Scans `./installers` for silent installers or resolves packages via Winget/Chocolatey            |
+| **4. OS settings**       | Executes convergent scripts in `scripts/windows/` for apply or revert (`--undo`)                 |
+| **5. Shell restart**     | Unmounts default hive and restarts Windows Explorer                                              |
 
-To simulate bootstrapping using local assets:
+## Development
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\bootstrap.ps1 -InstallDir "C:\ziptie-dev" -ExtraArgs "-d -y"
+```sh
+npm install
+npm run build         # bundle CLI into dist/index.js
+npm test              # run unit and pester tests
+npm run package       # compile standalone dist/ziptie.exe and zip archive
 ```
 
-### Test Commands
+### Windows Sandbox testing
 
-| Command | Target |
-| :--- | :--- |
-| `npm test` | Run entire test suite (TypeScript & Pester) |
-| `npm run test:unit` | Run TypeScript unit tests |
-| `npm run test:cli` | Run CLI integration tests |
-| `npm run test:pester` | Run PowerShell Pester unit tests |
+Verify configuration behaviors inside an isolated Windows Sandbox:
 
-### Windows Sandbox Verification
+| Command                  | Action                                                   |
+| ------------------------ | -------------------------------------------------------- |
+| `npm run sandbox`        | Mount repository and open interactive guest console      |
+| `npm run sandbox:local`  | Run automated guest tests (`test/run-sandbox-tests.ps1`) |
+| `npm run sandbox:remote` | Test remote cloud bootstrap script in clean sandbox      |
 
-Verify configuration behaviors in an isolated Windows Sandbox:
+## License
 
-| Command | Action |
-| :--- | :--- |
-| `npm run sandbox` | Mount repository to guest Desktop and open interactive guest console |
-| `npm run sandbox:local` | Mount repository and run automated guest tests (`test/run-sandbox-tests.ps1`) |
-| `npm run sandbox:remote` | Launch clean sandbox and run the remote cloud bootstrap script |
-
-## Releases
-
-1. Configure `GITHUB_TOKEN` in `.env`:
-   ```env
-   GITHUB_TOKEN=your_token
-   ```
-2. Build and publish:
-   ```powershell
-   npm run release
-   ```
-## Execution Pipeline
-
-1. **Schema Validation**: Parses `ziptie.config.json` against `ziptie.schema.json` and deep-merges with defaults.
-2. **Hive Mounting**: Mounts `C:\Users\Default\NTUSER.DAT` to `HKU:\DefaultUser` so future users inherit customized user settings.
-3. **App Provisioning**: Scans `./installers` for offline installers or uses `winget`/`choco` fallbacks.
-4. **Tweak Execution**: Runs convergent scripts in `scripts/windows/` for apply or revert (`-Undo`) operations.
-
-```mermaid
----
-config:
-    flowchart:
-        defaultRenderer: elk
-        inheritDir: false
----
-flowchart LR
-    subgraph Bootstrap
-        A(Start) --> B(Load Config) --> C(Wizard)
-    end
-    
-    subgraph Execution
-        G1[Mount Hive] --> G2[Install Apps] --> G3[Run Tweaks] --> G4[Uninstall Apps] --> G5[Unmount Hive]
-    end
-    
-    C --> G1
-```
+[MIT](LICENSE)

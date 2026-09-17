@@ -23,13 +23,20 @@ describe('CLI Override Parser', () => {
     process.argv = [
       'node',
       'dist/index.js',
-      '--computerName', 'TEST-EXHIBIT-99',
-      '--timezone', 'Tokyo Standard Time',
-      '--dailyReboot', 'false',
-      '--rebootOnFinish', 'true',
-      '--disableScreensaver', 'true',
-      '--disableFirewall', '1',
-      '--apps', 'Node.js,Git.Git,VSCode',
+      '--computerName',
+      'TEST-EXHIBIT-99',
+      '--timezone',
+      'Tokyo Standard Time',
+      '--dailyReboot',
+      'false',
+      '--rebootOnFinish',
+      'true',
+      '--disableScreensaver',
+      'true',
+      '--disableFirewall',
+      '1',
+      '--apps',
+      'Node.js,Git.Git,VSCode',
     ];
     const ctx = parseCLI();
 
@@ -46,10 +53,14 @@ describe('CLI Override Parser', () => {
     process.argv = [
       'node',
       'dist/index.js',
-      '--system.rebootTime', '04:00',
-      '--system.rebootOnFinish', 'false',
-      '--windows.disableScreensaver', 'false',
-      '--windows.solidColorBackground', '#000000',
+      '--system.rebootTime',
+      '04:00',
+      '--system.rebootOnFinish',
+      'false',
+      '--windows.disableScreensaver',
+      'false',
+      '--windows.solidColorBackground',
+      '#000000',
     ];
     const ctx = parseCLI();
 
@@ -63,14 +74,37 @@ describe('CLI Override Parser', () => {
     process.argv = [
       'node',
       'dist/index.js',
-      '--computerName', 'HYBRID-EXHIBIT',
-      '--windows.disableScreensaver', 'true',
-      '--disableEdgeSwipes', 'false',
+      '--computerName',
+      'HYBRID-EXHIBIT',
+      '--windows.disableScreensaver',
+      'true',
+      '--disableEdgeSwipes',
+      'false',
     ];
     const ctx = parseCLI();
 
     expect(ctx.overrides.system?.computerName).toBe('HYBRID-EXHIBIT');
     expect(ctx.overrides.windows?.disableScreensaver).toBe(true);
     expect(ctx.overrides.windows?.disableEdgeSwipes).toBe(false);
+  });
+
+  test('parses init command and options correctly', () => {
+    process.argv = [
+      'node',
+      'dist/index.js',
+      'init',
+      '--mode',
+      'offline',
+      '--force',
+      '--project-root',
+      './my-app',
+    ];
+    const ctx = parseCLI();
+
+    expect(ctx.command).toBe('init');
+    expect(ctx.mode).toBe('offline');
+    expect(ctx.force).toBe(true);
+    expect(ctx.projectRoot).toBe('./my-app');
+    expect(ctx.overrides).toEqual({});
   });
 });

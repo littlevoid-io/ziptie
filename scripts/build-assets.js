@@ -60,10 +60,14 @@ const version = pkg.version || '1.0.0';
 // Ensure src/version.ts is synchronized with package.json
 const versionFilePath = path.join(projectRoot, 'src', 'version.ts');
 const versionContent = `export const VERSION = '${version}';\n`;
-if (!fs.existsSync(versionFilePath) || fs.readFileSync(versionFilePath, 'utf8') !== versionContent) {
+if (
+  !fs.existsSync(versionFilePath) ||
+  fs.readFileSync(versionFilePath, 'utf8') !== versionContent
+) {
   fs.writeFileSync(versionFilePath, versionContent, 'utf8');
 }
 
 fs.writeFileSync(path.join(outputDir, 'assets.json'), JSON.stringify(assets, null, 2), 'utf8');
-console.log(`Successfully generated dist/assets.json with ${Object.keys(assets).length} embedded assets (version ${version})!`);
-
+console.log(
+  `Successfully generated dist/assets.json with ${Object.keys(assets).length} embedded assets (version ${version})!`
+);

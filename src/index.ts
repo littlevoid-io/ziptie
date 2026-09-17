@@ -18,11 +18,23 @@ import { runSetupWizard } from './utils/setupWizard.js';
 import { OS_WINDOWS_TASKS } from './tasks.js';
 import { parseCLI } from './utils/cli.js';
 import { ColumnRenderer } from './utils/animation.js';
+import { runInit } from './commands/init.js';
 
 // Parse command line arguments and overrides using yargs
-const { dryRun, undo, customConfigPath, autoConfirm, overrides } = parseCLI();
+const cliContext = parseCLI();
+const { dryRun, undo, customConfigPath, autoConfirm, overrides } = cliContext;
 
 async function main() {
+  if (cliContext.command === 'init') {
+    const code = await runInit({
+      projectRoot: cliContext.projectRoot,
+      mode: cliContext.mode,
+      force: cliContext.force,
+      autoConfirm: cliContext.autoConfirm,
+    });
+    process.exit(code);
+  }
+
   if (process.platform !== 'win32') {
     console.error(chalk.red('Error: Ziptie currently only supports Windows.'));
     process.exit(1);
@@ -51,7 +63,7 @@ async function main() {
   // 2. Load and deep-merge default/user configurations with CLI overrides
   const { projectRoot, resolvedConfigPath, config } = loadAndMergeConfig(
     customConfigPath,
-    overrides,
+    overrides
   );
 
   // Print final composited config settings
@@ -83,203 +95,197 @@ async function main() {
   const utilsDir = path.join(projectRoot, 'scripts', 'utils');
 
   // Define tasks
-  const tasks = new Listr([
-    {
-      title: 'Checking environment',
-      task: () => {
-        if (process.platform !== 'win32') {
-          throw new Error('Ziptie only supports Windows.');
-        }
+  const tasks = new Listr(
+    [
+      {
+        title: 'Checking environment',
+        task: () => {
+          if (process.platform !== 'win32') {
+            throw new Error('Ziptie only supports Windows.');
+          }
+        },
       },
-    },
-    {
-      title: 'System Setup',
-      task: (ctx, task) =>
-        task.newListr(
-          [
-            {
-              title: 'Configuring timezone',
-              skip: () => {
-                if (undo) return false;
-                const val = config.system?.timezone;
-                if (!val || val === 'none' || val === 'false')
-                  return 'Disabled in configuration';
-                return false;
+      {
+        title: 'System Setup',
+        task: (ctx, task) =>
+          task.newListr(
+            [
+              {
+                title: 'Configuring timezone',
+                skip: () => {
+                  if (undo) return false;
+                  const val = config.system?.timezone;
+                  if (!val || val === 'none' || val === 'false') return 'Disabled in configuration';
+                  return false;
+                },
+                task: () =>
+                  runPowerShellScript(
+                    path.join(scriptsDir, 'set-timezone.ps1'),
+                    resolvedConfigPath,
+                    undo,
+                    dryRun
+                  ),
               },
-              task: () =>
-                runPowerShellScript(
-                  path.join(scriptsDir, 'set-timezone.ps1'),
-                  resolvedConfigPath,
-                  undo,
-                  dryRun,
-                ),
-            },
-            {
-              title: 'Configuring computer name',
-              skip: () => {
-                if (undo) return false;
-                const val = config.system?.computerName;
-                if (!val || val === 'none' || val === 'false')
-                  return 'Disabled in configuration';
-                return false;
+              {
+                title: 'Configuring computer name',
+                skip: () => {
+                  if (undo) return false;
+                  const val = config.system?.computerName;
+                  if (!val || val === 'none' || val === 'false') return 'Disabled in configuration';
+                  return false;
+                },
+                task: () =>
+                  runPowerShellScript(
+                    path.join(scriptsDir, 'set-computer-name.ps1'),
+                    resolvedConfigPath,
+                    undo,
+                    dryRun
+                  ),
               },
-              task: () =>
-                runPowerShellScript(
-                  path.join(scriptsDir, 'set-computer-name.ps1'),
-                  resolvedConfigPath,
-                  undo,
-                  dryRun,
-                ),
-            },
-            {
-              title: 'Scheduling daily reboot',
-              skip: () => {
-                if (undo) return false;
-                const val = config.system?.dailyReboot;
-                if (val === false || val === null || val === undefined)
-                  return 'Disabled in configuration';
-                return false;
+              {
+                title: 'Scheduling daily reboot',
+                skip: () => {
+                  if (undo) return false;
+                  const val = config.system?.dailyReboot;
+                  if (val === false || val === null || val === undefined)
+                    return 'Disabled in configuration';
+                  return false;
+                },
+                task: () =>
+                  runPowerShellScript(
+                    path.join(scriptsDir, 'enable-daily-reboot.ps1'),
+                    resolvedConfigPath,
+                    undo,
+                    dryRun
+                  ),
               },
-              task: () =>
-                runPowerShellScript(
-                  path.join(scriptsDir, 'enable-daily-reboot.ps1'),
-                  resolvedConfigPath,
-                  undo,
-                  dryRun,
-                ),
-            },
-            {
-              title: 'Configuring autologon',
-              skip: () => {
-                if (undo) return false;
-                const val = config.autologon?.enabled;
-                if (val === false || val === null || val === undefined)
-                  return 'Disabled in configuration';
-                return false;
+              {
+                title: 'Configuring autologon',
+                skip: () => {
+                  if (undo) return false;
+                  const val = config.autologon?.enabled;
+                  if (val === false || val === null || val === undefined)
+                    return 'Disabled in configuration';
+                  return false;
+                },
+                task: () =>
+                  runPowerShellScript(
+                    path.join(scriptsDir, 'enable-auto-login.ps1'),
+                    resolvedConfigPath,
+                    undo,
+                    dryRun
+                  ),
               },
-              task: () =>
-                runPowerShellScript(
-                  path.join(scriptsDir, 'enable-auto-login.ps1'),
-                  resolvedConfigPath,
-                  undo,
-                  dryRun,
-                ),
-            },
-            {
-              title: 'Setting up startup task',
-              skip: () => {
-                if (undo) return false;
-                const val = config.startupTask?.enabled;
-                if (val === false || val === null || val === undefined)
-                  return 'Disabled in configuration';
-                return false;
+              {
+                title: 'Setting up startup task',
+                skip: () => {
+                  if (undo) return false;
+                  const val = config.startupTask?.enabled;
+                  if (val === false || val === null || val === undefined)
+                    return 'Disabled in configuration';
+                  return false;
+                },
+                task: () =>
+                  runPowerShellScript(
+                    path.join(scriptsDir, 'enable-startup-task.ps1'),
+                    resolvedConfigPath,
+                    undo,
+                    dryRun
+                  ),
               },
-              task: () =>
-                runPowerShellScript(
-                  path.join(scriptsDir, 'enable-startup-task.ps1'),
-                  resolvedConfigPath,
-                  undo,
-                  dryRun,
-                ),
-            },
-            {
-              title: 'Installing local apps',
-              skip: () => {
-                if (undo) return false;
-                const provider = config.packageManager?.provider;
-                const allowOffline =
-                  config.packageManager?.allowOfflineFallback;
-                if (provider === 'none' && !allowOffline)
-                  return 'Disabled in configuration';
-                return false;
+              {
+                title: 'Installing local apps',
+                skip: () => {
+                  if (undo) return false;
+                  const provider = config.packageManager?.provider;
+                  const allowOffline = config.packageManager?.allowOfflineFallback;
+                  if (provider === 'none' && !allowOffline) return 'Disabled in configuration';
+                  return false;
+                },
+                task: () =>
+                  runPowerShellScript(
+                    path.join(scriptsDir, 'install-local-apps.ps1'),
+                    resolvedConfigPath,
+                    undo,
+                    dryRun
+                  ),
               },
-              task: () =>
-                runPowerShellScript(
-                  path.join(scriptsDir, 'install-local-apps.ps1'),
-                  resolvedConfigPath,
-                  undo,
-                  dryRun,
-                ),
-            },
-          ],
-          { concurrent: false },
-        ),
-    },
-    {
-      title: 'Preparing registry',
-      skip: () => dryRun,
-      task: async () => {
-        await runPowerShellScript(
-          path.join(utilsDir, 'ziptie-mount-hive.ps1'),
-          resolvedConfigPath,
-          undo,
-          dryRun,
-          [
-            '-MountName',
-            'HKU\\DefaultUser',
-            '-HivePath',
-            'C:\\Users\\Default\\NTUSER.DAT',
-          ],
-        );
-        hiveMounted = true;
+            ],
+            { concurrent: false }
+          ),
       },
-    },
-    {
-      title: 'Applying Windows OS settings',
-      task: (ctx, task) =>
-        task.newListr(
-          OS_WINDOWS_TASKS.map((spec) => ({
-            title: undo
-              ? `${spec.undoAction || 'Restoring'} ${spec.title}`
-              : `${spec.action || 'Disabling'} ${spec.title}`,
-            skip: () => {
-              if (undo) return false;
-              const val = config.windows?.[spec.configKey];
-              if (val === false || val === null || val === undefined) {
-                return 'Disabled in configuration';
-              }
-              return false;
-            },
-            task: () =>
-              runPowerShellScript(
-                path.join(scriptsDir, spec.file),
-                resolvedConfigPath,
-                undo,
-                dryRun,
-              ),
-          })),
-          { concurrent: false },
-        ),
-    },
-    {
-      title: 'Finalizing registry',
-      skip: () => dryRun || !hiveMounted,
-      task: async () => {
-        await runPowerShellScript(
-          path.join(utilsDir, 'ziptie-unmount-hive.ps1'),
-          resolvedConfigPath,
-          undo,
-          dryRun,
-          ['-MountName', 'HKU\\DefaultUser'],
-        );
-        hiveMounted = false;
-      },
-    },
-    {
-      title: 'Restarting Windows Shell',
-      skip: () => dryRun,
-      task: () => {
-        try {
-          execSync(
-            'powershell -Command "Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue"',
-            { stdio: 'ignore', windowsHide: true },
+      {
+        title: 'Preparing registry',
+        skip: () => dryRun,
+        task: async () => {
+          await runPowerShellScript(
+            path.join(utilsDir, 'ziptie-mount-hive.ps1'),
+            resolvedConfigPath,
+            undo,
+            dryRun,
+            ['-MountName', 'HKU\\DefaultUser', '-HivePath', 'C:\\Users\\Default\\NTUSER.DAT']
           );
-        } catch {
-          // Explorer restart fails occasionally if already stopped; ignore failure
-        }
+          hiveMounted = true;
+        },
       },
-    },
-  ], { renderer: ColumnRenderer });
+      {
+        title: 'Applying Windows OS settings',
+        task: (ctx, task) =>
+          task.newListr(
+            OS_WINDOWS_TASKS.map(spec => ({
+              title: undo
+                ? `${spec.undoAction || 'Restoring'} ${spec.title}`
+                : `${spec.action || 'Disabling'} ${spec.title}`,
+              skip: () => {
+                if (undo) return false;
+                const val = config.windows?.[spec.configKey];
+                if (val === false || val === null || val === undefined) {
+                  return 'Disabled in configuration';
+                }
+                return false;
+              },
+              task: () =>
+                runPowerShellScript(
+                  path.join(scriptsDir, spec.file),
+                  resolvedConfigPath,
+                  undo,
+                  dryRun
+                ),
+            })),
+            { concurrent: false }
+          ),
+      },
+      {
+        title: 'Finalizing registry',
+        skip: () => dryRun || !hiveMounted,
+        task: async () => {
+          await runPowerShellScript(
+            path.join(utilsDir, 'ziptie-unmount-hive.ps1'),
+            resolvedConfigPath,
+            undo,
+            dryRun,
+            ['-MountName', 'HKU\\DefaultUser']
+          );
+          hiveMounted = false;
+        },
+      },
+      {
+        title: 'Restarting Windows Shell',
+        skip: () => dryRun,
+        task: () => {
+          try {
+            execSync(
+              'powershell -Command "Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue"',
+              { stdio: 'ignore', windowsHide: true }
+            );
+          } catch {
+            // Explorer restart fails occasionally if already stopped; ignore failure
+          }
+        },
+      },
+    ],
+    { renderer: ColumnRenderer }
+  );
 
   try {
     await tasks.run();
@@ -302,7 +308,7 @@ async function main() {
       try {
         execSync(
           `powershell -Command "& '${path.join(utilsDir, 'ziptie-unmount-hive.ps1')}' -MountName 'HKU\\DefaultUser'"`,
-          { stdio: 'ignore', windowsHide: true },
+          { stdio: 'ignore', windowsHide: true }
         );
       } catch {
         // Suppress secondary failures
@@ -313,7 +319,7 @@ async function main() {
   }
 }
 
-main().catch((err) => {
+main().catch(err => {
   console.error(err);
   process.exit(1);
 });

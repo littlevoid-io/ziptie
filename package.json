@@ -31,6 +31,7 @@
     "ziptie.schema.json",
     "ziptie.animation.json",
     "scripts",
+    "ziptie.bat",
     "setup.bat",
     "LICENSE",
     "README.md"
@@ -41,7 +42,7 @@
     "prepare": "node scripts/build-assets.js",
     "start": "node dist/index.js",
     "build": "node scripts/build-assets.js && bun build ./src/index.ts --target=node --outfile=dist/index.js",
-    "package": "node scripts/build-assets.js && bun build --compile --target=node ./src/index.ts --outfile=dist/ziptie.exe && powershell -Command \"Compress-Archive -Path dist/ziptie.exe, scripts, ziptie.default.config.json, ziptie.schema.json, ziptie.animation.json, setup.bat -DestinationPath dist/ziptie.zip -Force\"",
+    "package": "node scripts/build-assets.js && bun build --compile --target=node ./src/index.ts --outfile=dist/ziptie.exe && powershell -Command \"Compress-Archive -Path dist/ziptie.exe, scripts, ziptie.default.config.json, ziptie.schema.json, ziptie.animation.json, ziptie.bat, setup.bat -DestinationPath dist/ziptie.zip -Force\"",
     "sandbox": "npm run package && node test/launch-sandbox.js",
     "sandbox:local": "npm run package && node test/launch-sandbox.js --run-tests",
     "sandbox:remote": "node test/launch-sandbox-remote.js",

@@ -28,9 +28,13 @@ describe('Animation Utility', () => {
 
     const customConfig = {
       metadata: { speedMs: 50, width: 30 },
-      frames: [['custom frame 1'], ['custom frame 2']]
+      frames: [['custom frame 1'], ['custom frame 2']],
     };
-    fs.writeFileSync(path.join(testDir, 'ziptie.animation.json'), JSON.stringify(customConfig), 'utf8');
+    fs.writeFileSync(
+      path.join(testDir, 'ziptie.animation.json'),
+      JSON.stringify(customConfig),
+      'utf8'
+    );
 
     const loaded = loadConfig(testDir);
     expect(loaded.metadata.speedMs).toBe(50);
