@@ -6,7 +6,7 @@ import { branchTasks, mergeTasks, syncTasks } from './release-tasks.js';
 
 function run(cmd, args) {
   try {
-    const fullCmd = [cmd, ...args].join(' ');
+    const fullCmd = [cmd, ...args.map(arg => (arg.includes(' ') ? `"${arg}"` : arg))].join(' ');
     return execSync(fullCmd, { encoding: 'utf8', stdio: 'pipe' }).trim();
   } catch (err) {
     const message = err.stderr ? err.stderr.toString() : err.message;
