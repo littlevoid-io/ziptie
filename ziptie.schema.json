@@ -11,26 +11,26 @@
         "computerName": {
           "type": "string",
           "default": "auto",
-          "description": "The target name of the computer. Set to 'auto', empty, or unchanged to preserve the current hostname without renaming.",
+          "description": "The target name of the computer. Defaults to 'auto' to preserve the current Windows hostname without renaming.",
           "minLength": 1
         },
         "timezone": {
           "type": "string",
-          "description": "The standardized Windows Time Zone name (e.g. 'Eastern Standard Time', 'Pacific Standard Time') or 'auto' to automatically detect based on location services.",
+          "description": "The standardized Windows Time Zone name (e.g. 'Eastern Standard Time', 'Pacific Standard Time'). Defaults to 'auto' to automatically detect and sync timezone based on Windows location services.",
           "minLength": 1
         },
         "dailyReboot": {
           "type": "boolean",
-          "description": "Enables a scheduled task to reboot the computer daily to prevent memory leaks and maintain exhibit performance."
+          "description": "Enables a scheduled task to reboot the computer daily at rebootTime to prevent memory leaks and maintain exhibit stability."
         },
         "rebootTime": {
           "type": "string",
-          "description": "The time of day in HH:MM (24-hour format) when the daily reboot should occur (e.g. '03:00').",
+          "description": "The time of day in HH:MM (24-hour format) when the daily reboot occurs (Default: '06:00').",
           "pattern": "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$"
         },
         "rebootOnFinish": {
           "type": "boolean",
-          "description": "Automatically reboots the computer at the end of the ziptie run if a change was made, without prompting."
+          "description": "Automatically reboots the computer at the end of the ziptie run if a change was made, without prompting (Default: false)."
         }
       },
       "required": ["computerName", "timezone", "dailyReboot", "rebootTime", "rebootOnFinish"]
@@ -46,7 +46,7 @@
         "username": {
           "type": "string",
           "default": "auto",
-          "description": "The local Windows account name that should automatically log in on boot (e.g. 'exhibit'). Set to 'auto' or leave empty/undefined to use the currently logged-in user at runtime."
+          "description": "The local Windows account name that should automatically log in on boot (e.g. 'exhibit'). Defaults to 'auto' to dynamically use the currently logged-in Windows user account at runtime."
         },
         "disablePasswordlessHello": {
           "type": "boolean",
@@ -66,11 +66,11 @@
         "workingDir": {
           "type": "string",
           "default": "auto",
-          "description": "The working directory from which the executable should be launched. Set to 'auto' or '.' to dynamically resolve to the directory containing ziptie.config.json at runtime."
+          "description": "The working directory from which the executable should be launched. Defaults to 'auto' (or '.') to dynamically resolve to the directory containing ziptie.config.json at runtime."
         },
         "executable": {
           "type": "string",
-          "description": "The path to the executable to run (e.g. 'C:\\Exhibit\\launch.bat' or 'node'). If 'args' is not provided, this field will be parsed for arguments automatically."
+          "description": "The path or file name of the executable or script to run (e.g. 'launch.bat', 'app.exe', or 'node'). If 'args' is not provided, this field will be parsed for arguments automatically."
         },
         "args": {
           "type": "array",
@@ -82,11 +82,11 @@
         "trigger": {
           "type": "string",
           "enum": ["AtLogon", "AtStartup"],
-          "description": "AtLogon (Recommended) runs the app in the active, visible graphical session. AtStartup runs it headlessly in background Session 0 (highly discouraged for UI apps)."
+          "description": "The schedule trigger constraint. Defaults to 'AtLogon' (Recommended) to run the app in the active, visible graphical session. 'AtStartup' runs headlessly in background Session 0 (discouraged for UI apps)."
         },
         "delay": {
           "type": "string",
-          "description": "ISO 8601 duration string specifying how long to wait after boot/logon before starting the application (e.g. 'PT1M' for 1 minute, 'PT15S' for 15 seconds).",
+          "description": "ISO 8601 duration string specifying how long to wait after boot/logon before starting the application. Defaults to 'PT1M' (1 minute) to allow desktop and graphics services to settle.",
           "pattern": "^PT([0-9]+[HMS])+$"
         }
       },

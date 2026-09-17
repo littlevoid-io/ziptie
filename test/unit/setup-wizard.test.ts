@@ -75,7 +75,7 @@ describe('Setup Wizard', () => {
     spyOn(prompts, 'select').mockResolvedValue('cli' as any);
     spyOn(prompts, 'note').mockImplementation(() => {});
     spyOn(prompts, 'text').mockImplementation((options: any) => {
-      if (options.message === 'Computer name:') {
+      if (options.message.startsWith('Computer name')) {
         validator = options.validate;
       }
       return Promise.resolve('VALID-NAME');

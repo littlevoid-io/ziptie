@@ -1,4 +1,5 @@
 import { text, confirm, isCancel } from '@clack/prompts';
+import chalk from 'chalk';
 
 export function parseArgsString(raw: string): string[] {
   const trimmed = raw.trim();
@@ -16,8 +17,9 @@ export function validateComputerName(value?: string): string | void {
 }
 
 export async function promptComputerName(initialValue = 'auto'): Promise<string | null> {
+  const hint = chalk.dim('("auto" keeps existing PC name)');
   const result = await text({
-    message: 'Computer name:',
+    message: `Computer name ${hint}:`,
     placeholder: initialValue,
     initialValue,
     validate: validateComputerName,
@@ -26,8 +28,9 @@ export async function promptComputerName(initialValue = 'auto'): Promise<string 
 }
 
 export async function promptTimezone(initialValue = 'auto'): Promise<string | null> {
+  const hint = chalk.dim('("auto" detects via location)');
   const result = await text({
-    message: 'System timezone (or "auto"):',
+    message: `System timezone ${hint}:`,
     placeholder: initialValue,
     initialValue,
     validate(value) {
@@ -38,8 +41,9 @@ export async function promptTimezone(initialValue = 'auto'): Promise<string | nu
 }
 
 export async function promptUsername(initialValue = 'auto'): Promise<string | null> {
+  const hint = chalk.dim('("auto" uses current Windows user)');
   const result = await text({
-    message: 'Auto-login username:',
+    message: `Auto-login username ${hint}:`,
     placeholder: initialValue,
     initialValue,
     validate(value) {
@@ -50,8 +54,9 @@ export async function promptUsername(initialValue = 'auto'): Promise<string | nu
 }
 
 export async function promptWorkingDir(initialValue = 'auto'): Promise<string | null> {
+  const hint = chalk.dim('("auto" uses project directory at runtime)');
   const result = await text({
-    message: 'Startup directory:',
+    message: `Startup directory ${hint}:`,
     placeholder: initialValue,
     initialValue,
     validate(value) {
@@ -62,8 +67,9 @@ export async function promptWorkingDir(initialValue = 'auto'): Promise<string | 
 }
 
 export async function promptExecutable(initialValue = 'launch.bat'): Promise<string | null> {
+  const hint = chalk.dim('(e.g. launch.bat or app.exe)');
   const result = await text({
-    message: 'Startup file name:',
+    message: `Startup file name ${hint}:`,
     placeholder: initialValue,
     initialValue,
     validate(value) {
@@ -74,8 +80,9 @@ export async function promptExecutable(initialValue = 'launch.bat'): Promise<str
 }
 
 export async function promptArgs(initialValue = ''): Promise<string[] | null> {
+  const hint = chalk.dim('(space-separated, optional)');
   const result = await text({
-    message: 'Startup arguments (space-separated, optional):',
+    message: `Startup arguments ${hint}:`,
     placeholder: initialValue,
     initialValue,
   });

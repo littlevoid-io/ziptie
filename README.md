@@ -82,7 +82,7 @@ powershell -ExecutionPolicy Bypass -Command "& ([scriptblock]::Create((irm https
 {
   "$schema": "https://raw.githubusercontent.com/littlevoid-io/ziptie/main/ziptie.schema.json",
   "system": {
-    "computerName": "exhibit-pc-01",
+    "computerName": "auto",
     "timezone": "auto",
     "dailyReboot": true,
     "rebootTime": "06:00"
@@ -94,7 +94,7 @@ powershell -ExecutionPolicy Bypass -Command "& ([scriptblock]::Create((irm https
   },
   "startupTask": {
     "enabled": true,
-    "workingDir": "C:\\Exhibit",
+    "workingDir": "auto",
     "executable": "launch.bat"
   }
 }
@@ -115,53 +115,53 @@ All sections are optional and merge over defaults in `ziptie.default.config.json
 <details>
 <summary>View all parameters</summary>
 
-| Key                                     | Type    | Description                                                 |
-| :-------------------------------------- | :------ | :---------------------------------------------------------- |
-| `system.computerName`                   | string  | Hostname of the system.                                     |
-| `system.timezone`                       | string  | System timezone registry value or `auto`.                   |
-| `system.dailyReboot`                    | boolean | Configures daily reboot task.                               |
-| `system.rebootTime`                     | string  | Time of reboot (e.g. `06:00`).                              |
-| `system.rebootOnFinish`                 | boolean | Reboots machine when execution finishes.                    |
-| `autologon.enabled`                     | boolean | Enables autologon (requires dot-notation).                  |
-| `autologon.username`                    | string  | User account targeted for auto-login (or `auto`).           |
-| `autologon.disablePasswordlessHello`    | boolean | Disables Windows Hello passwordless requirement.            |
-| `startupTask.enabled`                   | boolean | Creates scheduled startup task (requires dot-notation).     |
-| `startupTask.workingDir`                | string  | Working directory for executable.                           |
-| `startupTask.executable`                | string  | Executable path to launch.                                  |
-| `startupTask.args`                      | array   | Command-line arguments.                                     |
-| `startupTask.trigger`                   | string  | Trigger constraint (default: `AtLogon`).                    |
-| `startupTask.delay`                     | string  | Delay before launch (e.g. `PT1M`).                          |
-| `packageManager.provider`               | string  | Package manager CLI (`winget` or `choco`).                  |
-| `packageManager.allowOfflineFallback`   | boolean | Scans `.\installers` for offline installers.                |
-| `packageManager.localInstallersPath`    | string  | Folder path for offline installers.                         |
-| `packageManager.apps`                   | array   | Package IDs or Chocolatey package names.                    |
-| `windows.disableScreensaver`            | boolean | Disables lockscreen, sleep, and screensavers.               |
-| `windows.disableAccessibilityShortcuts` | boolean | Blocks Shift-key accessibility triggers.                    |
-| `windows.disableEdgeSwipes`             | boolean | Disables touch swipes from monitor edges.                   |
-| `windows.disableTouchFeedback`          | boolean | Disables visual touch pointer indicators.                   |
-| `windows.disableSystemSounds`           | boolean | Disables system-event audio alerts.                         |
-| `windows.disableWindowsUpdate`          | boolean | Disables Windows Update service and tasks.                  |
-| `windows.disableWindowsWidgets`         | boolean | Disables widgets and news feeds from taskbar.               |
-| `windows.disableCopilotRecall`          | boolean | Disables Windows Copilot and Recall tracking.               |
-| `windows.disableOOBEPrompts`            | boolean | Blocks post-update setup prompts.                           |
-| `windows.clearDesktopIcons`             | boolean | Removes default shortcuts from public desktop.              |
-| `windows.solidColorBackground`          | string  | Sets desktop solid background hex color (e.g. `#333333`).   |
-| `windows.enableDarkMode`                | boolean | Forces dark theme across Windows UI.                        |
-| `windows.configureExplorer`             | boolean | Shows file extensions, hidden files, and simplifies layout. |
-| `windows.disableAppInstalls`            | boolean | Blocks Store background app installs.                       |
-| `windows.disableAppRestore`             | boolean | Blocks automatic AppX restoration.                          |
-| `windows.disableErrorReporting`         | boolean | Disables Windows error popup reporting.                     |
-| `windows.disableFirewall`               | boolean | Disables Windows Defender Firewall rules.                   |
-| `windows.disableMaxPathLength`          | boolean | Extends NTFS 260 character path limit.                      |
-| `windows.disableNewNetworkWindow`       | boolean | Disables overlay network panel flyouts.                     |
-| `windows.disableNotifications`          | boolean | Disables Action Center notifications.                       |
-| `windows.disableTouchGestures`          | boolean | Disables multi-finger touch controls.                       |
-| `windows.enableScriptExecution`         | boolean | Sets PowerShell execution policy to RemoteSigned.           |
-| `windows.resetTextScale`                | boolean | Resets display text scaling to 100%.                        |
-| `windows.uninstallBloatware`            | boolean | Uninstalls bundled UWP consumer bloatware.                  |
-| `windows.uninstallOneDrive`             | boolean | Uninstalls and removes OneDrive.                            |
-| `windows.unpinStartMenuApps`            | boolean | Clears pinned default apps from Start menu.                 |
-| `windows.setPowerSettings`              | boolean | Sets power plan to High Performance.                        |
+| Key                                     | Type    | Description                                                          |
+| :-------------------------------------- | :------ | :------------------------------------------------------------------- |
+| `system.computerName`                   | string  | Hostname (`auto` preserves current hostname without renaming).       |
+| `system.timezone`                       | string  | System timezone (`auto` detects via Windows location services).      |
+| `system.dailyReboot`                    | boolean | Configures daily reboot task at `rebootTime`.                        |
+| `system.rebootTime`                     | string  | Time of reboot in HH:MM 24h format (default: `06:00`).               |
+| `system.rebootOnFinish`                 | boolean | Reboots machine when execution finishes (default: `false`).          |
+| `autologon.enabled`                     | boolean | Enables autologon (requires dot-notation).                           |
+| `autologon.username`                    | string  | User account targeted for auto-login (`auto` uses current user).     |
+| `autologon.disablePasswordlessHello`    | boolean | Disables Windows Hello passwordless requirement.                     |
+| `startupTask.enabled`                   | boolean | Creates scheduled startup task (requires dot-notation).              |
+| `startupTask.workingDir`                | string  | Working directory (`auto` resolves to config directory at runtime).  |
+| `startupTask.executable`                | string  | Executable path or script file to launch (default: `launch.bat`).    |
+| `startupTask.args`                      | array   | Command-line arguments array.                                        |
+| `startupTask.trigger`                   | string  | Trigger constraint (default: `AtLogon` for GUI, `AtStartup` for S0). |
+| `startupTask.delay`                     | string  | Delay before launch in ISO 8601 duration (default: `PT1M` = 1 min).  |
+| `packageManager.provider`               | string  | Package manager CLI (`winget` or `choco`).                           |
+| `packageManager.allowOfflineFallback`   | boolean | Scans `.\installers` for offline installers.                         |
+| `packageManager.localInstallersPath`    | string  | Folder path for offline installers.                                  |
+| `packageManager.apps`                   | array   | Package IDs or Chocolatey package names.                             |
+| `windows.disableScreensaver`            | boolean | Disables lockscreen, sleep, and screensavers.                        |
+| `windows.disableAccessibilityShortcuts` | boolean | Blocks Shift-key accessibility triggers.                             |
+| `windows.disableEdgeSwipes`             | boolean | Disables touch swipes from monitor edges.                            |
+| `windows.disableTouchFeedback`          | boolean | Disables visual touch pointer indicators.                            |
+| `windows.disableSystemSounds`           | boolean | Disables system-event audio alerts.                                  |
+| `windows.disableWindowsUpdate`          | boolean | Disables Windows Update service and tasks.                           |
+| `windows.disableWindowsWidgets`         | boolean | Disables widgets and news feeds from taskbar.                        |
+| `windows.disableCopilotRecall`          | boolean | Disables Windows Copilot and Recall tracking.                        |
+| `windows.disableOOBEPrompts`            | boolean | Blocks post-update setup prompts.                                    |
+| `windows.clearDesktopIcons`             | boolean | Removes default shortcuts from public desktop.                       |
+| `windows.solidColorBackground`          | string  | Sets desktop solid background hex color (e.g. `#333333`).            |
+| `windows.enableDarkMode`                | boolean | Forces dark theme across Windows UI.                                 |
+| `windows.configureExplorer`             | boolean | Shows file extensions, hidden files, and simplifies layout.          |
+| `windows.disableAppInstalls`            | boolean | Blocks Store background app installs.                                |
+| `windows.disableAppRestore`             | boolean | Blocks automatic AppX restoration.                                   |
+| `windows.disableErrorReporting`         | boolean | Disables Windows error popup reporting.                              |
+| `windows.disableFirewall`               | boolean | Disables Windows Defender Firewall rules.                            |
+| `windows.disableMaxPathLength`          | boolean | Extends NTFS 260 character path limit.                               |
+| `windows.disableNewNetworkWindow`       | boolean | Disables overlay network panel flyouts.                              |
+| `windows.disableNotifications`          | boolean | Disables Action Center notifications.                                |
+| `windows.disableTouchGestures`          | boolean | Disables multi-finger touch controls.                                |
+| `windows.enableScriptExecution`         | boolean | Sets PowerShell execution policy to RemoteSigned.                    |
+| `windows.resetTextScale`                | boolean | Resets display text scaling to 100%.                                 |
+| `windows.uninstallBloatware`            | boolean | Uninstalls bundled UWP consumer bloatware.                           |
+| `windows.uninstallOneDrive`             | boolean | Uninstalls and removes OneDrive.                                     |
+| `windows.unpinStartMenuApps`            | boolean | Clears pinned default apps from Start menu.                          |
+| `windows.setPowerSettings`              | boolean | Sets power plan to High Performance.                                 |
 
 </details>
 
