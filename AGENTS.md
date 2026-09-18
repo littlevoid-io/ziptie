@@ -13,21 +13,23 @@ It supports air-gapped environments via local offline installers (`installers/`)
 - Run `npm run package` to compile the standalone binary (`dist/ziptie.exe`) and zip archive (`dist/ziptie.zip`).
 - Use simple native commands from the shell; invoke PowerShell explicitly (`powershell -Command "..."`) when executing scripts or cmdlets.
 
-## Build and test commands
+## Verification matrix
 
-Run all of these before treating a change as finished — all must be clean:
+Select the minimal verification tier matching `git diff --name-only`:
 
-```sh
-npm run format:check  # prettier --check . (npm run format to write)
-npm run build         # bundle CLI into dist/index.js
-npm test              # bun test (unit/cli) + pester tests
-```
+| Tier | Change scope | Applicable files | Required commands |
+|---|---|---|---|
+| **0** | Docs & non-runtime | `*.md`, `installers/**`, assets, `.gitignore` | None. Skip all builds and tests. |
+| **1** | CLI TypeScript logic | `src/**`, `test/cli.test.ts`, `test/unit/**` | `bun test test/unit` or `npm run test:cli` |
+| **2** | PowerShell scripts | `scripts/**/*.ps1`, `test/*.Tests.ps1` | `npm run test:pester` |
+| **3** | Full build & test gate | Orchestrator, schema, pre-PR | `npm run build ; npm test ; npm run format:check` |
+| **4** | Guest OS sandbox | OS hardening policies, logon tasks | `npm run sandbox:local` (on explicit request only) |
 
-To test OS configuration or guest behavior in an isolated environment:
+### Verification rules
 
-- `npm run sandbox` packages the project and launches an interactive Windows Sandbox.
-- `npm run sandbox:local` runs the automated sandbox verification suite (`test/run-sandbox-tests.ps1`) in the guest.
-- `npm run sandbox:remote` tests the remote cloud bootstrap script in a clean sandbox.
+- **Fast-path exemption:** Never run tests or builds when touching only Tier 0 files.
+- **Language isolation:** Run Bun unit tests for TypeScript changes (`npm run test:unit`); run Pester for PowerShell script changes (`npm run test:pester`). Do not run the full suite for single-language changes.
+- **Sandbox ban:** Never run `npm run sandbox` or `npm run sandbox:local` automatically; these launch active Windows Sandbox instances and require explicit user instructions.
 
 ## Code style guidelines
 
@@ -58,6 +60,6 @@ To test OS configuration or guest behavior in an isolated environment:
 ## PR instructions
 
 - Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `refactor:`, `docs:`, `chore:`) with the subject strictly under 50 characters: `<type>(<scope>): <subject>`. Verbose details go into the commit body.
-- Run the full gate (`npm test`, `npm run format:check`, `npm run build`) before committing.
+- Run the appropriate tier from the verification matrix before committing.
 - Keep commits scoped to one logical change; split unrelated fixes into separate commits.
 - Strict local execution: Never push local commits or branches to remote upstream repositories (`git push` is forbidden for AI agents).
